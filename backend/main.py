@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from supabase import create_client
 from anthropic import Anthropic
 from dotenv import load_dotenv
+from quiz import generate_mcq, evaluate_answer
 import chromadb
 import os
 
@@ -91,3 +92,15 @@ Question: {question}"""
         "badge": "Verified from ICAI textbook" if verified else "AI generated",
         "student": student_name
     }
+
+@app.get("/quiz/generate")
+def get_quiz(namespace: str = "ca_f_acc_ch1_s2", concept: str = "Going Concern", n_questions: int = 5):
+    quiz = generate_mcq(namespace=namespace, concept=concept, n_questions=n_questions)
+    if quiz:
+        return quiz
+    return {"error": "Could not generate quiz. Try again."}
+
+@app.post("/quiz/answer")
+def check_answer(question: str, student_answer: str, correct_answer: str, explanation: str):
+    result = evaluate_answer(question, student_answer, correct_answer, explanation)
+    return result
