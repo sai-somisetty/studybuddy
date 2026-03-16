@@ -1,0 +1,66 @@
+{
+    "stream": "CA",
+    "level": "Foundation",
+    "subjects": [
+      {
+        "subject_id": "CA_F_ACC",
+        "name": "Accounting",
+        "chapters": [
+          {
+            "chapter_id": "CA_F_ACC_CH1",
+            "name": "Introduction to Accounting",
+            "subchapters": [
+              {
+                "subchapter_id": "CA_F_ACC_CH1_S1",
+                "name": "Meaning and Scope",
+                "namespace": "ca_f_acc_ch1_s1",
+                "concepts": ["Definition of Accounting", "Objectives of Accounting"]
+              },
+              {
+                "subchapter_id": "CA_F_ACC_CH1_S2",
+                "name": "Accounting Assumptions",
+                "namespace": "ca_f_acc_ch1_s2",
+                "concepts": ["Going Concern", "Consistency", "Accrual"]
+              }
+            ]
+          },
+          {
+            "chapter_id": "CA_F_ACC_CH2",
+            "name": "Depreciation",
+            "subchapters": [
+              {
+                "subchapter_id": "CA_F_ACC_CH2_S1",
+                "name": "Meaning and Methods",
+                "namespace": "ca_f_acc_ch2_s1",
+                "concepts": ["Meaning of Depreciation", "Straight Line Method", "Written Down Value Method"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "subject_id": "CA_F_LAW",
+        "name": "Business Law",
+        "chapters": [
+          {
+            "chapter_id": "CA_F_LAW_CH1",
+            "name": "Indian Contract Act 1872",
+            "subchapters": [
+              {
+                "subchapter_id": "CA_F_LAW_CH1_S1",
+                "name": "Offer and Acceptance",
+                "namespace": "ca_f_law_ch1_s1",
+                "concepts": ["Offer", "Acceptance", "Counter Offer"]
+              },
+              {
+                "subchapter_id": "CA_F_LAW_CH1_S2",
+                "name": "Capacity to Contract",
+                "namespace": "ca_f_law_ch1_s2",
+                "concepts": ["Minor's Contract", "Person of Unsound Mind"]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
