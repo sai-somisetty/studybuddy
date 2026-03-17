@@ -1,14 +1,25 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from supabase import create_client
 from anthropic import Anthropic
 from dotenv import load_dotenv
 from quiz import generate_mcq, evaluate_answer
 import chromadb
 import os
+import json
 
 load_dotenv()
 
 app = FastAPI()
+
+# Allow frontend to call backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://192.168.1.6:3000", "*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 supabase = create_client(
     os.getenv("SUPABASE_URL"),
@@ -103,4 +114,37 @@ def get_quiz(namespace: str = "ca_f_acc_ch1_s2", concept: str = "Going Concern",
 @app.post("/quiz/answer")
 def check_answer(question: str, student_answer: str, correct_answer: str, explanation: str):
     result = evaluate_answer(question, student_answer, correct_answer, explanation)
+    return result
+
+@app.post("/evaluate")
+async def evaluate_typed_answer(request: dict):
+    question     = request.get("question", "")
+    student_ans  = request.get("answer", "")
+    model_answer = request.get("model_answer", "")
+    marks        = request.get("marks", 5)
+
+    prompt = f"""You are SOMI — a CA/CMA exam evaluator.
+Question: {question}
+Total marks: {marks}
+Model answer: {model_answer}
+Student answer: {student_ans}
+
+Evaluate strictly. Return ONLY valid JSON — no preamble, no markdown:
+{{
+  "content_score": <number 0 to {marks}>,
+  "total_marks": {marks},
+  "what_correct": ["point 1", "point 2"],
+  "what_missing": ["missing 1", "missing 2"],
+  "mama_feedback": "one encouraging sentence with specific advice",
+  "model_answer": "{model_answer}"
+}}"""
+
+    response = claude.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=500,
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    text = response.content[0].text.strip()
+    result = json.loads(text)
     return result

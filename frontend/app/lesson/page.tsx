@@ -1,14 +1,15 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 
 function BottomNav({ active }: { active: string }) {
   const router = useRouter();
   const items = [
-    { label:"Home",     path:"/home"     },
-    { label:"Study",    path:"/lesson"   },
-    { label:"Quiz",     path:"/quiz"     },
-    { label:"Progress", path:"/progress" },
+    { label:"Home",     path:"/home"      },
+    { label:"Study",    path:"/subject/1" },
+    { label:"Quiz",     path:"/quiz"      },
+    { label:"Progress", path:"/progress"  },
   ];
   return (
     <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, background:"#fff", borderTop:"0.5px solid rgba(0,0,0,0.06)", padding:"10px 20px 20px", display:"flex", justifyContent:"space-around", zIndex:100 }}>
@@ -26,8 +27,31 @@ function BottomNav({ active }: { active: string }) {
 
 export default function Lesson() {
   const router = useRouter();
+  const [question, setQuestion] = useState("");
+  const [answer,   setAnswer]   = useState("");
+  const [asking,   setAsking]   = useState(false);
+  const [history,  setHistory]  = useState<{q:string, a:string}[]>([]);
+
+  const handleAsk = async () => {
+    if (!question.trim() || asking) return;
+    const q = question.trim();
+    setQuestion("");
+    setAsking(true);
+    try {
+      const res  = await fetch(`http://localhost:8000/ask?question=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      const ans  = data.answer || data.message || "Mama could not find an answer. Try rephrasing.";
+      setHistory(prev => [...prev, { q, a: ans }]);
+    } catch {
+      setHistory(prev => [...prev, { q, a: "Mama is offline. Please check your connection." }]);
+    }
+    setAsking(false);
+  };
+
   return (
     <div className="app-shell">
+
+      {/* Header */}
       <div style={{ background:"#0A2E28", padding:"18px 24px 16px" }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
           <button onClick={() => router.back()}
@@ -44,7 +68,10 @@ export default function Lesson() {
         <div style={{ fontSize:9, color:"rgba(255,255,255,0.4)", marginTop:4 }}>2 of 6 concepts</div>
       </div>
 
-      <div style={{ flex:1, padding:"16px 20px 160px", display:"flex", flexDirection:"column", gap:12 }}>
+      {/* Content */}
+      <div style={{ flex:1, padding:"16px 20px 200px", display:"flex", flexDirection:"column", gap:12, overflowY:"auto" }}>
+
+        {/* ICAI Definition */}
         <motion.div initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }}
           style={{ background:"#fff", borderRadius:16, padding:16, border:"0.5px solid #E1F5EE" }}>
           <div style={{ background:"#E1F5EE", color:"#085041", fontSize:10, fontWeight:700, padding:"3px 10px", borderRadius:20, display:"inline-block", marginBottom:8 }}>ICAI Definition</div>
@@ -52,6 +79,7 @@ export default function Lesson() {
           <div style={{ fontSize:10, color:"#A89880", marginTop:8 }}>Chapter 1 · Page 12 · Para 3.1</div>
         </motion.div>
 
+        {/* Kitty asks */}
         <motion.div initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.1 }}
           style={{ background:"linear-gradient(135deg,#FFF7ED,#FFEDD5)", borderRadius:16, padding:14, border:"0.5px solid rgba(230,126,34,0.15)" }}>
           <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
@@ -66,6 +94,7 @@ export default function Lesson() {
           </div>
         </motion.div>
 
+        {/* Mama answers */}
         <motion.div initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.18 }}
           style={{ background:"linear-gradient(135deg,#F0FDF4,#DCFCE7)", borderRadius:16, padding:14, border:"0.5px solid rgba(22,101,52,0.15)" }}>
           <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
@@ -80,6 +109,44 @@ export default function Lesson() {
           </div>
         </motion.div>
 
+        {/* Chat history — previous Ask Mama questions */}
+        <AnimatePresence>
+          {history.map((item, i) => (
+            <motion.div key={i}
+              initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }}
+              style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {/* Student question bubble */}
+              <div style={{ display:"flex", justifyContent:"flex-end" }}>
+                <div style={{ background:"#0A2E28", color:"#fff", fontSize:12, padding:"10px 14px", borderRadius:"16px 16px 4px 16px", maxWidth:"80%", lineHeight:1.5 }}>
+                  {item.q}
+                </div>
+              </div>
+              {/* Mama answer bubble */}
+              <div style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
+                <div style={{ width:28, height:28, borderRadius:8, background:"#E67E22", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  <span style={{ fontSize:8, fontWeight:700, color:"#fff" }}>M</span>
+                </div>
+                <div style={{ background:"#fff", border:"0.5px solid #E1F5EE", fontSize:12, padding:"10px 14px", borderRadius:"4px 16px 16px 16px", flex:1, lineHeight:1.6, color:"#1A1208" }}>
+                  {item.a}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+
+        {/* Asking indicator */}
+        {asking && (
+          <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+            <div style={{ width:28, height:28, borderRadius:8, background:"#E67E22", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <span style={{ fontSize:8, fontWeight:700, color:"#fff" }}>M</span>
+            </div>
+            <div style={{ background:"#fff", border:"0.5px solid #E1F5EE", fontSize:12, padding:"10px 14px", borderRadius:"4px 16px 16px 16px", color:"#A89880" }}>
+              Mama is thinking...
+            </div>
+          </div>
+        )}
+
+        {/* Quiz CTA */}
         <motion.div initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.24 }}
           style={{ background:"#0A2E28", borderRadius:16, padding:14, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div>
@@ -91,16 +158,23 @@ export default function Lesson() {
             Start Quiz →
           </motion.button>
         </motion.div>
+
       </div>
 
-      {/* Ask Mama input — sits above bottom nav */}
-      <div style={{ position:"fixed", bottom:68, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, padding:"10px 20px", background:"#fff", borderTop:"0.5px solid rgba(0,0,0,0.06)", zIndex:99 }}>
+      {/* Ask Mama input — fixed above bottom nav */}
+      <div style={{ position:"fixed", bottom:68, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, padding:"10px 16px", background:"#fff", borderTop:"0.5px solid rgba(0,0,0,0.06)", zIndex:99 }}>
         <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-          <input placeholder="Ask Mama anything..."
-            style={{ flex:1, padding:"12px 16px", borderRadius:50, border:"0.5px solid #C8C0B4", background:"#FAFAF8", fontSize:13, color:"#1A1208", outline:"none" }} />
-          <div style={{ width:40, height:40, borderRadius:"50%", background:"#0A2E28", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }}>
-            <span style={{ color:"#fff", fontSize:14 }}>→</span>
-          </div>
+          <input
+            value={question}
+            onChange={e => setQuestion(e.target.value)}
+            onKeyDown={e => e.key==="Enter" && handleAsk()}
+            placeholder="Ask Mama anything..."
+            style={{ flex:1, padding:"12px 16px", borderRadius:50, border:"0.5px solid #C8C0B4", background:"#FAFAF8", fontSize:13, color:"#1A1208", outline:"none" }}
+          />
+          <motion.div whileTap={{ scale:0.9 }} onClick={handleAsk}
+            style={{ width:40, height:40, borderRadius:"50%", background: question.trim()?"#0A2E28":"#C8C0B4", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, transition:"background 0.2s" }}>
+            <span style={{ color:"#fff", fontSize:14 }}>{asking?"⏳":"→"}</span>
+          </motion.div>
         </div>
       </div>
 
