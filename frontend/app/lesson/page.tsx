@@ -38,7 +38,7 @@ export default function Lesson() {
     setQuestion("");
     setAsking(true);
     try {
-      const res  = await fetch(`http://localhost:8000/ask?question=${encodeURIComponent(q)}`);
+      const res  = await fetch(`https://studybuddy-production-7776.up.railway.app/ask?question=${encodeURIComponent(q)}`);
       const data = await res.json();
       const ans  = data.answer || data.message || "Mama could not find an answer. Try rephrasing.";
       setHistory(prev => [...prev, { q, a: ans }]);

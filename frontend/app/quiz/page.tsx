@@ -107,7 +107,7 @@ export default function Quiz() {
   const handleEvaluate = async () => {
     setEvaluating(true);
     try {
-      const res = await fetch("http://localhost:8000/evaluate", {
+      const res = await fetch("https://studybuddy-production-7776.up.railway.app/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
