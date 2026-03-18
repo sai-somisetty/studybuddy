@@ -75,7 +75,7 @@ export default function Progress() {
         {[
           { label:"Home",     active:false, path:"/home"     },
           { label:"Study",    active:false, path:"/lesson"   },
-          { label:"Quiz",     active:false, path:"/quiz"     },
+          { label:"Exams",    active:false, path:"/exams"     },
           { label:"Progress", active:true,  path:"/progress" },
         ].map((item) => (
           <motion.div key={item.label} whileTap={{ scale:0.9 }}

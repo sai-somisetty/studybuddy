@@ -20,7 +20,7 @@ function BottomNav({ active }: { active:string }) {
       {[
         { label:"Home",     path:"/home"     },
         { label:"Study",    path:"/subject/1"},
-        { label:"Quiz",     path:"/quiz"     },
+        { label:"Exams",     path:"/exams"     },
         { label:"Progress", path:"/progress" },
       ].map((item) => (
         <motion.div key={item.label} whileTap={{ scale:0.9 }}

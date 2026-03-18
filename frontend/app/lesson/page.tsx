@@ -8,7 +8,7 @@ function BottomNav({ active }: { active: string }) {
   const items = [
     { label:"Home",     path:"/home"      },
     { label:"Study",    path:"/subject/1" },
-    { label:"Quiz",     path:"/quiz"      },
+    { label:"Exams",     path:"/exams"      },
     { label:"Progress", path:"/progress"  },
   ];
   return (

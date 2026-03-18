@@ -123,7 +123,7 @@ export default function Home() {
         {[
           { label:"Home",     active:true,  path:"/home"     },
           { label:"Study",    active:false, path:"/subject/1"},
-          { label:"Quiz",     active:false, path:"/quiz"     },
+          { label:"Exams",    active:false, path:"/exams"     },
           { label:"Progress", active:false, path:"/progress" },
         ].map((item) => (
           <motion.div key={item.label} whileTap={{ scale:0.9 }}

@@ -18,7 +18,7 @@ function BottomNav({ active }: { active: string }) {
   const items = [
     { label:"Home",     path:"/home"     },
     { label:"Study",    path:"/lesson"   },
-    { label:"Quiz",     path:"/quiz"     },
+    { label:"Exams",     path:"/exams"     },
     { label:"Progress", path:"/progress" },
   ];
   return (

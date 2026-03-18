@@ -76,7 +76,7 @@ function BottomNav({ active }: { active:string }) {
       {[
         { label:"Home",     path:"/home"      },
         { label:"Study",    path:"/subject/1" },
-        { label:"Quiz",     path:"/quiz"      },
+        { label:"Exams",     path:"/exams"      },
         { label:"Progress", path:"/progress"  },
       ].map((item) => (
         <motion.div key={item.label} whileTap={{ scale:0.9 }}
@@ -204,7 +204,7 @@ export default function Quiz() {
             </motion.button>
           </div>
         </div>
-        <BottomNav active="Quiz" />
+        <BottomNav active="Exams" />
       </div>
     );
   }
@@ -281,7 +281,7 @@ export default function Quiz() {
             <div style={{ background:"#FFF7ED", color:"#E67E22", fontSize:10, fontWeight:700, padding:"3px 10px", borderRadius:20 }}>Soon</div>
           </div>
         </div>
-        <BottomNav active="Quiz" />
+        <BottomNav active="Exams" />
       </div>
     );
   }
@@ -348,7 +348,7 @@ export default function Quiz() {
             </motion.button>
           </motion.div>
         )}
-        <BottomNav active="Quiz" />
+        <BottomNav active="Exams" />
       </div>
     );
   }
@@ -474,7 +474,7 @@ export default function Quiz() {
           )}
         </div>
 
-        <BottomNav active="Quiz" />
+        <BottomNav active="Exams" />
       </div>
     );
   }
