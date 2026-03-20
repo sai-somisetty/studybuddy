@@ -3,7 +3,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState, useEffect, Suspense } from "react";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API = process.env.NEXT_PUBLIC_API_URL || "https://studybuddy-production-7776.up.railway.app";
 
 const MODES = [
   {
@@ -84,7 +84,7 @@ function QuizContent() {
   const [current,    setCurrent]    = useState(0);
   const [answers,    setAnswers]    = useState<Record<string, string>>({});
   const [showResult, setShowResult] = useState(false);
-  const [loading,    setLoading]    = useState(false);
+  const [loading,    setLoading]    = useState(!!initMode);
 
   useEffect(() => {
     if (!mode) return;
