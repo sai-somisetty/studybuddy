@@ -8,7 +8,7 @@ function BottomNav({ active }: { active: string }) {
     <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, background:"#fff", borderTop:"0.5px solid rgba(0,0,0,0.06)", padding:"10px 20px 20px", display:"flex", justifyContent:"space-around", zIndex:100 }}>
       {[
         { label:"Home",     path:"/home"     },
-        { label:"Study",    path:"/subject/1"},
+        { label:"Study",    path:"/subject/cma_f_law"},
         { label:"Exams",    path:"/exams"    },
         { label:"Progress", path:"/progress" },
       ].map((item) => (

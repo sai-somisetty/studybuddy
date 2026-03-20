@@ -149,7 +149,7 @@ export default function Home() {
       <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, background:"#fff", borderTop:"0.5px solid rgba(0,0,0,0.06)", padding:"10px 20px 20px", display:"flex", justifyContent:"space-around", zIndex:100 }}>
         {[
           { label:"Home",     active:true,  path:"/home"      },
-          { label:"Study",    active:false, path:"/subject/1" },
+          { label:"Study",    active:false, path:"/subject/cma_f_law" },
           { label:"Exams",    active:false, path:"/exams"     },
           { label:"Progress", active:false, path:"/progress"  },
         ].map((item) => (

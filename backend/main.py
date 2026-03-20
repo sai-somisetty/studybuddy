@@ -57,7 +57,7 @@ def register(name: str, stream: str, exam_date: str, city: str):
 
 @app.get("/ask")
 def ask(question: str,
-        namespace: str = "ca_f_acc_ch1_s2",
+        namespace: str = "cma_f_law_ch1_s1",
         student_name: str = "Student"):
     rag_context    = ""
     source_display = ""
@@ -76,8 +76,8 @@ def ask(question: str,
     except Exception as e:
         print(f"RAG error: {e}")
 
-    prompt = f"""You are Study Buddy — AI companion for CA/CMA students.
-{f"Use this official content: {rag_context}" if rag_context else "Use ICAI material only."}
+    prompt = f"""You are SOMI — AI mentor for CA/CMA students.
+{f"Use this official ICAI content: {rag_context}" if rag_context else "Use ICAI/ICMAI official material only."}
 Answer in maximum 3 sentences. Be direct. No preamble.
 Student: {student_name}
 Question: {question}"""
@@ -100,8 +100,8 @@ Question: {question}"""
 # ── QUIZ ──
 
 @app.get("/quiz/generate")
-def get_quiz(namespace: str = "ca_f_acc_ch1_s2",
-             concept: str = "Going Concern",
+def get_quiz(namespace: str = "cma_f_law_ch1_s1",
+             concept: str = "Definition of Contract",
              n_questions: int = 5):
     quiz = generate_mcq(namespace=namespace,
                         concept=concept,
@@ -280,32 +280,67 @@ def get_questions(q_type: str, namespace: str, limit: int = 10):
         "has_questions": len(questions) > 0,
     }
 
+
 @app.post("/questions/ai-generate")
 async def ai_generate_questions(request: dict):
-    namespace = request.get("namespace", "ca_f_acc_ch1_s2")
-    concept   = request.get("concept",   "Going Concern")
+    namespace = request.get("namespace", "cma_f_law_ch1_s1")
+    concept   = request.get("concept",   "Definition of Contract")
     count     = request.get("count", 5)
     seed      = request.get("seed", 1)
+    mode      = request.get("mode", "ai")  # "ai" or "tweaked"
 
+    # ── STEP 1: Check Supabase cache first ──
+    try:
+        existing = supabase.table("questions")\
+            .select("*")\
+            .eq("namespace", namespace)\
+            .eq("concept",   concept)\
+            .eq("q_type",    mode)\
+            .eq("approved",  True)\
+            .limit(count * 2)\
+            .execute()
+
+        if existing.data and len(existing.data) >= 3:
+            print(f"✅ Serving cached {mode} questions for {concept}")
+            random.shuffle(existing.data)
+            return {
+                "questions": existing.data[:count],
+                "concept":   concept,
+                "generated": len(existing.data[:count]),
+                "source":    "cached",
+            }
+    except Exception as e:
+        print(f"DB check error: {e}")
+
+    # ── STEP 2: Get RAG context ──
     rag_context = ""
     try:
         col = chroma.get_collection(name=namespace)
-        res = col.query(query_texts=[concept], n_results=2)
+        res = col.query(query_texts=[concept], n_results=3)
         if res and res["documents"][0]:
-            rag_context = res["documents"][0][0]
+            rag_context = "\n".join(res["documents"][0])
     except Exception as e:
         print(f"RAG error: {e}")
 
-    prompt = f"""Generate {count} unique MCQ questions for CA/CMA exam.
+    # ── STEP 3: Build prompt based on mode ──
+    if mode == "tweaked":
+        prompt = f"""You are a CA/CMA exam question creator.
+
 Concept: {concept}
+ICAI Content: {rag_context or "Use standard ICAI/ICMAI knowledge"}
 Seed: {seed}
-ICAI content: {rag_context if rag_context else "Use standard ICAI knowledge"}
+
+Generate {count} TWEAKED MCQ questions.
 Rules:
-- ICAI official content only
-- 4 options each, one correct
-- Include one trap option
-- Cite ICAI source in explanation
-Return ONLY valid JSON array:
+- Same concept as textbook back questions
+- Change: names (use Indian names like Rahul, Priya, Arjun),
+  numbers, amounts, cities, scenarios
+- Keep: same concept being tested, same difficulty
+- Every option must be plausible
+- Include one trap option students commonly get wrong
+- Must be answerable from ICAI content only
+
+Return ONLY valid JSON array — no preamble no markdown:
 [{{
   "question_text": "...",
   "option_a": "...",
@@ -313,21 +348,103 @@ Return ONLY valid JSON array:
   "option_c": "...",
   "option_d": "...",
   "correct_option": "A/B/C/D",
-  "explanation": "...",
-  "icai_reference": "Ch X · Page Y",
-  "importance": "tier1/tier2/tier3"
+  "explanation": "Why correct + what the trap was",
+  "icai_reference": "Chapter X · Page Y",
+  "difficulty": "easy/medium/hard",
+  "concept": "{concept}"
 }}]"""
 
-    r = claude.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=2000,
-        messages=[{"role": "user", "content": prompt}]
-    )
-    questions = json.loads(r.content[0].text.strip())
+    else:  # ai mode — deep understanding
+        prompt = f"""You are a CA/CMA exam question creator.
+
+Concept: {concept}
+ICAI Content:
+{rag_context or "Use standard ICAI/ICMAI knowledge for this concept"}
+Seed: {seed}
+
+Generate {count} questions testing DEEP UNDERSTANDING.
+Rules:
+- Read the ICAI content line by line
+- Generate one question per key point or principle
+- Test APPLICATION not just definition recall
+- Use real Indian scenarios — shops, courts, family businesses, contracts
+- Questions students would NOT expect from textbook
+- Test edge cases, exceptions, and practical applications
+- Mix: 2 easy, 2 medium, 1 hard
+- Include one clever trap option per question
+
+Return ONLY valid JSON array — no preamble no markdown:
+[{{
+  "question_text": "...",
+  "option_a": "...",
+  "option_b": "...",
+  "option_c": "...",
+  "option_d": "...",
+  "correct_option": "A/B/C/D",
+  "explanation": "Detailed explanation citing ICAI principle",
+  "icai_reference": "Chapter X · Page Y",
+  "difficulty": "easy/medium/hard",
+  "concept": "{concept}"
+}}]"""
+
+    # ── STEP 4: Call Claude ──
+    try:
+        response = claude.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=3000,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        text = response.content[0].text.strip()
+        if "```" in text:
+            parts = text.split("```")
+            for part in parts:
+                part = part.strip()
+                if part.startswith("json"):
+                    part = part[4:]
+                part = part.strip()
+                if part.startswith("["):
+                    text = part
+                    break
+        questions = json.loads(text.strip())
+    except Exception as e:
+        print(f"Claude error: {e}")
+        return {"questions": [], "error": str(e), "generated": 0}
+
+    # ── STEP 5: Store in Supabase for future use ──
+    ns_parts = namespace.split("_")
+    stored   = 0
+    for q in questions:
+        try:
+            supabase.table("questions").insert({
+                "course":         ns_parts[0] if len(ns_parts) > 0 else "cma",
+                "level_name":     "foundation",
+                "subject":        ns_parts[2] if len(ns_parts) > 2 else "law",
+                "namespace":      namespace,
+                "concept":        concept,
+                "q_type":         mode,
+                "question_text":  q.get("question_text", ""),
+                "option_a":       q.get("option_a", ""),
+                "option_b":       q.get("option_b", ""),
+                "option_c":       q.get("option_c", ""),
+                "option_d":       q.get("option_d", ""),
+                "correct_option": q.get("correct_option", "A"),
+                "explanation":    q.get("explanation", ""),
+                "icai_reference": q.get("icai_reference", ""),
+                "importance":     "tier2",
+                "approved":       True,
+            }).execute()
+            stored += 1
+        except Exception as e:
+            print(f"Store error: {e}")
+
+    print(f"✅ Generated and stored {stored} {mode} questions for {concept}")
+
     return {
         "questions": questions,
         "concept":   concept,
         "generated": len(questions),
+        "stored":    stored,
+        "source":    "generated",
     }
 
 
@@ -350,7 +467,7 @@ async def generate_exam(request: dict):
     all_questions = []
 
     for chapter in chapters:
-        namespace = f"ca_f_acc_ch{chapter}_s1"
+        namespace = f"cma_f_law_ch{chapter}_s1"
         per       = max(1, len(chapters))
 
         # Previous papers
@@ -388,14 +505,15 @@ async def generate_exam(request: dict):
     ai_needed = config["total"] - len(all_questions)
     if ai_needed > 0 and chapters:
         ai_r = await ai_generate_questions({
-            "namespace": f"ca_f_acc_ch{chapters[0]}_s1",
+            "namespace": f"cma_f_law_ch{chapters[0]}_s1",
             "concept":   subject,
             "count":     ai_needed,
             "seed":      paper_num,
+            "mode":      "ai",
         })
-        for q in ai_r["questions"]:
+        for q in ai_r.get("questions", []):
             q["source_type"] = "ai_generated"
-        all_questions.extend(ai_r["questions"])
+        all_questions.extend(ai_r.get("questions", []))
 
     random.shuffle(all_questions)
     return {
