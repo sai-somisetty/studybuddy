@@ -1,3 +1,13 @@
 .env
 venv/
 __pycache__/
+
+# Backend PDFs
+backend/*.pdf
+
+# ChromaDB data
+backend/chromadb_data/
+
+# Seeded and progress JSON files
+backend/seeded_*.json
+backend/progress_*.json
