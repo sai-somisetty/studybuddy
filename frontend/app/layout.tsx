@@ -14,7 +14,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="version" content="1.1.0" />
+        <meta name="version" content="1.2.0" />
         <link
           href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
           rel="stylesheet"
@@ -22,20 +22,51 @@ export default function RootLayout({
       </head>
       <body className="bg-ivory font-sans antialiased">
         {children}
-        {/* Nuke any rogue service workers and clear old caches */}
+        {/* Nuke ALL service workers, clear ALL caches, force fresh load */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(regs) {
-                  regs.forEach(function(r) { r.unregister(); });
-                });
-              }
-              if ('caches' in window) {
-                caches.keys().then(function(names) {
-                  names.forEach(function(n) { caches.delete(n); });
-                });
-              }
+              (function() {
+                var CURRENT_VERSION = '1.2.0';
+                var needsReload = false;
+
+                // 1. Unregister every service worker
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(function(regs) {
+                    for (var i = 0; i < regs.length; i++) {
+                      regs[i].unregister();
+                      needsReload = true;
+                    }
+                    // 2. Delete every cache in CacheStorage
+                    if ('caches' in window) {
+                      caches.keys().then(function(names) {
+                        var p = [];
+                        for (var j = 0; j < names.length; j++) {
+                          p.push(caches.delete(names[j]));
+                        }
+                        Promise.all(p).then(function() {
+                          // 3. If we killed a SW, reload once to escape its fetch handler
+                          if (needsReload) {
+                            window.location.reload();
+                          }
+                        });
+                      });
+                    } else if (needsReload) {
+                      window.location.reload();
+                    }
+                  });
+                }
+
+                // 4. Version gate — if browser has old version cached, hard reload
+                try {
+                  var lastVersion = localStorage.getItem('somi_app_version');
+                  if (lastVersion && lastVersion !== CURRENT_VERSION) {
+                    localStorage.setItem('somi_app_version', CURRENT_VERSION);
+                    window.location.reload();
+                  }
+                  localStorage.setItem('somi_app_version', CURRENT_VERSION);
+                } catch(e) {}
+              })();
             `,
           }}
         />
