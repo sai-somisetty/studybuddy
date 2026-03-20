@@ -4,6 +4,7 @@ from supabase import create_client
 from anthropic import Anthropic
 from dotenv import load_dotenv
 from quiz import generate_mcq, evaluate_answer
+from backup import run_backup
 import chromadb
 import os
 import json
@@ -678,3 +679,11 @@ async def mark_fixed(report_id: str, request: dict):
         "fixed_at": datetime.now().isoformat(),
     }).eq("id", report_id).execute()
     return {"status": "fixed"}
+
+
+# ── BACKUP ──
+
+@app.get("/backup/run")
+def backup_tables():
+    files = run_backup()
+    return {"status": "complete", "files": files, "total": len(files)}

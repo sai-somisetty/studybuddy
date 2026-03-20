@@ -11,3 +11,6 @@ backend/chromadb_data/
 # Seeded and progress JSON files
 backend/seeded_*.json
 backend/progress_*.json
+
+# Backup files
+backend/backups/
