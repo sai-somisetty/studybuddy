@@ -1,14 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Unique build ID so browsers can detect new deployments
+  // Unique build ID per deploy — forces new chunk URLs
   generateBuildId: async () => {
-    return `build-${Date.now()}`;
+    return `v${Date.now()}`;
   },
   headers: async () => [
     {
-      // All HTML pages — never cache
-      source: "/(.*)",
+      // HTML pages and RSC payloads — never cache
+      source: "/:path((?!_next/static|_next/image|favicon\\.ico).*)",
       headers: [
         { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
         { key: "Pragma", value: "no-cache" },
@@ -16,10 +16,11 @@ const nextConfig: NextConfig = {
       ],
     },
     {
-      // Static assets (_next/static) — cache aggressively (hashed filenames)
-      source: "/_next/static/(.*)",
+      // RSC data requests — never cache
+      source: "/:path*",
+      has: [{ type: "header", key: "rsc" }],
       headers: [
-        { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
       ],
     },
   ],
