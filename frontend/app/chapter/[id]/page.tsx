@@ -321,7 +321,7 @@ export default function ChapterPage({
         <div style={{ color:"#0A2E28" }}>Loading...</div>
       </div>
     }>
-      <ChapterContent pageId={id} />
+      <ChapterContent key={id} pageId={id} />
     </Suspense>
   );
 }

@@ -39,6 +39,7 @@ function BottomNav({ active }: { active: string }) {
 
 function SubjectContent({ pageId }: { pageId: string }) {
   const router = useRouter();
+  const [ready, setReady] = useState(false);
   const [subject, setSubject] = useState<any>(null);
 
   useEffect(() => {
@@ -53,9 +54,10 @@ function SubjectContent({ pageId }: { pageId: string }) {
                 || subjects[parseInt(pageId) - 1]
                 || subjects[0];
     setSubject(found);
+    setReady(true);
   }, [pageId]);
 
-  if (!subject) return (
+  if (!ready || !subject) return (
     <div className="app-shell" style={{ display:"flex", alignItems:"center", justifyContent:"center" }}>
       <div style={{ color:"#0A2E28", fontSize:16 }}>Loading...</div>
     </div>
@@ -143,7 +145,7 @@ export default function SubjectPage({
         <div style={{ color:"#0A2E28", fontSize:16 }}>Loading...</div>
       </div>
     }>
-      <SubjectContent pageId={id} />
+      <SubjectContent key={id} pageId={id} />
     </Suspense>
   );
 }
