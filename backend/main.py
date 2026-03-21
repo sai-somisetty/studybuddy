@@ -681,6 +681,121 @@ async def mark_fixed(report_id: str, request: dict):
     return {"status": "fixed"}
 
 
+# ── LESSON CONTENT ──
+
+@app.post("/lesson/content")
+async def lesson_content(request: dict):
+    namespace = request.get("namespace", "cma_f_law_ch1_s1")
+    concept   = request.get("concept",   "Definition of Contract")
+
+    # ── STEP 1: Check Supabase cache ──
+    try:
+        cached = supabase.table("lesson_content")\
+            .select("*")\
+            .eq("namespace", namespace)\
+            .eq("concept",   concept)\
+            .limit(1).execute()
+
+        if cached.data and len(cached.data) > 0:
+            print(f"✅ Serving cached lesson for {concept}")
+            return {
+                "sections": json.loads(cached.data[0].get("sections", "[]")),
+                "concept":  concept,
+                "source":   "cached",
+            }
+    except Exception as e:
+        print(f"Lesson cache check error: {e}")
+
+    # ── STEP 2: Get RAG context from ChromaDB ──
+    rag_context = ""
+    try:
+        col = chroma.get_collection(name=namespace)
+        res = col.query(query_texts=[concept], n_results=5)
+        if res and res["documents"][0]:
+            rag_context = "\n\n".join(res["documents"][0])
+    except Exception as e:
+        print(f"Lesson RAG error: {e}")
+
+    # ── STEP 3: Call Claude ──
+    prompt = f"""You are SOMI lesson creator for CMA Foundation students.
+Concept: {concept}
+ICMAI Content:
+{rag_context or "Use standard ICMAI/ICMAI official material for this concept."}
+
+Create 3-5 lesson sections for this concept.
+Each section covers one key point.
+
+Rules:
+- icmai_quote must be EXACT text from ICMAI content provided
+- mama_explain must use real Indian companies: Infosys, Tata, Amul, SBI, Zomato, Wipro, Maruti etc
+- kitty_ask must be in Tenglish mixing Telugu and English naturally
+- check_question must test understanding of that specific section
+- exam_tip must mention marks and what examiner looks for
+- check_answer is the index (0-3) of the correct option in check_options
+
+Return ONLY valid JSON with this structure — no preamble no markdown:
+{{
+  "sections": [
+    {{
+      "id": "s1",
+      "title": "section title",
+      "icmai_quote": "exact text from ICMAI book",
+      "icmai_ref": "Chapter X, Page Y",
+      "mama_explain": "explanation with real Indian company example",
+      "real_example": "specific company name and scenario",
+      "exam_tip": "what examiner expects and marks",
+      "kitty_ask": "confused student question in Tenglish",
+      "check_question": "MCQ question text",
+      "check_options": ["option A", "option B", "option C", "option D"],
+      "check_answer": 0,
+      "check_explanation": "why correct answer is right"
+    }}
+  ]
+}}"""
+
+    try:
+        response = claude.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=4000,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        text = response.content[0].text.strip()
+
+        # Strip markdown fences if present
+        if "```" in text:
+            for part in text.split("```"):
+                part = part.strip()
+                if part.startswith("json"):
+                    part = part[4:]
+                part = part.strip()
+                if part.startswith("{"):
+                    text = part
+                    break
+
+        data = json.loads(text)
+        sections = data.get("sections", [])
+    except Exception as e:
+        print(f"Lesson Claude error: {e}")
+        return {"sections": [], "error": str(e), "source": "error"}
+
+    # ── STEP 4: Cache in Supabase ──
+    try:
+        supabase.table("lesson_content").insert({
+            "namespace": namespace,
+            "concept":   concept,
+            "sections":  json.dumps(sections),
+        }).execute()
+        print(f"✅ Cached lesson for {concept} ({len(sections)} sections)")
+    except Exception as e:
+        print(f"Lesson cache store error: {e}")
+
+    return {
+        "sections": sections,
+        "concept":  concept,
+        "source":   "generated",
+    }
+
+
 # ── BACKUP ──
 
 @app.get("/backup/run")

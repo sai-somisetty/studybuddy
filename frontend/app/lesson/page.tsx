@@ -83,7 +83,8 @@ function LessonContent() {
   const chapter   = params.get("chapter")   || "Chapter 1";
 
   // State
-  const [sections]                      = useState<Section[]>(() => generateSections(concept, chapter));
+  const [sections,       setSections]       = useState<Section[]>([]);
+  const [lessonLoading,  setLessonLoading]  = useState(true);
   const [currentSection, setCurrentSection] = useState(0);
   const [showCheck,      setShowCheck]      = useState(false);
   const [checkAnswer,    setCheckAnswer]    = useState<number | null>(null);
@@ -95,13 +96,54 @@ function LessonContent() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const sec = sections[currentSection];
-  const progress = ((currentSection + 1) / sections.length) * 100;
+  const progress = sections.length > 0 ? ((currentSection + 1) / sections.length) * 100 : 0;
+
+  // Fetch lesson content from API on mount
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchLesson() {
+      setLessonLoading(true);
+      try {
+        const res = await fetch(`${API}/lesson/content`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ namespace, concept }),
+        });
+        const data = await res.json();
+        if (cancelled) return;
+        if (data.sections && data.sections.length > 0) {
+          setSections(data.sections.map((s: any, i: number) => ({
+            id:               s.id || `s${i + 1}`,
+            title:            s.title || concept,
+            icaiQuote:        s.icmai_quote || "",
+            icaiRef:          s.icmai_ref || "",
+            mamaExplain:      s.mama_explain || "",
+            examTip:          s.exam_tip || "",
+            kittyAsk:         s.kitty_ask || getKittyLine(i),
+            checkQuestion:    s.check_question || "",
+            checkOptions:     s.check_options || ["A", "B", "C", "D"],
+            checkAnswer:      typeof s.check_answer === "number" ? s.check_answer : 0,
+            checkExplanation: s.check_explanation || "",
+          })));
+        } else {
+          setSections(generateSections(concept, chapter));
+        }
+      } catch {
+        if (!cancelled) setSections(generateSections(concept, chapter));
+      } finally {
+        if (!cancelled) setLessonLoading(false);
+      }
+    }
+    fetchLesson();
+    return () => { cancelled = true; };
+  }, [namespace, concept]);
 
   // Show kitty after 3 seconds
   useEffect(() => {
+    if (lessonLoading) return;
     const t = setTimeout(() => setKittyVisible(true), 3000);
     return () => clearTimeout(t);
-  }, [currentSection]);
+  }, [currentSection, lessonLoading]);
 
   // Scroll chat
   useEffect(() => {
@@ -153,6 +195,43 @@ function LessonContent() {
       setKittyVisible(false);
     }
   };
+
+  // ── LOADING STATE ──
+  if (lessonLoading || sections.length === 0) {
+    return (
+      <div className="app-shell">
+        <div style={{ background:"#0A2E28", padding:"14px 20px 12px" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <button onClick={() => router.back()}
+              style={{ background:"rgba(255,255,255,0.1)", border:"none", borderRadius:8, padding:"6px 12px", fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.7)", cursor:"pointer" }}>
+              ← Back
+            </button>
+          </div>
+          <div style={{ fontFamily:"Georgia,serif", fontSize:17, fontWeight:700, color:"#fff", marginTop:10 }}>{concept}</div>
+          <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)", marginTop:2 }}>{subject} · {chapter}</div>
+        </div>
+        <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
+          <div style={{ textAlign:"center" }}>
+            <div style={{ fontSize:40, marginBottom:16 }}>📖</div>
+            <div style={{ fontSize:15, fontWeight:700, color:"#0A2E28", marginBottom:8 }}>
+              Mama is preparing your lesson...
+            </div>
+            <div style={{ fontSize:12, color:"#A89880", lineHeight:1.6, marginBottom:16 }}>
+              Reading ICMAI textbook and creating examples just for you.
+            </div>
+            <div style={{ display:"flex", justifyContent:"center", gap:6 }}>
+              {[0,1,2].map(i => (
+                <motion.div key={i}
+                  animate={{ y:[0,-6,0] }}
+                  transition={{ repeat:Infinity, duration:0.6, delay:i*0.15 }}
+                  style={{ width:8, height:8, borderRadius:"50%", background:"#0A2E28" }} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // ── ASK MAMA OVERLAY ──
   if (showAskMama) {
