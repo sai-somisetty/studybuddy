@@ -7,9 +7,9 @@ import { getSubjects } from "@/lib/syllabus";
 
 const chapterNameMap: Record<string, Record<number, string>> = {
   cma_f_law:   {1:"Introduction to Business Laws",2:"Indian Contracts Act 1872",3:"Sale of Goods Act 1930",4:"Negotiable Instruments Act 1881",5:"Business Communication"},
-  cma_f_acc:   {1:"Fundamentals of Accounting",2:"Journal, Ledger & Trial Balance",3:"Bank Reconciliation",4:"Depreciation",5:"Bills of Exchange",6:"Final Accounts",7:"Cost Accounting",8:"Marginal Costing",9:"Budgeting"},
-  cma_f_maths: {1:"Ratio, Proportion & Indices",2:"Equations & Matrices",3:"Differentiation",4:"Integration",5:"Central Tendency",6:"Dispersion",7:"Probability",8:"Correlation & Regression"},
-  cma_f_eco:   {1:"Introduction to Economics",2:"Theory of Demand",3:"Theory of Supply",4:"Theory of Production",5:"Cost Analysis",6:"Market Structures",7:"National Income"},
+  cma_f_acc:   {1:"Accounting Fundamentals",2:"Accounting for Special Transactions",3:"Preparation of Final Accounts",4:"Fundamentals of Cost Accounting"},
+  cma_f_maths: {1:"Arithmetic",2:"Algebra",3:"Calculus Application in Business",4:"Statistical Representation of Data",5:"Measures of Central Tendency and Dispersion",6:"Correlation and Regression",7:"Probability",8:"Index Numbers and Time Series"},
+  cma_f_eco:   {1:"Basic Concepts of Economics",2:"Forms of Market",3:"Money and Banking",4:"Economic and Business Environment",5:"Fundamentals of Management"},
   ca_f_acc:    {1:"Introduction & Accounting Standards",2:"Journal, Ledger & Trial Balance",3:"Bank Reconciliation",4:"Depreciation AS10",5:"Bills of Exchange",6:"Final Accounts",7:"Partnership Accounts",8:"Company Accounts"},
   ca_f_law:    {1:"Indian Contract Act",2:"Sale of Goods Act",3:"Negotiable Instruments",4:"Partnership Act",5:"LLP Act",6:"Companies Act"},
   ca_f_maths:  {1:"Ratio & Proportion",2:"Indices & Logarithms",3:"Simple & Compound Interest",4:"Permutations & Combinations",5:"Sets & Functions",6:"Limits & Continuity",7:"Differential Calculus"},
