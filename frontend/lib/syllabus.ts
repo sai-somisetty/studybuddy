@@ -50,7 +50,7 @@ export const syllabus = {
       foundation: {
         hasGroups: false,
         subjects: [
-          { id:"cma_f_law",   code:"Paper 1", title:"Fundamentals of Business Laws & Communication", icon:"⚖️", color:"#185FA5", bg:"#DBEAFE", chapters:8 },
+          { id:"cma_f_law",   code:"Paper 1", title:"Fundamentals of Business Laws & Communication", icon:"⚖️", color:"#185FA5", bg:"#DBEAFE", chapters:5 },
           { id:"cma_f_acc",   code:"Paper 2", title:"Fundamentals of Financial & Cost Accounting",   icon:"📊", color:"#3B6D11", bg:"#DCFCE7", chapters:9 },
           { id:"cma_f_maths", code:"Paper 3", title:"Fundamentals of Business Mathematics & Statistics", icon:"🔢", color:"#854F0B", bg:"#FEF9C3", chapters:8 },
           { id:"cma_f_eco",   code:"Paper 4", title:"Fundamentals of Business Economics & Management",   icon:"📈", color:"#0F6E56", bg:"#CCFBF1", chapters:7 },

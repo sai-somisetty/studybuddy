@@ -6,7 +6,7 @@ import { useEffect, useState, Suspense } from "react";
 import { getSubjects } from "@/lib/syllabus";
 
 const chapterNameMap: Record<string, Record<number, string>> = {
-  cma_f_law:   {1:"Indian Contract Act 1872",2:"Sale of Goods Act 1930",3:"Negotiable Instruments Act",4:"Partnership Act 1932",5:"Companies Act 2013",6:"Business Communication",7:"Consumer Protection Act",8:"IT Act"},
+  cma_f_law:   {1:"Introduction to Business Laws",2:"Indian Contracts Act 1872",3:"Sale of Goods Act 1930",4:"Negotiable Instruments Act 1881",5:"Business Communication"},
   cma_f_acc:   {1:"Fundamentals of Accounting",2:"Journal, Ledger & Trial Balance",3:"Bank Reconciliation",4:"Depreciation",5:"Bills of Exchange",6:"Final Accounts",7:"Cost Accounting",8:"Marginal Costing",9:"Budgeting"},
   cma_f_maths: {1:"Ratio, Proportion & Indices",2:"Equations & Matrices",3:"Differentiation",4:"Integration",5:"Central Tendency",6:"Dispersion",7:"Probability",8:"Correlation & Regression"},
   cma_f_eco:   {1:"Introduction to Economics",2:"Theory of Demand",3:"Theory of Supply",4:"Theory of Production",5:"Cost Analysis",6:"Market Structures",7:"National Income"},
