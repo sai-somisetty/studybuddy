@@ -5,6 +5,7 @@ from anthropic import Anthropic
 from dotenv import load_dotenv
 from quiz import generate_mcq, evaluate_answer
 from backup import run_backup
+from session_engine import process_message
 import chromadb
 import os
 import json
@@ -794,6 +795,13 @@ Return ONLY valid JSON with this structure — no preamble no markdown:
         "concept":  concept,
         "source":   "generated",
     }
+
+
+# ── SESSION ENGINE ──
+
+@app.post("/session/message")
+async def session_message(request: dict):
+    return process_message(request)
 
 
 # ── BACKUP ──
