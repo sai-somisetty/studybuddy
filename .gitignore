@@ -14,3 +14,7 @@ backend/progress_*.json
 
 # Backup files
 backend/backups/
+
+# Vision extraction raw data (too large for GitHub)
+backend/vision_raw_*.json
+backend/vision_test_*.json
