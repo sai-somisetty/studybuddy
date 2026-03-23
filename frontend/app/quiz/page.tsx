@@ -106,8 +106,8 @@ function QuizContent() {
         setQuestions(data.has_questions ? data.questions : []);
 
       } else if (selectedMode === "textbook") {
-        // Textbook exact — from Supabase, fallback to local
-        const res  = await fetch(`${API}/questions/textbook_exact/${namespace}`);
+        // Textbook exercise questions from ICMAI book
+        const res  = await fetch(`${API}/questions/textbook?course=cma&paper=1&limit=10`);
         const data = await res.json();
         setQuestions(data.has_questions && data.questions.length > 0
           ? data.questions

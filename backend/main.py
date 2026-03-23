@@ -283,6 +283,28 @@ def get_questions(q_type: str, namespace: str, limit: int = 10):
     }
 
 
+@app.get("/questions/textbook")
+def get_textbook_questions(course: str = "cma", paper: int = 1,
+                           chapter: str = None, limit: int = 10):
+    query = supabase.table("questions")\
+        .select("*")\
+        .eq("course", course)\
+        .eq("q_type", "textbook_exercise")\
+        .eq("approved", True)
+
+    if chapter:
+        query = query.eq("chapter", chapter)
+
+    r = query.limit(limit * 3).execute()
+    questions = r.data if r.data else []
+    random.shuffle(questions)
+    return {
+        "questions":     questions[:limit],
+        "total_found":   len(questions),
+        "has_questions": len(questions) > 0,
+    }
+
+
 @app.post("/questions/ai-generate")
 async def ai_generate_questions(request: dict):
     namespace = request.get("namespace", "cma_f_law_ch1_s1")
