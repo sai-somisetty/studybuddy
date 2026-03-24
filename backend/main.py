@@ -289,17 +289,22 @@ def get_textbook_questions(course: str = "cma", paper: int = 1,
     query = supabase.table("questions")\
         .select("*")\
         .eq("course", course)\
-        .eq("q_type", "textbook_exercise")\
+        .like("q_type", "textbook_%")\
         .eq("approved", True)
 
     if chapter:
         query = query.eq("chapter", chapter)
+        r = query.limit(999).execute()
+        questions = r.data if r.data else []
+    else:
+        r = query.limit(limit * 3).execute()
+        questions = r.data if r.data else []
 
-    r = query.limit(limit * 3).execute()
-    questions = r.data if r.data else []
     random.shuffle(questions)
+    if not chapter:
+        questions = questions[:limit]
     return {
-        "questions":     questions[:limit],
+        "questions":     questions,
         "total_found":   len(questions),
         "has_questions": len(questions) > 0,
     }

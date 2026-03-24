@@ -77,6 +77,9 @@ function QuizContent() {
   const namespace = params.get("namespace") || "cma_f_law_ch1_s1";
   const concept   = params.get("concept")   || "Definition of Contract";
   const subject   = params.get("subject")   || "Business Laws";
+  const chapter   = params.get("chapter")   || "";
+  const course    = params.get("course")    || "cma";
+  const paper     = params.get("paper")     || "1";
   const initMode  = params.get("mode")      || "";
 
   const [mode,       setMode]       = useState(initMode || "textbook");
@@ -108,7 +111,10 @@ function QuizContent() {
 
       } else if (selectedMode === "textbook") {
         // Textbook exercise questions from ICMAI book
-        const res  = await fetch(`${API}/questions/textbook?course=cma&paper=1&limit=10`);
+        const url = chapter
+          ? `${API}/questions/textbook?course=${course}&paper=${paper}&chapter=${chapter}&limit=999`
+          : `${API}/questions/textbook?course=${course}&paper=${paper}&limit=10`;
+        const res  = await fetch(url);
         const data = await res.json();
         setQuestions(data.has_questions && data.questions.length > 0
           ? data.questions
