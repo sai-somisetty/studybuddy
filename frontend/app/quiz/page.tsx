@@ -7,28 +7,28 @@ const API = process.env.NEXT_PUBLIC_API_URL || "https://studybuddy-production-77
 
 const MODES = [
   {
+    id:    "textbook",
+    icon:  "📚",
+    label: "Textbook Questions",
+    color: "#0E6655",
+    bg:    "#E1F5EE",
+    desc:  "From ICMAI Exercise sections",
+  },
+  {
     id:    "previous",
     icon:  "📄",
     label: "Previous Papers",
     color: "#E67E22",
     bg:    "#FFF7ED",
-    desc:  "Questions from past 6 exam attempts",
-  },
-  {
-    id:    "textbook",
-    icon:  "📖",
-    label: "Textbook Exact",
-    color: "#0E6655",
-    bg:    "#E1F5EE",
-    desc:  "Word for word from ICAI practice manual",
+    desc:  "Past exam questions",
   },
   {
     id:    "tweaked",
     icon:  "🔄",
-    label: "Tweaked Questions",
+    label: "Tweaked",
     color: "#185FA5",
     bg:    "#DBEAFE",
-    desc:  "Same concept — changed names, numbers, scenarios",
+    desc:  "Same concept, new scenarios",
   },
   {
     id:    "ai",
@@ -36,7 +36,7 @@ const MODES = [
     label: "AI Generated",
     color: "#6B6560",
     bg:    "#F5F0E8",
-    desc:  "Every key point tested — line by line from ICAI",
+    desc:  "Fresh questions every time",
   },
 ];
 
@@ -79,17 +79,18 @@ function QuizContent() {
   const subject   = params.get("subject")   || "Business Laws";
   const initMode  = params.get("mode")      || "";
 
-  const [mode,       setMode]       = useState(initMode);
+  const [mode,       setMode]       = useState(initMode || "textbook");
+  const [started,    setStarted]    = useState(false);
   const [questions,  setQuestions]  = useState<any[]>([]);
   const [current,    setCurrent]    = useState(0);
   const [answers,    setAnswers]    = useState<Record<string, string>>({});
   const [showResult, setShowResult] = useState(false);
-  const [loading,    setLoading]    = useState(!!initMode);
+  const [loading,    setLoading]    = useState(false);
 
-  useEffect(() => {
-    if (!mode) return;
+  const startQuiz = () => {
+    setStarted(true);
     loadQuestions(mode);
-  }, [mode]);
+  };
 
   const loadQuestions = async (selectedMode: string) => {
     setQuestions([]);
@@ -185,7 +186,7 @@ function QuizContent() {
   const selectedMode = MODES.find(m => m.id === mode);
 
   // ── MODE SELECTION ──
-  if (!mode) {
+  if (!started) {
     return (
       <div className="app-shell">
         <div style={{ background:"#0A2E28", padding:"18px 24px 16px" }}>
@@ -200,40 +201,45 @@ function QuizContent() {
           </div>
           <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)" }}>{subject}</div>
         </div>
-        <div style={{ flex:1, padding:"16px 20px 40px", display:"flex", flexDirection:"column", gap:12 }}>
+        <div style={{ flex:1, padding:"16px 20px 40px", display:"flex", flexDirection:"column", gap:14 }}>
           <div style={{ fontSize:12, fontWeight:600, color:"#6B6560" }}>Select question type</div>
-          {MODES.map((m, i) => (
-            <motion.div key={m.id}
-              initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }}
-              transition={{ delay:i*0.06 }}
-              whileTap={{ scale:0.97 }}
-              onClick={() => setMode(m.id)}
-              style={{ background:"#fff", borderRadius:18, padding:16, border:"0.5px solid rgba(0,0,0,0.06)", display:"flex", alignItems:"center", gap:14, cursor:"pointer" }}>
-              <div style={{ width:48, height:48, borderRadius:14, background:m.bg, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>
-                {m.icon}
-              </div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:14, fontWeight:700, color:m.color, marginBottom:2 }}>{m.label}</div>
-                <div style={{ fontSize:11, color:"#A89880" }}>{m.desc}</div>
-                {m.id === "previous" && (
-                  <div style={{ fontSize:10, color:"#DC2626", marginTop:3, fontWeight:500 }}>
-                    Only available once past papers are seeded
-                  </div>
-                )}
-                {m.id === "tweaked" && (
-                  <div style={{ fontSize:10, color:"#185FA5", marginTop:3, fontWeight:500 }}>
-                    Same concept · Different names, numbers, scenarios
-                  </div>
-                )}
-                {m.id === "ai" && (
-                  <div style={{ fontSize:10, color:"#6B6560", marginTop:3, fontWeight:500 }}>
-                    Every ICAI key point tested · Application focused
-                  </div>
-                )}
-              </div>
-              <div style={{ fontSize:14, color:"#A89880" }}>→</div>
-            </motion.div>
-          ))}
+
+          {/* 2x2 Grid */}
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+            {MODES.map((m, i) => {
+              const selected = mode === m.id;
+              return (
+                <motion.div key={m.id}
+                  initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }}
+                  transition={{ delay:i*0.05 }}
+                  whileTap={{ scale:0.97 }}
+                  onClick={() => setMode(m.id)}
+                  style={{
+                    background: selected ? "#E1F5EE" : "#fff",
+                    borderRadius: 16,
+                    padding: "16px 14px",
+                    border: selected ? "2px solid #0E6655" : "1px solid rgba(0,0,0,0.06)",
+                    cursor: "pointer",
+                    textAlign: "center",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 6,
+                  }}>
+                  <div style={{ fontSize:28 }}>{m.icon}</div>
+                  <div style={{ fontSize:13, fontWeight:700, color: selected ? "#0E6655" : m.color }}>{m.label}</div>
+                  <div style={{ fontSize:10, color: selected ? "#0E6655" : "#A89880", lineHeight:1.4 }}>{m.desc}</div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Start button */}
+          <motion.button whileTap={{ scale:0.97 }}
+            onClick={startQuiz}
+            style={{ width:"100%", padding:"16px", borderRadius:16, background:"#0A2E28", color:"#fff", fontSize:15, fontWeight:700, border:"none", cursor:"pointer", marginTop:4 }}>
+            Start Quiz →
+          </motion.button>
         </div>
       </div>
     );
@@ -279,7 +285,7 @@ function QuizContent() {
     return (
       <div className="app-shell">
         <div style={{ background:"#0A2E28", padding:"18px 24px 16px" }}>
-          <button onClick={() => setMode("")}
+          <button onClick={() => setStarted(false)}
             style={{ background:"rgba(255,255,255,0.1)", border:"none", borderRadius:8, padding:"6px 12px", fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.7)", cursor:"pointer" }}>
             ← Back
           </button>
@@ -303,7 +309,7 @@ function QuizContent() {
                 Try Again →
               </motion.button>
               <motion.button whileTap={{ scale:0.97 }}
-                onClick={() => setMode("")}
+                onClick={() => setStarted(false)}
                 style={{ padding:"12px 24px", borderRadius:14, background:"#F5F0E8", color:"#1A1208", fontSize:13, fontWeight:600, border:"none", cursor:"pointer" }}>
                 Choose Another Mode
               </motion.button>
@@ -348,7 +354,7 @@ function QuizContent() {
               Try Again
             </motion.button>
             <motion.button whileTap={{ scale:0.97 }}
-              onClick={() => setMode("")}
+              onClick={() => setStarted(false)}
               style={{ flex:1, padding:"14px", borderRadius:16, background:"#F5F0E8", color:"#1A1208", fontSize:13, fontWeight:700, border:"none", cursor:"pointer" }}>
               Other Modes
             </motion.button>
@@ -369,7 +375,7 @@ function QuizContent() {
     <div className="app-shell">
       <div style={{ background:"#0A2E28", padding:"14px 20px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-          <button onClick={() => setMode("")}
+          <button onClick={() => setStarted(false)}
             style={{ background:"rgba(255,255,255,0.1)", border:"none", borderRadius:8, padding:"6px 12px", fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.7)", cursor:"pointer" }}>
             ← Exit
           </button>
