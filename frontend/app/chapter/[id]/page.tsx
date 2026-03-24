@@ -244,32 +244,63 @@ function ChapterContent({ pageId }: { pageId: string }) {
                     ))}
                   </div>
                 </div>
-                <motion.button whileTap={{ scale:0.95 }}
-                  onClick={() => router.push(
-                    `/lesson?namespace=${encodeURIComponent(namespace)}`+
-                    `&concept=${encodeURIComponent(concept)}`+
-                    `&subject=${encodeURIComponent(subjectTitle)}`+
-                    `&chapter=${encodeURIComponent(`Chapter ${chapterNum} — ${chapterTitle}`)}`+
-                    `&page=1`
-                  )}
-                  style={{
-                    background:   done ? "#E1F5EE" : "#0A2E28",
-                    color:        done ? "#0E6655" : "#fff",
-                    border:       "none",
-                    borderRadius: 10,
-                    padding:      "8px 14px",
-                    fontSize:     12,
-                    fontWeight:   600,
-                    cursor:       "pointer",
-                    flexShrink:   0,
-                    whiteSpace:   "nowrap",
-                  }}>
-                  {done ? "Review" : "Study →"}
-                </motion.button>
+                <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+                  <motion.button whileTap={{ scale:0.95 }}
+                    onClick={() => router.push(
+                      `/lesson?namespace=${encodeURIComponent(namespace)}`+
+                      `&concept=${encodeURIComponent(concept)}`+
+                      `&subject=${encodeURIComponent(subjectTitle)}`+
+                      `&chapter=${encodeURIComponent(`Chapter ${chapterNum} — ${chapterTitle}`)}`+
+                      `&page=1`
+                    )}
+                    style={{
+                      background:   done ? "#E1F5EE" : "#0A2E28",
+                      color:        done ? "#0E6655" : "#fff",
+                      border:       "none",
+                      borderRadius: 10,
+                      padding:      "8px 12px",
+                      fontSize:     11,
+                      fontWeight:   600,
+                      cursor:       "pointer",
+                      whiteSpace:   "nowrap",
+                    }}>
+                    {done ? "Review" : "Study →"}
+                  </motion.button>
+                  <motion.button whileTap={{ scale:0.95 }}
+                    onClick={() => router.push(
+                      `/quiz?namespace=${encodeURIComponent(namespace)}`+
+                      `&concept=${encodeURIComponent(concept)}`+
+                      `&mode=textbook`+
+                      `&subject=${encodeURIComponent(subjectTitle)}`+
+                      `&course=cma&paper=1`
+                    )}
+                    style={{
+                      background:   "transparent",
+                      color:        "#0E6655",
+                      border:       "1.5px solid #0E6655",
+                      borderRadius: 10,
+                      padding:      "7px 10px",
+                      fontSize:     11,
+                      fontWeight:   600,
+                      cursor:       "pointer",
+                      whiteSpace:   "nowrap",
+                    }}>
+                    Quiz 📝
+                  </motion.button>
+                </div>
               </div>
             </motion.div>
           );
         })}
+
+        {/* Chapter Quiz — textbook exercises */}
+        <motion.button whileTap={{ scale:0.97 }}
+          onClick={() => router.push(
+            `/quiz?chapter=${chapterNum}&course=cma&paper=1&mode=textbook&subject=${encodeURIComponent(subjectTitle)}`
+          )}
+          style={{ width:"100%", padding:"14px 16px", borderRadius:16, background:"#0E6655", color:"#fff", fontSize:14, fontWeight:700, border:"none", cursor:"pointer", textAlign:"center", marginTop:4 }}>
+          Take Chapter {chapterNum} Quiz 📝
+        </motion.button>
 
         {/* Chapter exam */}
         <motion.div whileTap={{ scale:0.98 }}
