@@ -824,6 +824,54 @@ Return ONLY valid JSON with this structure — no preamble no markdown:
     }
 
 
+# ── EVALUATE STUDENT ANSWER ──
+
+@app.post("/questions/evaluate")
+async def evaluate_student_answer(request: dict):
+    question      = request.get("question", "")
+    student_answer = request.get("student_answer", "")
+    model_answer   = request.get("model_answer", "")
+    q_type         = request.get("q_type", "short")
+
+    model = "claude-haiku-4-5-20251001" if q_type == "short" else "claude-sonnet-4-20250514"
+
+    prompt = f"""You are evaluating a CMA Foundation student answer.
+
+Question: {question}
+Model Answer: {model_answer}
+Student Answer: {student_answer}
+
+Evaluate and return ONLY valid JSON:
+{{
+  "score": "7/10",
+  "percentage": 70,
+  "good_points": ["point 1", "point 2"],
+  "missing_points": ["missed this", "missed that"],
+  "feedback": "overall feedback in 2 lines",
+  "grade": "Good/Average/Needs Improvement"
+}}"""
+
+    try:
+        r = claude.messages.create(
+            model=model,
+            max_tokens=500,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text = r.content[0].text.strip()
+        if "```" in text:
+            for part in text.split("```"):
+                part = part.strip()
+                if part.startswith("json"):
+                    part = part[4:]
+                part = part.strip()
+                if part.startswith("{"):
+                    text = part
+                    break
+        return json.loads(text)
+    except Exception as e:
+        return {"score": "?", "percentage": 0, "feedback": str(e), "grade": "Error"}
+
+
 # ── SESSION ENGINE ──
 
 @app.post("/session/message")

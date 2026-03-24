@@ -125,6 +125,7 @@ def parse_exercise_section(nodes):
     mcq_questions = []
     tf_statements = []
     fill_blanks = []
+    short_essays = []
     mcq_key = {}
     tf_key = {}
     fill_key = {}
@@ -155,7 +156,11 @@ def parse_exercise_section(nodes):
                 current_type = "mcq"
                 i += 1
                 continue
-            elif "short essay" in cl or "answers" in cl.lower():
+            elif "short essay" in cl:
+                current_type = "short"
+                i += 1
+                continue
+            elif cl == "answers":
                 current_type = "skip"
                 i += 1
                 continue
@@ -263,10 +268,45 @@ def parse_exercise_section(nodes):
                     "section_label": section, "q_type": "fill_blank",
                 })
             i += 1
+
+        # Parse Short essay questions
+        elif current_type == "short":
+            # Questions are list_items or paragraphs without "Ans:"
+            # Answers are paragraphs starting with "Ans:" or just after questions
+            if content.lower().startswith("ans:") or content.lower().startswith("ans :"):
+                # This is an answer — attach to last question
+                answer_text = re.sub(r'^[Aa]ns\s*:\s*', '', content).strip()
+                if short_essays and not short_essays[-1].get("model_answer"):
+                    short_essays[-1]["model_answer"] = answer_text
+            elif ntype in ("list_item", "paragraph") and len(content) > 15:
+                # Check if it looks like a question (ends with ?, or is a topic/term)
+                is_question = (
+                    content.endswith("?")
+                    or re.match(r'^\d+\.\s', content)
+                    or (len(content) < 200 and not content.startswith("Ans"))
+                )
+                if is_question:
+                    q_match = re.match(r'^(\d+)\.\s*(.+)', content)
+                    if q_match:
+                        s_num = int(q_match.group(1))
+                        s_text = q_match.group(2).strip()
+                    else:
+                        s_num = len(short_essays) + 1
+                        s_text = content
+                    short_essays.append({
+                        "q_num": s_num, "question_text": s_text,
+                        "model_answer": None,
+                        "page_number": page, "book_page_number": book_page,
+                        "section_label": section, "q_type": "short",
+                    })
+                elif short_essays and not short_essays[-1].get("model_answer"):
+                    # Might be a model answer without "Ans:" prefix
+                    short_essays[-1]["model_answer"] = content
+            i += 1
         else:
             i += 1
 
-    return mcq_questions, tf_statements, fill_blanks, mcq_key, tf_key, fill_key
+    return mcq_questions, tf_statements, fill_blanks, short_essays, mcq_key, tf_key, fill_key
 
 
 def extract_options_from_text(text):
@@ -397,7 +437,7 @@ def main():
     exercises = find_exercise_headings(sb, args.course, args.paper)
     print(f"   Found {len(exercises)} Exercise sections\n")
 
-    totals = {"mcq": 0, "true_false": 0, "fill_blank": 0}
+    totals = {"mcq": 0, "true_false": 0, "fill_blank": 0, "short": 0}
     all_to_store = []
 
     for ex in exercises:
@@ -417,9 +457,9 @@ def main():
                 break
             filtered.append(n)
 
-        mcqs, tfs, fills, mcq_key, tf_key, fill_key = parse_exercise_section(filtered)
+        mcqs, tfs, fills, shorts, mcq_key, tf_key, fill_key = parse_exercise_section(filtered)
 
-        print(f"     MCQs: {len(mcqs)}, T/F: {len(tfs)}, Fill: {len(fills)}")
+        print(f"     MCQs: {len(mcqs)}, T/F: {len(tfs)}, Fill: {len(fills)}, Short: {len(shorts)}")
         print(f"     Answer keys: MCQ={len(mcq_key)}, T/F={len(tf_key)}, Fill={len(fill_key)}")
 
         # Prepare MCQs
@@ -446,14 +486,21 @@ def main():
         totals["fill_blank"] += len(fills)
         all_to_store.extend(fills)
 
+        # Prepare Short essays
+        for q in shorts:
+            q["chapter"] = chapter
+            q["answer_key_page"] = ex_page
+        totals["short"] += len(shorts)
+        all_to_store.extend(shorts)
+
     print(f"\n   Total: {len(all_to_store)} questions")
-    print(f"   MCQ: {totals['mcq']}, True/False: {totals['true_false']}, Fill: {totals['fill_blank']}")
+    print(f"   MCQ: {totals['mcq']}, T/F: {totals['true_false']}, Fill: {totals['fill_blank']}, Short: {totals['short']}")
 
     if args.dry_run:
         print(f"\n{'='*60}")
         print("DRY RUN — First 5 of each type:")
         print(f"{'='*60}")
-        for qtype in ["mcq", "true_false", "fill_blank"]:
+        for qtype in ["mcq", "true_false", "fill_blank", "short"]:
             items = [q for q in all_to_store if q["q_type"] == qtype][:5]
             if items:
                 print(f"\n  --- {qtype.upper()} ---")
@@ -471,6 +518,8 @@ def main():
                         print(f"      B: {q['option_b'][:60]}")
                         print(f"      C: {q['option_c'][:60]}")
                         print(f"      D: {q['option_d'][:60]}")
+                    if qtype == "short" and q.get("model_answer"):
+                        print(f"      Model: {q['model_answer'][:100]}")
         return
 
     # Store with answers
@@ -525,14 +574,37 @@ def main():
                     explanation = get_explanation(claude, q, "the correct answer")
                     icai_ref = "AI verified"
 
-            store_question(
-                sb, q, correct_str, explanation, icai_ref,
-                args.course, args.paper, args.subject, args.level,
-                q.get("chapter", "?"),
-            )
-            stored += 1
-            src = "ICMAI" if "ICMAI" in icai_ref else "AI"
-            print(f"✅ {correct_str} [{src}]")
+            elif q["q_type"] == "short":
+                # Short essay — store with model_answer, no options
+                model_ans = q.get("model_answer", "")
+                icai_ref = f"ICMAI Paper {args.paper}, Page {q.get('answer_key_page', '?')}"
+                row = {
+                    "course": args.course, "level_name": args.level,
+                    "subject": args.subject, "chapter": str(q.get("chapter", "?")),
+                    "concept": q.get("section_label", ""),
+                    "namespace": f"{args.course}_{args.level[0]}_{args.subject}",
+                    "q_type": "textbook_short",
+                    "question_text": q["question_text"],
+                    "option_a": None, "option_b": None, "option_c": None, "option_d": None,
+                    "correct_option": None,
+                    "explanation": model_ans or "See ICMAI textbook",
+                    "model_answer": model_ans,
+                    "icai_reference": icai_ref,
+                    "importance": "tier1", "approved": True,
+                }
+                sb.table("questions").insert(row).execute()
+                stored += 1
+                has_ans = "with answer" if model_ans else "no answer"
+                print(f"✅ [{has_ans}]")
+            else:
+                store_question(
+                    sb, q, correct_str, explanation, icai_ref,
+                    args.course, args.paper, args.subject, args.level,
+                    q.get("chapter", "?"),
+                )
+                stored += 1
+                src = "ICMAI" if "ICMAI" in icai_ref else "AI"
+                print(f"✅ {correct_str} [{src}]")
 
         except Exception as e:
             print(f"❌ {e}")
@@ -542,7 +614,7 @@ def main():
 
     print(f"\n🎉 Complete!")
     print(f"   Questions stored: {stored}/{len(all_to_store)}")
-    print(f"   MCQ: {totals['mcq']}, T/F: {totals['true_false']}, Fill: {totals['fill_blank']}")
+    print(f"   MCQ: {totals['mcq']}, T/F: {totals['true_false']}, Fill: {totals['fill_blank']}, Short: {totals['short']}")
 
 
 if __name__ == "__main__":

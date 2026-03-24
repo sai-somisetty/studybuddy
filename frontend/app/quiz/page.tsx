@@ -170,7 +170,10 @@ function QuizContent() {
     }
   };
 
-  const [fillInput, setFillInput] = useState("");
+  const [fillInput, setFillInput]       = useState("");
+  const [shortInput, setShortInput]     = useState("");
+  const [shortEval, setShortEval]       = useState<Record<string, any>>({});
+  const [evaluating, setEvaluating]     = useState(false);
 
   const handleAnswer = (opt: string) => {
     const q = questions[current];
@@ -187,15 +190,44 @@ function QuizContent() {
     setAnswers(prev => ({ ...prev, [key]: fillInput.trim() }));
   };
 
+  const handleShortSubmit = async () => {
+    if (!shortInput.trim() || evaluating) return;
+    const q = questions[current];
+    const key = q.id || String(current);
+    if (answers[key]) return;
+    setAnswers(prev => ({ ...prev, [key]: shortInput.trim() }));
+    setEvaluating(true);
+    try {
+      const res = await fetch(`${API}/questions/evaluate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: q.question_text,
+          student_answer: shortInput.trim(),
+          model_answer: q.model_answer || q.explanation || "",
+          q_type: "short",
+        }),
+      });
+      const data = await res.json();
+      setShortEval(prev => ({ ...prev, [key]: data }));
+    } catch {
+      setShortEval(prev => ({ ...prev, [key]: { score: "?", percentage: 0, feedback: "Could not evaluate", grade: "Error" } }));
+    } finally {
+      setEvaluating(false);
+    }
+  };
+
   const getQType = (q: any): string => {
     const qt = (q.q_type || "").toLowerCase();
     if (qt.includes("true_false")) return "true_false";
     if (qt.includes("fill")) return "fill_blank";
+    if (qt.includes("short")) return "short";
     return "mcq";
   };
 
   const handleNext = () => {
     setFillInput("");
+    setShortInput("");
     if (current < questions.length - 1) {
       setCurrent(current + 1);
     } else {
@@ -424,6 +456,7 @@ function QuizContent() {
             mcq:        { bg: "#DBEAFE", color: "#185FA5", label: "MCQ" },
             true_false: { bg: "#FFF7ED", color: "#E67E22", label: "TRUE / FALSE" },
             fill_blank: { bg: "#EDE9FE", color: "#7C3AED", label: "FILL IN THE BLANK" },
+            short:      { bg: "#FEF2F2", color: "#DC2626", label: "SHORT ANSWER" },
           };
           const badge = badgeMap[qType] || badgeMap.mcq;
           return (
@@ -539,8 +572,74 @@ function QuizContent() {
           );
         })()}
 
+        {/* Short Answer */}
+        {getQType(q) === "short" && (() => {
+          const qKey = q.id || String(current);
+          const isAnswered = !!answers[qKey];
+          const evalResult = shortEval[qKey];
+
+          return (
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {!isAnswered ? (
+                <>
+                  <textarea value={shortInput} onChange={e => setShortInput(e.target.value)}
+                    placeholder="Write your answer here..."
+                    rows={5}
+                    style={{ padding:"14px 16px", borderRadius:14, border:"2px solid #DC262633", background:"#FAFAF8", fontSize:14, color:"#1A1208", outline:"none", resize:"vertical", fontFamily:"inherit", lineHeight:1.6 }} />
+                  <motion.button whileTap={{ scale:0.97 }} onClick={handleShortSubmit}
+                    disabled={!shortInput.trim() || evaluating}
+                    style={{ padding:"14px", borderRadius:14, background:shortInput.trim() && !evaluating?"#DC2626":"#E5E0D8", color:"#fff", fontSize:14, fontWeight:700, border:"none", cursor:shortInput.trim() && !evaluating?"pointer":"default" }}>
+                    {evaluating ? "Evaluating..." : "Submit Answer"}
+                  </motion.button>
+                </>
+              ) : evalResult ? (
+                <>
+                  {/* Score badge */}
+                  <div style={{ background:"linear-gradient(135deg,#F0FDF4,#DCFCE7)", borderRadius:16, padding:16, textAlign:"center", border:"1.5px solid rgba(14,102,85,0.2)" }}>
+                    <div style={{ fontSize:32, fontWeight:700, color:"#0E6655", marginBottom:4 }}>{evalResult.score}</div>
+                    <div style={{ fontSize:12, color:"#6B9B8A" }}>{evalResult.grade}</div>
+                  </div>
+                  {/* Good points */}
+                  {evalResult.good_points && evalResult.good_points.length > 0 && (
+                    <div style={{ background:"#F0FDF4", borderRadius:12, padding:"10px 14px" }}>
+                      <div style={{ fontSize:9, fontWeight:700, color:"#16a34a", letterSpacing:"0.06em", marginBottom:6 }}>GOOD POINTS</div>
+                      {evalResult.good_points.map((p: string, i: number) => (
+                        <div key={i} style={{ fontSize:12, color:"#14532d", lineHeight:1.6, paddingLeft:12 }}>✅ {p}</div>
+                      ))}
+                    </div>
+                  )}
+                  {/* Missing points */}
+                  {evalResult.missing_points && evalResult.missing_points.length > 0 && (
+                    <div style={{ background:"#FFF7ED", borderRadius:12, padding:"10px 14px" }}>
+                      <div style={{ fontSize:9, fontWeight:700, color:"#E67E22", letterSpacing:"0.06em", marginBottom:6 }}>MISSING POINTS</div>
+                      {evalResult.missing_points.map((p: string, i: number) => (
+                        <div key={i} style={{ fontSize:12, color:"#9a3412", lineHeight:1.6, paddingLeft:12 }}>⚠️ {p}</div>
+                      ))}
+                    </div>
+                  )}
+                  {/* Feedback */}
+                  {evalResult.feedback && (
+                    <div style={{ background:"#fff", borderRadius:12, padding:"10px 14px", border:"0.5px solid rgba(0,0,0,0.06)" }}>
+                      <div style={{ fontSize:12, color:"#1A1208", lineHeight:1.6 }}>{evalResult.feedback}</div>
+                    </div>
+                  )}
+                  {/* Model answer */}
+                  {(q.model_answer || q.explanation) && (
+                    <div style={{ background:"#E1F5EE", borderRadius:12, padding:"10px 14px", border:"1px solid rgba(14,102,85,0.12)" }}>
+                      <div style={{ fontSize:9, fontWeight:700, color:"#0E6655", letterSpacing:"0.06em", marginBottom:6 }}>MODEL ANSWER</div>
+                      <div style={{ fontSize:12, color:"#085041", lineHeight:1.6 }}>{q.model_answer || q.explanation}</div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div style={{ textAlign:"center", padding:20, color:"#A89880" }}>Evaluating your answer...</div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Explanation */}
-        {answered && (
+        {answered && getQType(q) !== "short" && (
           <motion.div initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }}
             style={{ background:"#fff", borderRadius:16, padding:14, border:"0.5px solid #E1F5EE" }}>
             <div style={{ fontSize:9, fontWeight:700, color:"#A89880", letterSpacing:"0.06em", marginBottom:6 }}>EXPLANATION</div>
