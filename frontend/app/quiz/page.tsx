@@ -164,6 +164,8 @@ function QuizContent() {
     }
   };
 
+  const [fillInput, setFillInput] = useState("");
+
   const handleAnswer = (opt: string) => {
     const q = questions[current];
     const key = q.id || String(current);
@@ -171,7 +173,23 @@ function QuizContent() {
     setAnswers(prev => ({ ...prev, [key]: opt }));
   };
 
+  const handleFillSubmit = () => {
+    if (!fillInput.trim()) return;
+    const q = questions[current];
+    const key = q.id || String(current);
+    if (answers[key]) return;
+    setAnswers(prev => ({ ...prev, [key]: fillInput.trim() }));
+  };
+
+  const getQType = (q: any): string => {
+    const qt = (q.q_type || "").toLowerCase();
+    if (qt.includes("true_false")) return "true_false";
+    if (qt.includes("fill")) return "fill_blank";
+    return "mcq";
+  };
+
   const handleNext = () => {
+    setFillInput("");
     if (current < questions.length - 1) {
       setCurrent(current + 1);
     } else {
@@ -393,18 +411,31 @@ function QuizContent() {
 
       <div style={{ flex:1, padding:"14px 20px 120px", display:"flex", flexDirection:"column", gap:12, overflowY:"auto" }}>
 
-        {/* Question */}
-        <div style={{ background:"#fff", borderRadius:16, padding:16, border:"0.5px solid rgba(0,0,0,0.06)" }}>
-          <div style={{ fontSize:9, fontWeight:700, color:selectedMode?.color, letterSpacing:"0.06em", marginBottom:8 }}>
-            {selectedMode?.icon} {selectedMode?.label.toUpperCase()}
-          </div>
-          <div style={{ fontSize:14, fontWeight:600, color:"#1A1208", lineHeight:1.6 }}>
-            {q.question_text}
-          </div>
-        </div>
+        {/* Question type badge + Question text */}
+        {(() => {
+          const qType = getQType(q);
+          const badgeMap: Record<string, { bg: string; color: string; label: string }> = {
+            mcq:        { bg: "#DBEAFE", color: "#185FA5", label: "MCQ" },
+            true_false: { bg: "#FFF7ED", color: "#E67E22", label: "TRUE / FALSE" },
+            fill_blank: { bg: "#EDE9FE", color: "#7C3AED", label: "FILL IN THE BLANK" },
+          };
+          const badge = badgeMap[qType] || badgeMap.mcq;
+          return (
+            <div style={{ background:"#fff", borderRadius:16, padding:16, border:"0.5px solid rgba(0,0,0,0.06)" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                <span style={{ fontSize:9, fontWeight:700, color:badge.color, background:badge.bg, padding:"3px 8px", borderRadius:6, letterSpacing:"0.06em" }}>
+                  {badge.label}
+                </span>
+              </div>
+              <div style={{ fontSize:14, fontWeight:600, color:"#1A1208", lineHeight:1.6 }}>
+                {q.question_text}
+              </div>
+            </div>
+          );
+        })()}
 
-        {/* Options */}
-        {["A","B","C","D"].map(opt => {
+        {/* MCQ Options */}
+        {getQType(q) === "mcq" && ["A","B","C","D"].map(opt => {
           const optKey   = `option_${opt.toLowerCase()}` as keyof typeof q;
           const optText  = q[optKey] as string;
           if (!optText) return null;
@@ -437,6 +468,71 @@ function QuizContent() {
           );
         })}
 
+        {/* True/False Options */}
+        {getQType(q) === "true_false" && (() => {
+          const qKey = q.id || String(current);
+          const isAnswered = !!answers[qKey];
+          const correctOpt = q.correct_option;
+
+          return (
+            <div style={{ display:"flex", gap:12 }}>
+              {[{opt:"A", label:"✅ True", baseColor:"#0E6655", baseBg:"#E1F5EE"}, {opt:"B", label:"❌ False", baseColor:"#DC2626", baseBg:"#FEF2F2"}].map(({ opt, label, baseColor, baseBg }) => {
+                const isCorrect = opt === correctOpt;
+                const isSelected = answers[qKey] === opt;
+                let bg = baseBg, border = `2px solid ${baseColor}33`, color = baseColor;
+                if (isAnswered && isCorrect) { bg="#f0fdf4"; border="2px solid #16a34a"; color="#14532d"; }
+                else if (isAnswered && isSelected && !isCorrect) { bg="#fef2f2"; border="2px solid #ef4444"; color="#991b1b"; }
+                return (
+                  <motion.button key={opt}
+                    whileTap={!isAnswered ? { scale:0.95 } : {}}
+                    onClick={() => handleAnswer(opt)}
+                    style={{ flex:1, padding:"20px 16px", borderRadius:16, background:bg, border, cursor:isAnswered?"default":"pointer", fontSize:16, fontWeight:700, color, textAlign:"center" }}>
+                    {label}
+                    {isAnswered && isCorrect && <span style={{ marginLeft:8, fontSize:12 }}>✓</span>}
+                    {isAnswered && isSelected && !isCorrect && <span style={{ marginLeft:8, fontSize:12 }}>✗</span>}
+                  </motion.button>
+                );
+              })}
+            </div>
+          );
+        })()}
+
+        {/* Fill in the Blank */}
+        {getQType(q) === "fill_blank" && (() => {
+          const qKey = q.id || String(current);
+          const isAnswered = !!answers[qKey];
+          const correctAnswer = q.option_a || "See explanation";
+
+          return (
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {!isAnswered ? (
+                <>
+                  <input value={fillInput} onChange={e => setFillInput(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && handleFillSubmit()}
+                    placeholder="Type your answer..."
+                    style={{ padding:"14px 16px", borderRadius:14, border:"2px solid #7C3AED33", background:"#FAFAF8", fontSize:14, color:"#1A1208", outline:"none" }} />
+                  <motion.button whileTap={{ scale:0.97 }} onClick={handleFillSubmit}
+                    disabled={!fillInput.trim()}
+                    style={{ padding:"14px", borderRadius:14, background:fillInput.trim()?"#7C3AED":"#E5E0D8", color:"#fff", fontSize:14, fontWeight:700, border:"none", cursor:fillInput.trim()?"pointer":"default" }}>
+                    Submit Answer
+                  </motion.button>
+                </>
+              ) : (
+                <>
+                  <div style={{ background:"#EDE9FE", borderRadius:14, padding:"12px 16px", border:"1.5px solid #7C3AED33" }}>
+                    <div style={{ fontSize:10, fontWeight:700, color:"#7C3AED", marginBottom:4 }}>YOUR ANSWER</div>
+                    <div style={{ fontSize:14, color:"#1A1208" }}>{answers[qKey]}</div>
+                  </div>
+                  <div style={{ background:"#F0FDF4", borderRadius:14, padding:"12px 16px", border:"1.5px solid #16a34a33" }}>
+                    <div style={{ fontSize:10, fontWeight:700, color:"#16a34a", marginBottom:4 }}>CORRECT ANSWER</div>
+                    <div style={{ fontSize:14, color:"#14532d", fontWeight:600 }}>{correctAnswer}</div>
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Explanation */}
         {answered && (
           <motion.div initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }}
@@ -444,7 +540,9 @@ function QuizContent() {
             <div style={{ fontSize:9, fontWeight:700, color:"#A89880", letterSpacing:"0.06em", marginBottom:6 }}>EXPLANATION</div>
             <div style={{ fontSize:12, color:"#1A1208", lineHeight:1.6 }}>{q.explanation}</div>
             {q.icai_reference && (
-              <div style={{ fontSize:10, color:"#A89880", marginTop:6 }}>📖 {q.icai_reference}</div>
+              <div style={{ fontSize:10, color:"#6B9B8A", marginTop:8, fontStyle:"italic" }}>
+                📖 Source: {q.icai_reference}
+              </div>
             )}
           </motion.div>
         )}
