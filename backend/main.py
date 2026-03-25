@@ -285,12 +285,17 @@ def get_questions(q_type: str, namespace: str, limit: int = 10):
 
 @app.get("/questions/textbook")
 def get_textbook_questions(course: str = "cma", paper: int = 1,
-                           chapter: str = None, limit: int = 10):
+                           chapter: str = None, q_type: str = None,
+                           limit: int = 10):
     query = supabase.table("questions")\
         .select("*")\
         .eq("course", course)\
-        .like("q_type", "textbook_%")\
         .eq("approved", True)
+
+    if q_type and q_type != "all":
+        query = query.like("q_type", f"textbook_{q_type}%")
+    else:
+        query = query.like("q_type", "textbook_%")
 
     if chapter:
         query = query.eq("chapter", chapter)
@@ -317,6 +322,9 @@ async def ai_generate_questions(request: dict):
     count     = request.get("count", 5)
     seed      = request.get("seed", 1)
     mode      = request.get("mode", "ai")  # "ai" or "tweaked"
+    q_type    = request.get("type", None)   # "mcq","true_false","fill_blank","short","long"
+
+    cache_mode = f"{mode}_{q_type}" if q_type and q_type != "all" else mode
 
     # ── STEP 1: Check Supabase cache first ──
     try:
@@ -324,7 +332,7 @@ async def ai_generate_questions(request: dict):
             .select("*")\
             .eq("namespace", namespace)\
             .eq("concept",   concept)\
-            .eq("q_type",    mode)\
+            .eq("q_type",    cache_mode)\
             .eq("approved",  True)\
             .limit(count * 2)\
             .execute()
@@ -351,70 +359,50 @@ async def ai_generate_questions(request: dict):
     except Exception as e:
         print(f"RAG error: {e}")
 
-    # ── STEP 3: Build prompt based on mode ──
-    if mode == "tweaked":
-        prompt = f"""You are a CA/CMA exam question creator.
+    # ── STEP 3: Build prompt based on mode and type ──
+    style = "TWEAKED (change names, numbers, scenarios)" if mode == "tweaked" else "DEEP UNDERSTANDING (application, edge cases)"
+    rag = rag_context or "Use standard ICAI/ICMAI knowledge"
+    effective_type = q_type or "mcq"
+
+    TYPE_PROMPTS = {
+        "mcq": f"""Generate {count} {style} MCQ questions.
+Return ONLY valid JSON array:
+[{{"question_text":"...","option_a":"...","option_b":"...","option_c":"...","option_d":"...","correct_option":"A/B/C/D","explanation":"...","q_type":"mcq","concept":"{concept}"}}]""",
+
+        "true_false": f"""Generate {count} {style} True/False statements.
+Return ONLY valid JSON array:
+[{{"question_text":"statement text","option_a":"True","option_b":"False","option_c":"Partly True","option_d":"Cannot be determined","correct_option":"A or B","explanation":"...","q_type":"true_false","concept":"{concept}"}}]""",
+
+        "fill_blank": f"""Generate {count} {style} Fill-in-the-blank questions.
+Use ______ for blanks.
+Return ONLY valid JSON array:
+[{{"question_text":"The ______ Act governs...","option_a":"correct answer","option_b":"","option_c":"","option_d":"","correct_option":"A","explanation":"...","q_type":"fill_blank","concept":"{concept}"}}]""",
+
+        "short": f"""Generate {count} {style} short answer questions (2-3 sentence answers).
+Return ONLY valid JSON array:
+[{{"question_text":"...","model_answer":"2-3 sentence model answer","explanation":"key points to cover","marks":5,"q_type":"short","concept":"{concept}"}}]""",
+
+        "long": f"""Generate {count} {style} long answer questions (200-300 word answers).
+Return ONLY valid JSON array:
+[{{"question_text":"...","model_answer":"detailed 200-300 word model answer with headings","explanation":"key points examiner checks","marks":10,"q_type":"long","concept":"{concept}"}}]""",
+    }
+
+    type_instruction = TYPE_PROMPTS.get(effective_type, TYPE_PROMPTS["mcq"])
+
+    prompt = f"""You are a CA/CMA exam question creator.
 
 Concept: {concept}
-ICAI Content: {rag_context or "Use standard ICAI/ICMAI knowledge"}
+ICAI Content: {rag}
 Seed: {seed}
 
-Generate {count} TWEAKED MCQ questions.
 Rules:
-- Same concept as textbook back questions
-- Change: names (use Indian names like Rahul, Priya, Arjun),
-  numbers, amounts, cities, scenarios
-- Keep: same concept being tested, same difficulty
-- Every option must be plausible
-- Include one trap option students commonly get wrong
-- Must be answerable from ICAI content only
+- Use real Indian scenarios — Infosys, Tata, Amul, SBI, Zomato
+- Must be answerable from ICAI content
+- Include trap options where applicable
 
-Return ONLY valid JSON array — no preamble no markdown:
-[{{
-  "question_text": "...",
-  "option_a": "...",
-  "option_b": "...",
-  "option_c": "...",
-  "option_d": "...",
-  "correct_option": "A/B/C/D",
-  "explanation": "Why correct + what the trap was",
-  "icai_reference": "Chapter X · Page Y",
-  "difficulty": "easy/medium/hard",
-  "concept": "{concept}"
-}}]"""
+{type_instruction}
 
-    else:  # ai mode — deep understanding
-        prompt = f"""You are a CA/CMA exam question creator.
-
-Concept: {concept}
-ICAI Content:
-{rag_context or "Use standard ICAI/ICMAI knowledge for this concept"}
-Seed: {seed}
-
-Generate {count} questions testing DEEP UNDERSTANDING.
-Rules:
-- Read the ICAI content line by line
-- Generate one question per key point or principle
-- Test APPLICATION not just definition recall
-- Use real Indian scenarios — shops, courts, family businesses, contracts
-- Questions students would NOT expect from textbook
-- Test edge cases, exceptions, and practical applications
-- Mix: 2 easy, 2 medium, 1 hard
-- Include one clever trap option per question
-
-Return ONLY valid JSON array — no preamble no markdown:
-[{{
-  "question_text": "...",
-  "option_a": "...",
-  "option_b": "...",
-  "option_c": "...",
-  "option_d": "...",
-  "correct_option": "A/B/C/D",
-  "explanation": "Detailed explanation citing ICAI principle",
-  "icai_reference": "Chapter X · Page Y",
-  "difficulty": "easy/medium/hard",
-  "concept": "{concept}"
-}}]"""
+No preamble no markdown — JSON array only."""
 
     # ── STEP 4: Call Claude ──
     try:
@@ -450,14 +438,16 @@ Return ONLY valid JSON array — no preamble no markdown:
                 "subject":        ns_parts[2] if len(ns_parts) > 2 else "law",
                 "namespace":      namespace,
                 "concept":        concept,
-                "q_type":         mode,
+                "q_type":         cache_mode,
                 "question_text":  q.get("question_text", ""),
-                "option_a":       q.get("option_a", ""),
-                "option_b":       q.get("option_b", ""),
-                "option_c":       q.get("option_c", ""),
-                "option_d":       q.get("option_d", ""),
-                "correct_option": q.get("correct_option", "A"),
+                "option_a":       q.get("option_a") or "",
+                "option_b":       q.get("option_b") or "",
+                "option_c":       q.get("option_c") or "",
+                "option_d":       q.get("option_d") or "",
+                "correct_option": q.get("correct_option") or None,
                 "explanation":    q.get("explanation", ""),
+                "model_answer":   q.get("model_answer") or None,
+                "marks":          q.get("marks") or None,
                 "icai_reference": q.get("icai_reference", ""),
                 "importance":     "tier2",
                 "approved":       True,
@@ -832,10 +822,39 @@ async def evaluate_student_answer(request: dict):
     student_answer = request.get("student_answer", "")
     model_answer   = request.get("model_answer", "")
     q_type         = request.get("q_type", "short")
+    marks          = request.get("marks", 5)
 
-    model = "claude-haiku-4-5-20251001" if q_type == "short" else "claude-sonnet-4-20250514"
+    is_long = "long" in q_type
+    model = "claude-sonnet-4-20250514" if is_long else "claude-haiku-4-5-20251001"
+    max_tok = 1200 if is_long else 500
 
-    prompt = f"""You are evaluating a CMA Foundation student answer.
+    if is_long:
+        prompt = f"""You are evaluating a CMA Foundation student's LONG answer ({marks} marks).
+
+Question: {question}
+Model Answer: {model_answer}
+Student Answer: {student_answer}
+Word count: {len(student_answer.split())} words
+
+Evaluate thoroughly and return ONLY valid JSON:
+{{
+  "score": "{marks}/{marks}",
+  "percentage": 70,
+  "content_score": 5,
+  "structure_score": 3,
+  "terminology_score": 2,
+  "total_marks": {marks},
+  "good_points": ["point 1", "point 2"],
+  "missing_points": ["missed this"],
+  "icmai_terms_used": ["term 1", "term 2"],
+  "icmai_terms_missing": ["should have used this"],
+  "structure_feedback": "Did student use headings, examples, sections?",
+  "word_count_feedback": "Adequate/Too short/Too long",
+  "feedback": "overall detailed feedback",
+  "grade": "Excellent/Good/Average/Needs Improvement"
+}}"""
+    else:
+        prompt = f"""You are evaluating a CMA Foundation student answer.
 
 Question: {question}
 Model Answer: {model_answer}
@@ -854,7 +873,7 @@ Evaluate and return ONLY valid JSON:
     try:
         r = claude.messages.create(
             model=model,
-            max_tokens=500,
+            max_tokens=max_tok,
             messages=[{"role": "user", "content": prompt}],
         )
         text = r.content[0].text.strip()

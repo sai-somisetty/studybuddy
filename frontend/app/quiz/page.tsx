@@ -83,6 +83,7 @@ function QuizContent() {
   const initMode  = params.get("mode")      || "";
 
   const [mode,       setMode]       = useState(initMode || "textbook");
+  const [subType,    setSubType]    = useState("all");
   const [started,    setStarted]    = useState(false);
   const [questions,  setQuestions]  = useState<any[]>([]);
   const [current,    setCurrent]    = useState(0);
@@ -111,9 +112,10 @@ function QuizContent() {
 
       } else if (selectedMode === "textbook") {
         // Textbook exercise questions from ICMAI book
+        const typeParam = subType !== "all" ? `&q_type=${subType}` : "";
         const url = chapter
-          ? `${API}/questions/textbook?course=${course}&paper=${paper}&chapter=${chapter}&limit=999`
-          : `${API}/questions/textbook?course=${course}&paper=${paper}&limit=10`;
+          ? `${API}/questions/textbook?course=${course}&paper=${paper}&chapter=${chapter}&limit=999${typeParam}`
+          : `${API}/questions/textbook?course=${course}&paper=${paper}&limit=10${typeParam}`;
         const res  = await fetch(url);
         const data = await res.json();
         setQuestions(data.has_questions && data.questions.length > 0
@@ -128,12 +130,8 @@ function QuizContent() {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
           body:    JSON.stringify({
-            namespace,
-            concept,
-            count: 5,
-            seed:  1,
-            mode:  "tweaked",
-            // seed=1 means same questions served from cache after first generation
+            namespace, concept, count: 5, seed: 1, mode: "tweaked",
+            ...(subType !== "all" && { type: subType }),
           }),
         });
         const data = await res.json();
@@ -149,11 +147,8 @@ function QuizContent() {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
           body:    JSON.stringify({
-            namespace,
-            concept,
-            count: 5,
-            seed:  Date.now(), // fresh seed = checks cache, generates new only if needed
-            mode:  "ai",
+            namespace, concept, count: 5, seed: Date.now(), mode: "ai",
+            ...(subType !== "all" && { type: subType }),
           }),
         });
         const data = await res.json();
@@ -172,7 +167,9 @@ function QuizContent() {
 
   const [fillInput, setFillInput]       = useState("");
   const [shortInput, setShortInput]     = useState("");
+  const [longInput, setLongInput]       = useState("");
   const [shortEval, setShortEval]       = useState<Record<string, any>>({});
+  const [longEval, setLongEval]         = useState<Record<string, any>>({});
   const [evaluating, setEvaluating]     = useState(false);
 
   const handleAnswer = (opt: string) => {
@@ -217,8 +214,37 @@ function QuizContent() {
     }
   };
 
+  const handleLongSubmit = async () => {
+    if (!longInput.trim() || evaluating) return;
+    const q = questions[current];
+    const key = q.id || String(current);
+    if (answers[key]) return;
+    setAnswers(prev => ({ ...prev, [key]: longInput.trim() }));
+    setEvaluating(true);
+    try {
+      const res = await fetch(`${API}/questions/evaluate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: q.question_text,
+          student_answer: longInput.trim(),
+          model_answer: q.model_answer || q.explanation || "",
+          q_type: "long",
+          marks: q.marks || 10,
+        }),
+      });
+      const data = await res.json();
+      setLongEval(prev => ({ ...prev, [key]: data }));
+    } catch {
+      setLongEval(prev => ({ ...prev, [key]: { score: "?", percentage: 0, feedback: "Could not evaluate", grade: "Error" } }));
+    } finally {
+      setEvaluating(false);
+    }
+  };
+
   const getQType = (q: any): string => {
     const qt = (q.q_type || "").toLowerCase();
+    if (qt.includes("long")) return "long";
     if (qt.includes("true_false")) return "true_false";
     if (qt.includes("fill")) return "fill_blank";
     if (qt.includes("short")) return "short";
@@ -228,6 +254,7 @@ function QuizContent() {
   const handleNext = () => {
     setFillInput("");
     setShortInput("");
+    setLongInput("");
     if (current < questions.length - 1) {
       setCurrent(current + 1);
     } else {
@@ -447,6 +474,26 @@ function QuizContent() {
         </div>
       </div>
 
+      {/* Sub-type filter tabs */}
+      <div style={{ padding:"8px 16px 0", display:"flex", gap:6, overflowX:"auto", background:"#fff", borderBottom:"0.5px solid rgba(0,0,0,0.06)" }}>
+        {[
+          { id:"all", label:"All" },
+          { id:"mcq", label:"MCQ" },
+          { id:"true_false", label:"T/F" },
+          { id:"fill_blank", label:"Fill" },
+          { id:"short", label:"Short" },
+          { id:"long", label:"Long" },
+        ].map(t => {
+          const active = subType === t.id;
+          return (
+            <button key={t.id} onClick={() => { setSubType(t.id); }}
+              style={{ padding:"6px 12px", borderRadius:20, fontSize:11, fontWeight:active?700:500, background:active?"#0E6655":"transparent", color:active?"#fff":"#6B6560", border:active?"none":"1px solid #E5E0D8", cursor:"pointer", whiteSpace:"nowrap", marginBottom:8 }}>
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
       <div style={{ flex:1, padding:"14px 20px 120px", display:"flex", flexDirection:"column", gap:12, overflowY:"auto" }}>
 
         {/* Question type badge + Question text */}
@@ -457,6 +504,7 @@ function QuizContent() {
             true_false: { bg: "#FFF7ED", color: "#E67E22", label: "TRUE / FALSE" },
             fill_blank: { bg: "#EDE9FE", color: "#7C3AED", label: "FILL IN THE BLANK" },
             short:      { bg: "#FEF2F2", color: "#DC2626", label: "SHORT ANSWER" },
+            long:       { bg: "#450a0a", color: "#fff",    label: "LONG ANSWER" },
           };
           const badge = badgeMap[qType] || badgeMap.mcq;
           return (
@@ -638,8 +686,88 @@ function QuizContent() {
           );
         })()}
 
+        {/* Long Answer */}
+        {getQType(q) === "long" && (() => {
+          const qKey = q.id || String(current);
+          const isAnswered = !!answers[qKey];
+          const evalResult = longEval[qKey];
+          const wordCount = longInput.trim().split(/\s+/).filter(Boolean).length;
+
+          return (
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {!isAnswered ? (
+                <>
+                  <textarea value={longInput} onChange={e => setLongInput(e.target.value)}
+                    placeholder="Write your detailed answer here (200-300 words)..."
+                    rows={10}
+                    style={{ padding:"14px 16px", borderRadius:14, border:"2px solid #450a0a33", background:"#FAFAF8", fontSize:14, color:"#1A1208", outline:"none", resize:"vertical", fontFamily:"inherit", lineHeight:1.7, minHeight:200 }} />
+                  <div style={{ fontSize:11, color: wordCount >= 200 ? "#0E6655" : wordCount >= 100 ? "#E67E22" : "#A89880", fontWeight:600 }}>
+                    Words: {wordCount} / 200 minimum
+                  </div>
+                  <motion.button whileTap={{ scale:0.97 }} onClick={handleLongSubmit}
+                    disabled={wordCount < 20 || evaluating}
+                    style={{ padding:"14px", borderRadius:14, background: wordCount >= 20 && !evaluating ? "#450a0a" : "#E5E0D8", color:"#fff", fontSize:14, fontWeight:700, border:"none", cursor: wordCount >= 20 && !evaluating ? "pointer" : "default" }}>
+                    {evaluating ? "Evaluating with Sonnet..." : "Submit Answer"}
+                  </motion.button>
+                </>
+              ) : evalResult ? (
+                <>
+                  <div style={{ background:"linear-gradient(135deg,#F0FDF4,#DCFCE7)", borderRadius:16, padding:16, textAlign:"center", border:"1.5px solid rgba(14,102,85,0.2)" }}>
+                    <div style={{ fontSize:32, fontWeight:700, color:"#0E6655", marginBottom:4 }}>{evalResult.score}</div>
+                    <div style={{ fontSize:12, color:"#6B9B8A" }}>{evalResult.grade}</div>
+                    {evalResult.word_count_feedback && (
+                      <div style={{ fontSize:10, color:"#A89880", marginTop:4 }}>{evalResult.word_count_feedback}</div>
+                    )}
+                  </div>
+                  {evalResult.good_points?.length > 0 && (
+                    <div style={{ background:"#F0FDF4", borderRadius:12, padding:"10px 14px" }}>
+                      <div style={{ fontSize:9, fontWeight:700, color:"#16a34a", letterSpacing:"0.06em", marginBottom:6 }}>GOOD POINTS</div>
+                      {evalResult.good_points.map((p: string, i: number) => (
+                        <div key={i} style={{ fontSize:12, color:"#14532d", lineHeight:1.6, paddingLeft:12 }}>✅ {p}</div>
+                      ))}
+                    </div>
+                  )}
+                  {evalResult.missing_points?.length > 0 && (
+                    <div style={{ background:"#FFF7ED", borderRadius:12, padding:"10px 14px" }}>
+                      <div style={{ fontSize:9, fontWeight:700, color:"#E67E22", letterSpacing:"0.06em", marginBottom:6 }}>MISSING POINTS</div>
+                      {evalResult.missing_points.map((p: string, i: number) => (
+                        <div key={i} style={{ fontSize:12, color:"#9a3412", lineHeight:1.6, paddingLeft:12 }}>⚠️ {p}</div>
+                      ))}
+                    </div>
+                  )}
+                  {evalResult.icmai_terms_used?.length > 0 && (
+                    <div style={{ background:"#DBEAFE", borderRadius:12, padding:"10px 14px" }}>
+                      <div style={{ fontSize:9, fontWeight:700, color:"#185FA5", letterSpacing:"0.06em", marginBottom:6 }}>ICMAI TERMS USED</div>
+                      <div style={{ fontSize:12, color:"#185FA5", lineHeight:1.6 }}>{evalResult.icmai_terms_used.join(", ")}</div>
+                    </div>
+                  )}
+                  {evalResult.structure_feedback && (
+                    <div style={{ background:"#fff", borderRadius:12, padding:"10px 14px", border:"0.5px solid rgba(0,0,0,0.06)" }}>
+                      <div style={{ fontSize:9, fontWeight:700, color:"#6B6560", letterSpacing:"0.06em", marginBottom:4 }}>STRUCTURE</div>
+                      <div style={{ fontSize:12, color:"#1A1208", lineHeight:1.6 }}>{evalResult.structure_feedback}</div>
+                    </div>
+                  )}
+                  {evalResult.feedback && (
+                    <div style={{ background:"#fff", borderRadius:12, padding:"10px 14px", border:"0.5px solid rgba(0,0,0,0.06)" }}>
+                      <div style={{ fontSize:12, color:"#1A1208", lineHeight:1.6 }}>{evalResult.feedback}</div>
+                    </div>
+                  )}
+                  {(q.model_answer || q.explanation) && (
+                    <div style={{ background:"#E1F5EE", borderRadius:12, padding:"10px 14px", border:"1px solid rgba(14,102,85,0.12)" }}>
+                      <div style={{ fontSize:9, fontWeight:700, color:"#0E6655", letterSpacing:"0.06em", marginBottom:6 }}>MODEL ANSWER</div>
+                      <div style={{ fontSize:12, color:"#085041", lineHeight:1.6 }}>{q.model_answer || q.explanation}</div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div style={{ textAlign:"center", padding:20, color:"#A89880" }}>Evaluating your answer with Claude Sonnet...</div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Explanation */}
-        {answered && getQType(q) !== "short" && (
+        {answered && getQType(q) !== "short" && getQType(q) !== "long" && (
           <motion.div initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }}
             style={{ background:"#fff", borderRadius:16, padding:14, border:"0.5px solid #E1F5EE" }}>
             <div style={{ fontSize:9, fontWeight:700, color:"#A89880", letterSpacing:"0.06em", marginBottom:6 }}>EXPLANATION</div>
