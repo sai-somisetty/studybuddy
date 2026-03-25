@@ -96,6 +96,17 @@ function QuizContent() {
     loadQuestions(mode);
   };
 
+  // Reload when subType tab changes during active quiz
+  useEffect(() => {
+    if (started) {
+      setCurrent(0);
+      setAnswers({});
+      setShowResult(false);
+      loadQuestions(mode);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subType]);
+
   const loadQuestions = async (selectedMode: string) => {
     setQuestions([]);
     setCurrent(0);

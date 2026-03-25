@@ -298,11 +298,11 @@ def get_textbook_questions(course: str = "cma", paper: int = 1,
         query = query.like("q_type", "textbook_%")
 
     if chapter:
-        query = query.eq("chapter", chapter)
+        query = query.eq("chapter", str(chapter))
         r = query.limit(999).execute()
         questions = r.data if r.data else []
     else:
-        r = query.limit(limit * 3).execute()
+        r = query.limit(max(limit * 3, 30)).execute()
         questions = r.data if r.data else []
 
     random.shuffle(questions)
