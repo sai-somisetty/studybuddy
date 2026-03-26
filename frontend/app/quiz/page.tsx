@@ -128,8 +128,8 @@ function QuizContent() {
       } else if (selectedMode === "textbook") {
         const typeParam = selectedSubType !== "all" ? `&q_type=${selectedSubType}` : "";
         const url = chapter
-          ? `${API}/questions/textbook?course=${course}&paper=${paper}&chapter=${chapter}&limit=999${typeParam}`
-          : `${API}/questions/textbook?course=${course}&paper=${paper}&limit=30${typeParam}`;
+          ? `${API}/questions/textbook?course=${course}&paper=${paper}&chapter=${chapter}${typeParam}`
+          : `${API}/questions/textbook?course=${course}&paper=${paper}${typeParam}`;
         const res  = await fetch(url);
         const data = await res.json();
         setQuestions(data.has_questions && data.questions.length > 0
@@ -142,7 +142,7 @@ function QuizContent() {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
           body:    JSON.stringify({
-            namespace, concept, count: 5, seed: 1, mode: "tweaked",
+            namespace, concept, seed: 1, mode: "tweaked",
             ...(selectedSubType !== "all" && { type: selectedSubType }),
           }),
         });
@@ -157,8 +157,8 @@ function QuizContent() {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
           body:    JSON.stringify({
-            namespace, concept, count: 5, seed: Date.now(), mode: "ai",
-            ...(selectedSubType !== "all" && { type: selectedSubType }),
+            namespace, concept, seed: Date.now(), mode: "ai",
+            type: selectedSubType === "all" ? "all" : selectedSubType,
           }),
         });
         const data = await res.json();

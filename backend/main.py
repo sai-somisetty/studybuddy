@@ -285,8 +285,7 @@ def get_questions(q_type: str, namespace: str, limit: int = 10):
 
 @app.get("/questions/textbook")
 def get_textbook_questions(course: str = "cma", paper: int = 1,
-                           chapter: str = None, q_type: str = None,
-                           limit: int = 10):
+                           chapter: str = None, q_type: str = None):
     query = supabase.table("questions")\
         .select("*")\
         .eq("course", course)\
@@ -297,17 +296,11 @@ def get_textbook_questions(course: str = "cma", paper: int = 1,
     else:
         query = query.like("q_type", "textbook_%")
 
+    r = query.limit(9999).execute()
+    questions = r.data if r.data else []
     if chapter:
-        query = query.eq("chapter", str(chapter))
-        r = query.limit(999).execute()
-        questions = r.data if r.data else []
-    else:
-        r = query.limit(max(limit * 3, 30)).execute()
-        questions = r.data if r.data else []
-
+        questions = [q for q in questions if str(q.get("chapter", "")) == str(chapter)]
     random.shuffle(questions)
-    if not chapter:
-        questions = questions[:limit]
     return {
         "questions":     questions,
         "total_found":   len(questions),
@@ -325,31 +318,31 @@ async def ai_generate_questions(request: dict):
     q_type    = request.get("type", None)   # "mcq","true_false","fill_blank","short","long"
 
     cache_mode = f"{mode}_{q_type}" if q_type and q_type != "all" else mode
+    effective_type = q_type or "mcq"
 
-    # ── STEP 1: Check Supabase cache first ──
+    # ── STEP 1: Check Supabase cache ──
     try:
-        existing = supabase.table("questions")\
-            .select("*")\
-            .eq("namespace", namespace)\
-            .eq("concept",   concept)\
-            .eq("q_type",    cache_mode)\
-            .eq("approved",  True)\
-            .limit(count * 2)\
-            .execute()
-
-        if existing.data and len(existing.data) >= 3:
-            print(f"✅ Serving cached {mode} questions for {concept}")
-            random.shuffle(existing.data)
-            return {
-                "questions": existing.data[:count],
-                "concept":   concept,
-                "generated": len(existing.data[:count]),
-                "source":    "cached",
-            }
+        if mode == "ai" and effective_type == "all":
+            # For "all" type, check if 3+ of each type cached
+            cached_all = supabase.table("questions")\
+                .select("*").eq("namespace", namespace).eq("concept", concept)\
+                .like("q_type", "ai_%").eq("approved", True).limit(50).execute()
+            if cached_all.data and len(cached_all.data) >= 10:
+                random.shuffle(cached_all.data)
+                return {"questions": cached_all.data, "concept": concept,
+                        "generated": len(cached_all.data), "source": "cached"}
+        else:
+            existing = supabase.table("questions")\
+                .select("*").eq("namespace", namespace).eq("concept", concept)\
+                .eq("q_type", cache_mode).eq("approved", True).limit(20).execute()
+            if existing.data and len(existing.data) >= 3:
+                random.shuffle(existing.data)
+                return {"questions": existing.data, "concept": concept,
+                        "generated": len(existing.data), "source": "cached"}
     except Exception as e:
         print(f"DB check error: {e}")
 
-    # ── STEP 2: Get RAG context ──
+    # ── STEP 2: Get RAG context + textbook questions for tweaked ──
     rag_context = ""
     try:
         col = chroma.get_collection(name=namespace)
@@ -359,48 +352,104 @@ async def ai_generate_questions(request: dict):
     except Exception as e:
         print(f"RAG error: {e}")
 
-    # ── STEP 3: Build prompt based on mode and type ──
-    style = "TWEAKED (change names, numbers, scenarios)" if mode == "tweaked" else "DEEP UNDERSTANDING (application, edge cases)"
     rag = rag_context or "Use standard ICAI/ICMAI knowledge"
-    effective_type = q_type or "mcq"
+    textbook_sample = "[]"
 
-    TYPE_PROMPTS = {
-        "mcq": f"""Generate {count} {style} MCQ questions.
-Return ONLY valid JSON array:
-[{{"question_text":"...","option_a":"...","option_b":"...","option_c":"...","option_d":"...","correct_option":"A/B/C/D","explanation":"...","q_type":"mcq","concept":"{concept}"}}]""",
+    if mode == "tweaked":
+        # Fetch textbook questions to mirror
+        try:
+            tb = supabase.table("questions")\
+                .select("question_text,option_a,option_b,option_c,option_d,correct_option,q_type")\
+                .eq("namespace", namespace).eq("approved", True)\
+                .like("q_type", "textbook_%").limit(50).execute()
+            tb_data = tb.data or []
+            if effective_type != "all":
+                tb_data = [q for q in tb_data if effective_type in q.get("q_type", "")]
+            count = len(tb_data) if tb_data else count
+            textbook_sample = json.dumps(tb_data[:10], ensure_ascii=False)
+        except Exception as e:
+            print(f"Textbook fetch error: {e}")
 
-        "true_false": f"""Generate {count} {style} True/False statements.
-Return ONLY valid JSON array:
-[{{"question_text":"statement text","option_a":"True","option_b":"False","option_c":"Partly True","option_d":"Cannot be determined","correct_option":"A or B","explanation":"...","q_type":"true_false","concept":"{concept}"}}]""",
-
-        "fill_blank": f"""Generate {count} {style} Fill-in-the-blank questions.
-Use ______ for blanks.
-Return ONLY valid JSON array:
-[{{"question_text":"The ______ Act governs...","option_a":"correct answer","option_b":"","option_c":"","option_d":"","correct_option":"A","explanation":"...","q_type":"fill_blank","concept":"{concept}"}}]""",
-
-        "short": f"""Generate {count} {style} short answer questions (2-3 sentence answers).
-Return ONLY valid JSON array:
-[{{"question_text":"...","model_answer":"2-3 sentence model answer","explanation":"key points to cover","marks":5,"q_type":"short","concept":"{concept}"}}]""",
-
-        "long": f"""Generate {count} {style} long answer questions (200-300 word answers).
-Return ONLY valid JSON array:
-[{{"question_text":"...","model_answer":"detailed 200-300 word model answer with headings","explanation":"key points examiner checks","marks":10,"q_type":"long","concept":"{concept}"}}]""",
-    }
-
-    type_instruction = TYPE_PROMPTS.get(effective_type, TYPE_PROMPTS["mcq"])
-
-    prompt = f"""You are a CA/CMA exam question creator.
+    # ── STEP 3: Build prompt ──
+    if mode == "tweaked":
+        prompt = f"""You are a CA/CMA exam question creator. Create TWEAKED versions of these textbook questions.
 
 Concept: {concept}
 ICAI Content: {rag}
 Seed: {seed}
 
-Rules:
-- Use real Indian scenarios — Infosys, Tata, Amul, SBI, Zomato
-- Must be answerable from ICAI content
-- Include trap options where applicable
+Original textbook questions for reference:
+{textbook_sample}
 
-{type_instruction}
+Generate EXACTLY {count} tweaked questions. Rules:
+- Keep same question structure and type as originals
+- Change numbers, names, amounts, percentages, dates to DIFFERENT values
+- Change option wording slightly — same concept tested differently
+- Vary format (e.g. "which is correct" → "which is NOT correct")
+- Use different Indian companies (if Tata used, use Infosys, Amul, Zomato etc)
+- Same difficulty level as originals
+- For each question include q_type matching original (mcq/true_false/fill_blank/short/long)
+
+Return ONLY valid JSON array — no preamble no markdown:
+[{{"question_text":"...","option_a":"...","option_b":"...","option_c":"...","option_d":"...","correct_option":"A/B/C/D","explanation":"...","q_type":"mcq","concept":"{concept}"}}]"""
+
+    elif mode == "ai" and effective_type == "all":
+        prompt = f"""You are a CA/CMA exam question creator. Generate challenging questions testing DEEP understanding.
+
+Concept: {concept}
+ICAI Content: {rag}
+Seed: {seed}
+
+Generate ALL of these question types in ONE response:
+- 3 MCQ questions (4 options, trap options, application-based)
+- 3 True/False statements (tricky edge cases)
+- 3 Fill-in-the-blank questions (test key terms)
+- {random.randint(1,3)} Short answer questions (2-3 sentence answers, marks:5)
+- {random.randint(1,3)} Long answer questions (200-300 word answers, marks:10)
+
+Rules:
+- NOT simple recall — require understanding, analysis, edge cases
+- Use real Indian scenarios — Infosys, Tata, Amul, SBI, Zomato
+- Include trap options for MCQ
+- Based on ICMAI content but test deeper thinking
+
+Return ONLY valid JSON array with ALL types combined:
+[
+  {{"question_text":"...","option_a":"...","option_b":"...","option_c":"...","option_d":"...","correct_option":"A","explanation":"...","q_type":"mcq","concept":"{concept}"}},
+  {{"question_text":"statement","option_a":"True","option_b":"False","option_c":"Partly True","option_d":"Cannot be determined","correct_option":"A","explanation":"...","q_type":"true_false","concept":"{concept}"}},
+  {{"question_text":"The ______ Act...","option_a":"correct","option_b":"","option_c":"","option_d":"","correct_option":"A","explanation":"...","q_type":"fill_blank","concept":"{concept}"}},
+  {{"question_text":"...","model_answer":"...","explanation":"...","marks":5,"q_type":"short","concept":"{concept}"}},
+  {{"question_text":"...","model_answer":"detailed answer","explanation":"...","marks":10,"q_type":"long","concept":"{concept}"}}
+]
+No preamble no markdown."""
+
+    else:
+        # AI mode with specific type
+        type_counts = {"mcq": 3, "true_false": 3, "fill_blank": 3,
+                       "short": random.randint(1, 3), "long": random.randint(1, 3)}
+        gen_count = type_counts.get(effective_type, 3)
+
+        TYPE_TEMPLATES = {
+            "mcq": f'{gen_count} challenging MCQ questions (4 options with trap options, application-based, NOT simple recall).\nReturn JSON: [{{"question_text":"...","option_a":"...","option_b":"...","option_c":"...","option_d":"...","correct_option":"A/B/C/D","explanation":"...","q_type":"mcq","concept":"{concept}"}}]',
+            "true_false": f'{gen_count} tricky True/False statements testing edge cases.\nReturn JSON: [{{"question_text":"statement","option_a":"True","option_b":"False","option_c":"Partly True","option_d":"Cannot be determined","correct_option":"A or B","explanation":"...","q_type":"true_false","concept":"{concept}"}}]',
+            "fill_blank": f'{gen_count} Fill-in-the-blank questions testing key terms (use ______).\nReturn JSON: [{{"question_text":"The ______ Act...","option_a":"correct answer","option_b":"","option_c":"","option_d":"","correct_option":"A","explanation":"...","q_type":"fill_blank","concept":"{concept}"}}]',
+            "short": f'{gen_count} short answer questions requiring 2-3 sentence analysis.\nReturn JSON: [{{"question_text":"...","model_answer":"...","explanation":"...","marks":5,"q_type":"short","concept":"{concept}"}}]',
+            "long": f'{gen_count} long answer questions requiring 200-300 word detailed answers.\nReturn JSON: [{{"question_text":"...","model_answer":"detailed answer with headings","explanation":"...","marks":10,"q_type":"long","concept":"{concept}"}}]',
+        }
+
+        prompt = f"""You are a CA/CMA exam question creator. Generate questions testing DEEP UNDERSTANDING.
+
+Concept: {concept}
+ICAI Content: {rag}
+Seed: {seed}
+
+Generate {TYPE_TEMPLATES.get(effective_type, TYPE_TEMPLATES['mcq'])}
+
+Rules:
+- Complex and challenging — application, analysis, edge cases
+- NOT simple recall — require understanding
+- Use real Indian scenarios — Infosys, Tata, Amul, SBI, Zomato
+- Based on ICMAI content but test deeper thinking
 
 No preamble no markdown — JSON array only."""
 
