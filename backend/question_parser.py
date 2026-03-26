@@ -8,6 +8,7 @@ import argparse
 import json
 import os
 import re
+import time
 from dotenv import load_dotenv
 from anthropic import Anthropic
 from supabase import create_client
@@ -20,7 +21,11 @@ def get_sb():
 
 
 def get_claude():
-    return Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    return Anthropic(
+        api_key=os.getenv("ANTHROPIC_API_KEY"),
+        max_retries=2,
+        timeout=30.0,
+    )
 
 
 OPTION_MAP = {0: "A", 1: "B", 2: "C", 3: "D"}
@@ -578,6 +583,8 @@ def main():
                 # Short essay — store with model_answer, no options
                 model_ans = q.get("model_answer", "")
                 icai_ref = f"ICMAI Paper {args.paper}, Page {q.get('answer_key_page', '?')}"
+                correct_str = None
+                explanation = model_ans or "See ICMAI textbook"
                 row = {
                     "course": args.course, "level_name": args.level,
                     "subject": args.subject, "chapter": str(q.get("chapter", "?")),
@@ -587,7 +594,7 @@ def main():
                     "question_text": q["question_text"],
                     "option_a": None, "option_b": None, "option_c": None, "option_d": None,
                     "correct_option": None,
-                    "explanation": model_ans or "See ICMAI textbook",
+                    "explanation": explanation,
                     "model_answer": model_ans,
                     "icai_reference": icai_ref,
                     "importance": "tier1", "approved": True,
@@ -595,19 +602,27 @@ def main():
                 sb.table("questions").insert(row).execute()
                 stored += 1
                 has_ans = "with answer" if model_ans else "no answer"
-                print(f"✅ [{has_ans}]")
-            else:
-                store_question(
-                    sb, q, correct_str, explanation, icai_ref,
-                    args.course, args.paper, args.subject, args.level,
-                    q.get("chapter", "?"),
-                )
-                stored += 1
-                src = "ICMAI" if "ICMAI" in icai_ref else "AI"
-                print(f"✅ {correct_str} [{src}]")
+                print(f"    ✅ short [{has_ans}]", flush=True)
+                continue  # skip the common store below
+
+            # ── Store MCQ / T-F / Fill ──
+            store_question(
+                sb, q, correct_str, explanation, icai_ref,
+                args.course, args.paper, args.subject, args.level,
+                q.get("chapter", "?"),
+            )
+            stored += 1
+            src = "ICMAI" if "ICMAI" in icai_ref else "AI"
+            print(f"    ✅ {correct_str} [{src}]", flush=True)
 
         except Exception as e:
-            print(f"❌ {e}")
+            import traceback
+            print(f"❌ {type(e).__name__}: {e}", flush=True)
+            traceback.print_exc()
+
+        # Small delay to avoid rate limiting
+        if q["q_type"] != "short":
+            time.sleep(0.3)
 
         if (i + 1) % 20 == 0:
             print(f"  💰 {stored} stored so far")
