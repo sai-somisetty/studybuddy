@@ -91,9 +91,11 @@ function QuizContent() {
   const [showResult, setShowResult] = useState(false);
   const [loading,    setLoading]    = useState(false);
 
+  const longTabDisabled = mode === "textbook" || mode === "previous";
+
   const startQuiz = () => {
     setStarted(true);
-    loadQuestions(mode);
+    loadQuestions(mode, subType);
   };
 
   // Reload when subType tab changes during active quiz
@@ -102,12 +104,15 @@ function QuizContent() {
       setCurrent(0);
       setAnswers({});
       setShowResult(false);
-      loadQuestions(mode);
+      setFillInput("");
+      setShortInput("");
+      setLongInput("");
+      loadQuestions(mode, subType);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subType]);
+  }, [subType, mode]);
 
-  const loadQuestions = async (selectedMode: string) => {
+  const loadQuestions = async (selectedMode: string, selectedSubType: string) => {
     setQuestions([]);
     setCurrent(0);
     setAnswers({});
@@ -116,17 +121,15 @@ function QuizContent() {
 
     try {
       if (selectedMode === "previous") {
-        // Previous papers — from Supabase
         const res  = await fetch(`${API}/questions/previous_paper/${namespace}`);
         const data = await res.json();
         setQuestions(data.has_questions ? data.questions : []);
 
       } else if (selectedMode === "textbook") {
-        // Textbook exercise questions from ICMAI book
-        const typeParam = subType !== "all" ? `&q_type=${subType}` : "";
+        const typeParam = selectedSubType !== "all" ? `&q_type=${selectedSubType}` : "";
         const url = chapter
           ? `${API}/questions/textbook?course=${course}&paper=${paper}&chapter=${chapter}&limit=999${typeParam}`
-          : `${API}/questions/textbook?course=${course}&paper=${paper}&limit=10${typeParam}`;
+          : `${API}/questions/textbook?course=${course}&paper=${paper}&limit=30${typeParam}`;
         const res  = await fetch(url);
         const data = await res.json();
         setQuestions(data.has_questions && data.questions.length > 0
@@ -135,14 +138,12 @@ function QuizContent() {
         );
 
       } else if (selectedMode === "tweaked") {
-        // Tweaked — similar to textbook but changed names/numbers
-        // Check cache first, generate if not cached
         const res  = await fetch(`${API}/questions/ai-generate`, {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
           body:    JSON.stringify({
             namespace, concept, count: 5, seed: 1, mode: "tweaked",
-            ...(subType !== "all" && { type: subType }),
+            ...(selectedSubType !== "all" && { type: selectedSubType }),
           }),
         });
         const data = await res.json();
@@ -152,14 +153,12 @@ function QuizContent() {
         );
 
       } else if (selectedMode === "ai") {
-        // AI Generated — reads ICAI content line by line
-        // Tests every key point — application not just memory
         const res  = await fetch(`${API}/questions/ai-generate`, {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
           body:    JSON.stringify({
             namespace, concept, count: 5, seed: Date.now(), mode: "ai",
-            ...(subType !== "all" && { type: subType }),
+            ...(selectedSubType !== "all" && { type: selectedSubType }),
           }),
         });
         const data = await res.json();
@@ -392,16 +391,26 @@ function QuizContent() {
             <div style={{ fontSize:40, marginBottom:16 }}>📭</div>
             <div style={{ fontSize:15, fontWeight:700, color:"#1A1208", marginBottom:8 }}>No questions yet</div>
             <div style={{ fontSize:12, color:"#6B6560", lineHeight:1.6, marginBottom:20 }}>
-              {mode === "previous"
+              {longTabDisabled && subType === "long"
+                ? "ICMAI textbook has no long questions — switch to AI Generated or Tweaked mode."
+                : mode === "previous"
                 ? "Previous paper questions for this concept have not been seeded yet."
                 : "Could not load questions. Try again or choose another mode."}
             </div>
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-              <motion.button whileTap={{ scale:0.97 }}
-                onClick={() => loadQuestions(mode)}
-                style={{ padding:"12px 24px", borderRadius:14, background:"#0A2E28", color:"#fff", fontSize:13, fontWeight:600, border:"none", cursor:"pointer" }}>
-                Try Again →
-              </motion.button>
+              {longTabDisabled && subType === "long" ? (
+                <motion.button whileTap={{ scale:0.97 }}
+                  onClick={() => { setMode("ai"); setSubType("long"); }}
+                  style={{ padding:"12px 24px", borderRadius:14, background:"#0A2E28", color:"#fff", fontSize:13, fontWeight:600, border:"none", cursor:"pointer" }}>
+                  Generate AI Long Questions →
+                </motion.button>
+              ) : (
+                <motion.button whileTap={{ scale:0.97 }}
+                  onClick={() => loadQuestions(mode, subType)}
+                  style={{ padding:"12px 24px", borderRadius:14, background:"#0A2E28", color:"#fff", fontSize:13, fontWeight:600, border:"none", cursor:"pointer" }}>
+                  Try Again →
+                </motion.button>
+              )}
               <motion.button whileTap={{ scale:0.97 }}
                 onClick={() => setStarted(false)}
                 style={{ padding:"12px 24px", borderRadius:14, background:"#F5F0E8", color:"#1A1208", fontSize:13, fontWeight:600, border:"none", cursor:"pointer" }}>
@@ -496,10 +505,18 @@ function QuizContent() {
           { id:"long", label:"Long" },
         ].map(t => {
           const active = subType === t.id;
+          const disabled = t.id === "long" && longTabDisabled;
           return (
-            <button key={t.id} onClick={() => { setSubType(t.id); }}
-              style={{ padding:"6px 12px", borderRadius:20, fontSize:11, fontWeight:active?700:500, background:active?"#0E6655":"transparent", color:active?"#fff":"#6B6560", border:active?"none":"1px solid #E5E0D8", cursor:"pointer", whiteSpace:"nowrap", marginBottom:8 }}>
-              {t.label}
+            <button key={t.id}
+              onClick={() => { if (!disabled) setSubType(t.id); }}
+              style={{ padding:"6px 12px", borderRadius:20, fontSize:11, fontWeight:active?700:500,
+                background: active ? "#0E6655" : "transparent",
+                color: disabled ? "#C5B9A8" : active ? "#fff" : "#6B6560",
+                border: active ? "none" : "1px solid #E5E0D8",
+                cursor: disabled ? "not-allowed" : "pointer",
+                opacity: disabled ? 0.5 : 1,
+                whiteSpace:"nowrap", marginBottom:8 }}>
+              {disabled ? "Long (0)" : t.label}
             </button>
           );
         })}

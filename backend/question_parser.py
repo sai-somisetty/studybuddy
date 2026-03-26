@@ -528,7 +528,7 @@ def main():
 
     for i, q in enumerate(all_to_store):
         label = f"{i+1}/{len(all_to_store)}"
-        print(f"  {label}: [{q['q_type']:5s}] {q['question_text'][:55]}...", end=" ", flush=True)
+        print(f"  {label}: [{q['q_type']:5s}] {q['question_text'][:55]}...", flush=True)
 
         try:
             if q["q_type"] == "mcq":
