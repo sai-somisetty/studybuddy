@@ -866,18 +866,8 @@ Return ONLY valid JSON with this structure — no preamble no markdown:
 # ── SMART LESSON ──
 
 @app.get("/lesson/smart")
-def get_smart_lesson(namespace: str, concept: str):
-    # Try matching by namespace first
-    r = supabase.table("lesson_content")\
-        .select("*")\
-        .eq("namespace", namespace)\
-        .order("page_ref")\
-        .execute()
-
-    if r.data:
-        return {"concepts": r.data, "source": "smart", "has_content": True}
-
-    # Fallback: try by chapter from namespace (cma_f_law_ch1_s1 → chapter "1")
+def get_smart_lesson(namespace: str, concept: str = ""):
+    # Extract chapter from namespace (cma_f_law_ch1_s1 → "1")
     parts = namespace.split("_")
     chapter = None
     for part in parts:
@@ -885,16 +875,35 @@ def get_smart_lesson(namespace: str, concept: str):
             chapter = part.replace("ch", "")
             break
 
-    if chapter:
-        r2 = supabase.table("lesson_content")\
-            .select("*")\
-            .eq("chapter", chapter)\
-            .order("page_ref")\
-            .execute()
-        if r2.data:
-            return {"concepts": r2.data, "source": "smart", "has_content": True}
+    if not chapter:
+        return {"pages": [], "has_content": False, "total_pages": 0}
 
-    return {"concepts": [], "source": "none", "has_content": False}
+    r = supabase.table("lesson_content")\
+        .select("*")\
+        .eq("chapter", chapter)\
+        .order("page_ref")\
+        .execute()
+
+    # Parse sections (mama_lines) from JSON string for each row
+    pages = []
+    for row in (r.data or []):
+        sections = row.get("sections")
+        if sections and isinstance(sections, str):
+            try:
+                row["mama_lines"] = json.loads(sections)
+            except json.JSONDecodeError:
+                row["mama_lines"] = []
+        elif sections and isinstance(sections, list):
+            row["mama_lines"] = sections
+        else:
+            row["mama_lines"] = []
+        pages.append(row)
+
+    return {
+        "pages": pages,
+        "has_content": len(pages) > 0,
+        "total_pages": len(pages),
+    }
 
 
 # ── EVALUATE STUDENT ANSWER ──
