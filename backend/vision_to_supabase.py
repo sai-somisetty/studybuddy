@@ -14,6 +14,21 @@ from supabase import create_client
 load_dotenv()
 
 
+PAGE_HEADER_ARTIFACTS = {
+    "Fundamentals of Business Laws and Business Communication",
+    "The Institute of Cost Accountants of India",
+    "Business Communication",
+    "Introduction",
+}
+
+
+def is_page_artifact(text, node_type):
+    """Returns True if this is a repeating page header/footer to skip."""
+    if node_type != "heading":
+        return False
+    return text.strip() in PAGE_HEADER_ARTIFACTS
+
+
 def get_supabase():
     return create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
@@ -50,6 +65,10 @@ def main():
     parser.add_argument("--subject", default="law")
     parser.add_argument("--dry-run", action="store_true", help="Preview without inserting")
     parser.add_argument("--clear", action="store_true", help="Delete existing rows first")
+    parser.add_argument("--max-book-page", type=int, default=None,
+                        help="Only process pages up to this book page number")
+    parser.add_argument("--delete-book-pages", type=str, default=None,
+                        help="Delete existing rows for book page range e.g. '1-50' before inserting")
 
     args = parser.parse_args()
 
@@ -82,6 +101,45 @@ def main():
     # Build book page number mapping from footers
     book_page_map = build_book_page_map(pages)
     print(f"   Book pages mapped: {len(book_page_map)}")
+
+    # Delete book page range if requested
+    if args.delete_book_pages and not args.dry_run:
+        parts = args.delete_book_pages.split("-")
+        start_bp = int(parts[0])
+        end_bp = int(parts[1])
+        pages_in_range = [
+            pnum for pnum, bpnum in book_page_map.items()
+            if start_bp <= bpnum <= end_bp
+        ]
+        if pages_in_range:
+            # Get IDs of headings in range that might be referenced as parents
+            heading_rows = sb.table("textbook_structure")\
+                .select("id")\
+                .eq("course", args.course)\
+                .eq("paper_number", int(args.paper))\
+                .eq("node_type", "heading")\
+                .in_("page_number", pages_in_range)\
+                .execute()
+            heading_ids = [r["id"] for r in (heading_rows.data or [])]
+
+            # Nullify parent_id for ANY row referencing these headings
+            if heading_ids:
+                for hid in heading_ids:
+                    try:
+                        sb.table("textbook_structure")\
+                            .update({"parent_id": None})\
+                            .eq("parent_id", hid)\
+                            .execute()
+                    except Exception:
+                        pass
+
+            r = sb.table("textbook_structure")\
+                .delete()\
+                .eq("course", args.course)\
+                .eq("paper_number", int(args.paper))\
+                .in_("page_number", pages_in_range)\
+                .execute()
+            print(f"   Deleted {len(r.data)} rows for book pages {start_bp}-{end_bp}")
 
     # Test if book_page_number column exists
     has_book_page_col = True
@@ -118,10 +176,23 @@ def main():
 
     for page_data in pages:
         page_num = page_data["page_number"]
+        book_page = book_page_map.get(page_num)
         resp = page_data.get("claude_response", {})
 
         if resp.get("page_type") in ("blank", "title", "index"):
             continue
+
+        # Skip if beyond max book page
+        if args.max_book_page:
+            if book_page and book_page > args.max_book_page:
+                continue
+            # For pages without book_page, estimate: PDF pages before content start (~8)
+            # have no book page. Skip if we've clearly passed the range.
+            if not book_page:
+                # Check if any nearby page has a book_page > max
+                nearby_bp = book_page_map.get(page_num - 1) or book_page_map.get(page_num + 1)
+                if nearby_bp and nearby_bp > args.max_book_page:
+                    continue
 
         # Track section from page-level detection
         page_section = resp.get("section_label")
@@ -142,6 +213,8 @@ def main():
 
             if not h_text or len(h_text) < 3:
                 continue
+            if is_page_artifact(h_text, "heading"):
+                continue  # skip page header/footer artifacts
 
             row = make_row(h_text, page_num, current_section, "heading", None,
                            {"heading_level": h.get("level", 1), "source": "vision"})

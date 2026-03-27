@@ -93,6 +93,11 @@ function LessonContent() {
   const [messages,       setMessages]       = useState<Message[]>([]);
   const [loading,        setLoading]        = useState(false);
   const [kittyVisible,   setKittyVisible]   = useState(false);
+  const [activeZone,     setActiveZone]     = useState<"mama" | "icmai">("mama");
+  const [smartConcepts,  setSmartConcepts]  = useState<any[]>([]);
+  const [smartIndex,     setSmartIndex]     = useState(0);
+  const [hasSmartContent, setHasSmartContent] = useState(false);
+  const [touchStartX,   setTouchStartX]    = useState<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const sec = sections[currentSection];
@@ -135,6 +140,23 @@ function LessonContent() {
       }
     }
     fetchLesson();
+
+    async function fetchSmartLesson() {
+      try {
+        const res = await fetch(
+          `${API}/lesson/smart?namespace=${namespace}&concept=${encodeURIComponent(concept)}`
+        );
+        const data = await res.json();
+        if (!cancelled && data.has_content && data.concepts && data.concepts.length > 0) {
+          setSmartConcepts(data.concepts);
+          setHasSmartContent(true);
+        }
+      } catch (e) {
+        console.error("Smart lesson fetch failed:", e);
+      }
+    }
+    fetchSmartLesson();
+
     return () => { cancelled = true; };
   }, [namespace, concept]);
 
@@ -353,8 +375,132 @@ function LessonContent() {
         </div>
       </div>
 
+      {/* Zone tabs */}
+      {hasSmartContent && (
+        <div style={{ display:"flex", background:"#F5F0E8", borderBottom:"0.5px solid rgba(0,0,0,0.06)" }}>
+          <button onClick={() => setActiveZone("mama")}
+            style={{ flex:1, padding:"10px", fontSize:12, fontWeight: activeZone==="mama"?700:500, background: activeZone==="mama"?"#0A2E28":"transparent", color: activeZone==="mama"?"#fff":"#6B6560", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+            🧠 Mama Zone
+          </button>
+          <button onClick={() => setActiveZone("icmai")}
+            style={{ flex:1, padding:"10px", fontSize:12, fontWeight: activeZone==="icmai"?700:500, background: activeZone==="icmai"?"#0E6655":"transparent", color: activeZone==="icmai"?"#fff":"#6B6560", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+            📖 ICMAI Zone
+          </button>
+        </div>
+      )}
+
       {/* ── Content ── */}
-      <div style={{ flex:1, padding:"14px 20px 140px", display:"flex", flexDirection:"column", gap:12, overflowY:"auto" }}>
+      <div style={{ flex:1, padding:"14px 20px 140px", display:"flex", flexDirection:"column", gap:12, overflowY:"auto" }}
+        onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
+        onTouchEnd={(e) => {
+          if (touchStartX === null) return;
+          const diff = touchStartX - e.changedTouches[0].clientX;
+          if (Math.abs(diff) > 50) {
+            setActiveZone(diff > 0 ? "icmai" : "mama");
+          }
+          setTouchStartX(null);
+        }}>
+
+        {/* Smart content — Bento-Box UI */}
+        {hasSmartContent && smartConcepts.length > 0 && (() => {
+          const sc = smartConcepts[smartIndex];
+
+          if (activeZone === "mama") {
+            return (
+              <motion.div key={`mama-${smartIndex}`}
+                initial={{ opacity:0, x:-20 }} animate={{ opacity:1, x:0 }}
+                style={{ display:"flex", flexDirection:"column", gap:12 }}>
+
+                {/* Concept header */}
+                <div style={{ background:"linear-gradient(135deg,#0A2E28,#0A4A3C)", borderRadius:16, padding:16 }}>
+                  <div style={{ fontSize:9, fontWeight:700, color:"rgba(255,255,255,0.5)", letterSpacing:"0.08em", marginBottom:4 }}>
+                    {sc.section_label} · PAGE {sc.page_ref}
+                  </div>
+                  <div style={{ fontFamily:"Georgia,serif", fontSize:16, fontWeight:700, color:"#fff", marginBottom:8 }}>
+                    {sc.concept_title}
+                  </div>
+                  <div style={{ fontSize:12, color:"rgba(255,255,255,0.7)", lineHeight:1.6, fontStyle:"italic" }}>
+                    {sc.core_definition}
+                  </div>
+                </div>
+
+                {/* Mama's Logic */}
+                <div style={{ background:"#fff", borderRadius:16, padding:16, border:"0.5px solid rgba(0,0,0,0.06)" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+                    <div style={{ width:30, height:30, borderRadius:10, background:"#0A2E28", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <span style={{ fontSize:8, fontWeight:800, color:"#fff" }}>MAMA</span>
+                    </div>
+                    <div style={{ fontSize:12, fontWeight:700, color:"#0A2E28" }}>🧠 Mama&apos;s Logic</div>
+                    {!sc.is_verified && (
+                      <span style={{ fontSize:9, background:"#FFF7ED", color:"#E67E22", padding:"2px 8px", borderRadius:20, fontWeight:600 }}>AI Draft</span>
+                    )}
+                    {sc.is_verified && (
+                      <span style={{ fontSize:9, background:"#E1F5EE", color:"#0E6655", padding:"2px 8px", borderRadius:20, fontWeight:600 }}>✓ Verified</span>
+                    )}
+                  </div>
+                  <div style={{ fontSize:13, color:"#1A1208", lineHeight:1.7, whiteSpace:"pre-wrap" }}>
+                    {sc.tenglish_verified || sc.somi_business_logic || sc.tenglish_ai}
+                  </div>
+                </div>
+
+                {/* Mama's Tip */}
+                {sc.mamas_tip && (
+                  <div style={{ background:"#FFF7ED", borderRadius:14, padding:"12px 16px", border:"1px solid rgba(230,126,34,0.2)", display:"flex", gap:10, alignItems:"flex-start" }}>
+                    <span style={{ fontSize:18, flexShrink:0 }}>💡</span>
+                    <div>
+                      <div style={{ fontSize:9, fontWeight:700, color:"#E67E22", letterSpacing:"0.08em", marginBottom:4 }}>MAMA&apos;S EXAM TIP</div>
+                      <div style={{ fontSize:12, color:"#9a3412", lineHeight:1.6, fontWeight:500 }}>{sc.mamas_tip}</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Navigation */}
+                {smartConcepts.length > 1 && (
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+                    <button onClick={() => setSmartIndex(Math.max(0, smartIndex - 1))} disabled={smartIndex === 0}
+                      style={{ padding:"6px 14px", borderRadius:20, background: smartIndex===0?"#E5E0D8":"#0A2E28", color:"#fff", border:"none", cursor: smartIndex===0?"default":"pointer", fontSize:12 }}>←</button>
+                    <span style={{ fontSize:11, color:"#A89880" }}>{smartIndex + 1} / {smartConcepts.length}</span>
+                    <button onClick={() => setSmartIndex(Math.min(smartConcepts.length - 1, smartIndex + 1))} disabled={smartIndex === smartConcepts.length - 1}
+                      style={{ padding:"6px 14px", borderRadius:20, background: smartIndex===smartConcepts.length-1?"#E5E0D8":"#0A2E28", color:"#fff", border:"none", cursor: smartIndex===smartConcepts.length-1?"default":"pointer", fontSize:12 }}>→</button>
+                  </div>
+                )}
+
+                {/* Dots */}
+                {smartConcepts.length > 1 && (
+                  <div style={{ display:"flex", justifyContent:"center", gap:6 }}>
+                    {smartConcepts.map((_: any, i: number) => (
+                      <div key={i} onClick={() => setSmartIndex(i)}
+                        style={{ width: i===smartIndex?20:6, height:6, borderRadius:3, background: i===smartIndex?"#0A2E28":"#E5E0D8", cursor:"pointer", transition:"all 0.3s" }} />
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            );
+          }
+
+          if (activeZone === "icmai") {
+            return (
+              <motion.div key={`icmai-${smartIndex}`}
+                initial={{ opacity:0, x:20 }} animate={{ opacity:1, x:0 }}
+                style={{ background:"#FFFEF9", borderRadius:16, padding:20, border:"1px solid rgba(14,102,85,0.15)" }}>
+                <div style={{ fontSize:9, fontWeight:700, color:"#0E6655", letterSpacing:"0.08em", marginBottom:12 }}>
+                  📖 ICMAI OFFICIAL TEXT · PAGE {sc.page_ref}
+                </div>
+                <div style={{ fontSize:13, color:"#1A1208", lineHeight:1.9, fontFamily:"Georgia,serif", whiteSpace:"pre-wrap" }}>
+                  {sc.official_full_text || sc.official_text}
+                </div>
+                <div style={{ marginTop:16, paddingTop:12, borderTop:"0.5px solid rgba(14,102,85,0.1)", fontSize:10, color:"#6B9B8A", fontStyle:"italic" }}>
+                  Source: ICMAI Study Material · {sc.section_label}
+                </div>
+              </motion.div>
+            );
+          }
+
+          return null;
+        })()}
+
+        {/* Fallback: existing content when no smart content */}
+        {!hasSmartContent && (<>
 
         {/* 1. ICAI Quote */}
         <motion.div initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }}
@@ -504,6 +650,8 @@ function LessonContent() {
             </div>
           </motion.div>
         )}
+
+        </>)}
       </div>
 
       {/* ── Bottom Bar — Ask Mama ── */}

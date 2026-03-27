@@ -128,14 +128,14 @@ def get_exercise_nodes(sb, course, paper, start_order, max_nodes=300):
 def parse_exercise_section(nodes):
     """Parse all question types from exercise nodes. Returns categorized questions."""
     mcq_questions = []
-    tf_statements = []
-    fill_blanks = []
     short_essays = []
     mcq_key = {}
     tf_key = {}
     fill_key = {}
 
+    TYPE_MAP = {"mcq": "mcq", "tf": "true_false", "fill": "fill_blank"}
     current_type = "mcq"  # default
+    seen_first_blank = False  # once True, stop catching T/F in fill section
     i = 0
 
     while i < len(nodes):
@@ -146,42 +146,36 @@ def parse_exercise_section(nodes):
         book_page = node.get("book_page_number")
         section = node.get("section_label", "")
 
-        # Detect section type changes
+        # Heading: only change current_type on specific section headings
         if ntype == "heading":
-            cl = content.lower()
-            if "true or false" in cl:
-                current_type = "tf"
-                i += 1
-                continue
-            elif "fill in the blank" in cl:
-                current_type = "fill"
-                i += 1
-                continue
-            elif "multiple choice" in cl or "mcq" in cl:
+            cl = content.lower().strip()
+            if "multiple choice" in cl or "mcq" in cl:
                 current_type = "mcq"
-                i += 1
-                continue
-            elif "short essay" in cl:
+                seen_first_blank = False
+            elif "true or false" in cl or "state true" in cl:
+                current_type = "tf"
+                seen_first_blank = False
+            elif "fill in the blank" in cl or "fill in blank" in cl:
+                current_type = "fill"
+                seen_first_blank = False
+            elif "short essay" in cl or "short answer" in cl or "short type" in cl:
                 current_type = "short"
-                i += 1
-                continue
-            elif cl == "answers":
+            elif cl in ("answers", "answer"):
                 current_type = "skip"
-                i += 1
-                continue
             elif cl == "exercise":
-                break  # next chapter exercise
-            else:
-                i += 1
-                continue
+                break
+            # All other headings — just skip, do NOT change current_type
+            i += 1
+            continue
 
-        # Parse answer key tables
+        # Parse answer key tables — always, regardless of current_type
         if ntype == "table":
-            if "multiple choice" in content.lower() or "mcq" in content.lower():
+            cl_table = content.lower()
+            if "multiple choice" in cl_table or "mcq" in cl_table:
                 mcq_key.update(parse_mcq_answer_key(content))
-            elif "true or false" in content.lower():
+            elif "true or false" in cl_table:
                 tf_key.update(parse_tf_answer_key(content))
-            elif "number" in content.lower() and "answer" in content.lower():
+            elif "number" in cl_table and "answer" in cl_table:
                 fill_key.update(parse_fill_answer_key(content))
             i += 1
             continue
@@ -190,15 +184,62 @@ def parse_exercise_section(nodes):
             i += 1
             continue
 
-        # Parse MCQ questions
-        if current_type == "mcq":
-            q_match = re.match(r'^(\d+|Q)\.\s*(.+)', content, re.DOTALL)
-            if not q_match:
+        # Parse objective questions
+        if current_type in ("mcq", "tf", "fill"):
+            # T/F plain statements (no options, no number prefix)
+            if current_type == "tf" and ntype == "list_item" and len(content) > 10:
+                if not re.match(r'^(\d+|Q)\.\s', content) and not content.startswith("("):
+                    tf_num = len([q for q in mcq_questions if q["q_type"] == "true_false"]) + 1
+                    mcq_questions.append({
+                        "q_num": tf_num, "question_text": content,
+                        "option_a": "True", "option_b": "False",
+                        "option_c": "Partly True", "option_d": "Cannot be determined",
+                        "page_number": page, "book_page_number": book_page,
+                        "section_label": section, "q_type": "true_false",
+                    })
+                    i += 1
+                    continue
+
+            # Fill section: plain statements without blanks before first blank = T/F
+            # Plain statements with blanks = Fill
+            if current_type == "fill" and ntype == "list_item":
+                has_blank = ("____" in content or "___" in content)
+                has_options = bool(re.search(r'\(a\)', content))
+                if has_blank and not has_options:
+                    seen_first_blank = True
+                    f_num = len([q for q in mcq_questions if q["q_type"] == "fill_blank"]) + 1
+                    f_text = re.sub(r'^\d+\.\s*', '', content).strip() if re.match(r'^\d+\.\s', content) else content
+                    mcq_questions.append({
+                        "q_num": f_num, "question_text": f_text,
+                        "option_a": "", "option_b": "", "option_c": "", "option_d": "",
+                        "page_number": page, "book_page_number": book_page,
+                        "section_label": section, "q_type": "fill_blank",
+                    })
+                    i += 1
+                    continue
+                elif not seen_first_blank and not has_blank and not has_options and len(content) > 15 and not re.match(r'^\d+\.\s', content):
+                    # Plain statement BEFORE first blank = T/F statement
+                    tf_num = len([q for q in mcq_questions if q["q_type"] == "true_false"]) + 1
+                    mcq_questions.append({
+                        "q_num": tf_num, "question_text": content,
+                        "option_a": "True", "option_b": "False",
+                        "option_c": "Partly True", "option_d": "Cannot be determined",
+                        "page_number": page, "book_page_number": book_page,
+                        "section_label": section, "q_type": "true_false",
+                    })
+                    i += 1
+                    continue
+
+            # MCQ format (numbered with (a)(b)(c)(d) options)
+            # Match "1. question" but NOT "5.1 section label"
+            q_match = re.match(r'^(\d+|Q)\.\s+(.+)', content, re.DOTALL)
+            if not q_match or re.match(r'^\d+\.\d+\s', content):
                 i += 1
                 continue
 
             q_num_str = q_match.group(1)
             q_num = int(q_num_str) if q_num_str.isdigit() else 0
+            assigned_type = TYPE_MAP.get(current_type, "mcq")
 
             # Pattern 1: all options in same node
             opts = extract_options_from_text(content)
@@ -209,7 +250,7 @@ def parse_exercise_section(nodes):
                     "option_a": opts[0], "option_b": opts[1],
                     "option_c": opts[2], "option_d": opts[3],
                     "page_number": page, "book_page_number": book_page,
-                    "section_label": section, "q_type": "mcq",
+                    "section_label": section, "q_type": assigned_type,
                 })
                 i += 1
             else:
@@ -231,60 +272,19 @@ def parse_exercise_section(nodes):
                         "option_a": collected[0], "option_b": collected[1],
                         "option_c": collected[2], "option_d": collected[3],
                         "page_number": page, "book_page_number": book_page,
-                        "section_label": section, "q_type": "mcq",
+                        "section_label": section, "q_type": assigned_type,
                     })
                     i = j
                 else:
                     i += 1
 
-        # Parse True/False statements
-        elif current_type == "tf":
-            if ntype == "list_item" and len(content) > 10:
-                # Extract question number if present
-                tf_match = re.match(r'^(\d+)\.\s*(.+)', content)
-                if tf_match:
-                    tf_num = int(tf_match.group(1))
-                    tf_text = tf_match.group(2).strip()
-                else:
-                    tf_num = len(tf_statements) + 1
-                    tf_text = content
-                tf_statements.append({
-                    "q_num": tf_num, "question_text": tf_text,
-                    "option_a": "True", "option_b": "False",
-                    "option_c": "Partly True", "option_d": "Cannot be determined",
-                    "page_number": page, "book_page_number": book_page,
-                    "section_label": section, "q_type": "true_false",
-                })
-            i += 1
-
-        # Parse Fill in the blanks
-        elif current_type == "fill":
-            if ntype == "list_item" and ("____" in content or "……" in content or "........" in content or "___" in content):
-                fill_match = re.match(r'^(\d+)\.\s*(.+)', content)
-                if fill_match:
-                    f_num = int(fill_match.group(1))
-                    f_text = fill_match.group(2).strip()
-                else:
-                    f_num = len(fill_blanks) + 1
-                    f_text = content
-                fill_blanks.append({
-                    "q_num": f_num, "question_text": f_text,
-                    "page_number": page, "book_page_number": book_page,
-                    "section_label": section, "q_type": "fill_blank",
-                })
-            i += 1
-
         # Parse Short essay questions
         elif current_type == "short":
-            # Questions are list_items or paragraphs without "Ans:"
-            # Answers are paragraphs starting with "Ans:" or just after questions
             if content.lower().startswith("ans:") or content.lower().startswith("ans :"):
-                # This is an answer — attach to last question
                 answer_text = re.sub(r'^[Aa]ns\s*:\s*', '', content).strip()
                 if short_essays and not short_essays[-1].get("model_answer"):
                     short_essays[-1]["model_answer"] = answer_text
             elif ntype in ("list_item", "paragraph") and len(content) > 15:
-                # Check if it looks like a question (ends with ?, or is a topic/term)
                 is_question = (
                     content.endswith("?")
                     or re.match(r'^\d+\.\s', content)
@@ -305,13 +305,22 @@ def parse_exercise_section(nodes):
                         "section_label": section, "q_type": "short",
                     })
                 elif short_essays and not short_essays[-1].get("model_answer"):
-                    # Might be a model answer without "Ans:" prefix
                     short_essays[-1]["model_answer"] = content
             i += 1
         else:
             i += 1
 
-    return mcq_questions, tf_statements, fill_blanks, short_essays, mcq_key, tf_key, fill_key
+    # Deduplicate by q_num — keep last occurrence (list_item wins over paragraph)
+    seen = {}
+    for q in mcq_questions:
+        seen[q["q_num"]] = q
+    mcq_questions = sorted(seen.values(), key=lambda x: x["q_num"])
+
+    # Split by q_type
+    real_mcqs  = [q for q in mcq_questions if q["q_type"] == "mcq"]
+    real_tfs   = [q for q in mcq_questions if q["q_type"] == "true_false"]
+    real_fills = [q for q in mcq_questions if q["q_type"] == "fill_blank"]
+    return real_mcqs, real_tfs, real_fills, short_essays, mcq_key, tf_key, fill_key
 
 
 def extract_options_from_text(text):
@@ -454,11 +463,23 @@ def main():
         print(f"  📝 Exercise at section {ex_section}, book page {ex_page}")
 
         nodes = get_exercise_nodes(sb, args.course, args.paper, ex_order)
-        # Stop at next Exercise
+        # Stop at next Exercise or next chapter module heading
+        # Next exercise reading_order (if exists) provides a hard boundary
+        next_ex_order = None
+        for other_ex in exercises:
+            if other_ex["reading_order"] > ex_order:
+                next_ex_order = other_ex["reading_order"]
+                break
+
         filtered = []
         for n in nodes:
             c = (n.get("content") or "").strip()
-            if n["node_type"] == "heading" and c.lower() == "exercise":
+            cl = c.lower().strip()
+            # Stop at next exercise boundary
+            if next_ex_order and n.get("reading_order", 0) >= next_ex_order:
+                break
+            # Stop at "Exercise" heading (next chapter's exercise)
+            if n["node_type"] == "heading" and cl == "exercise":
                 break
             filtered.append(n)
 
@@ -475,18 +496,18 @@ def main():
         totals["mcq"] += len(mcqs)
         all_to_store.extend(mcqs)
 
-        # Prepare T/F
-        for q in tfs:
+        # Prepare T/F — tf_key uses sequential 1,2,3... not original q_num
+        for tf_idx, q in enumerate(tfs, start=1):
             q["chapter"] = chapter
-            q["answer_key_tf"] = tf_key.get(q["q_num"])
+            q["answer_key_tf"] = tf_key.get(tf_idx)
             q["answer_key_page"] = ex_page
         totals["true_false"] += len(tfs)
         all_to_store.extend(tfs)
 
-        # Prepare Fill
-        for q in fills:
+        # Prepare Fill — fill_key uses sequential 1,2,3... not original q_num
+        for fill_idx, q in enumerate(fills, start=1):
             q["chapter"] = chapter
-            q["answer_key_fill"] = fill_key.get(q["q_num"])
+            q["answer_key_fill"] = fill_key.get(fill_idx)
             q["answer_key_page"] = ex_page
         totals["fill_blank"] += len(fills)
         all_to_store.extend(fills)
@@ -525,6 +546,12 @@ def main():
                         print(f"      D: {q['option_d'][:60]}")
                     if qtype == "short" and q.get("model_answer"):
                         print(f"      Model: {q['model_answer'][:100]}")
+
+        print(f"\n  Type detection summary:")
+        print(f"  MCQ: {len([q for q in all_to_store if q['q_type'] == 'mcq'])}")
+        print(f"  T/F: {len([q for q in all_to_store if q['q_type'] == 'true_false'])}")
+        print(f"  Fill: {len([q for q in all_to_store if q['q_type'] == 'fill_blank'])}")
+        print(f"  Short: {len([q for q in all_to_store if q['q_type'] == 'short'])}")
         return
 
     # Store with answers
