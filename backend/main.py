@@ -863,6 +863,40 @@ Return ONLY valid JSON with this structure — no preamble no markdown:
     }
 
 
+# ── SMART LESSON ──
+
+@app.get("/lesson/smart")
+def get_smart_lesson(namespace: str, concept: str):
+    # Try matching by namespace first
+    r = supabase.table("lesson_content")\
+        .select("*")\
+        .eq("namespace", namespace)\
+        .order("page_ref")\
+        .execute()
+
+    if r.data:
+        return {"concepts": r.data, "source": "smart", "has_content": True}
+
+    # Fallback: try by chapter from namespace (cma_f_law_ch1_s1 → chapter "1")
+    parts = namespace.split("_")
+    chapter = None
+    for part in parts:
+        if part.startswith("ch"):
+            chapter = part.replace("ch", "")
+            break
+
+    if chapter:
+        r2 = supabase.table("lesson_content")\
+            .select("*")\
+            .eq("chapter", chapter)\
+            .order("page_ref")\
+            .execute()
+        if r2.data:
+            return {"concepts": r2.data, "source": "smart", "has_content": True}
+
+    return {"concepts": [], "source": "none", "has_content": False}
+
+
 # ── EVALUATE STUDENT ANSWER ──
 
 @app.post("/questions/evaluate")

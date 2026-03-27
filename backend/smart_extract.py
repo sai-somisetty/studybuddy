@@ -159,6 +159,7 @@ def store_concept(sb, concept, chapter, course, paper):
     row = {
         "namespace":          namespace,
         "concept":            concept.get("concept_title", ""),
+        "sections":           json.dumps([concept], ensure_ascii=False),
         "concept_title":      concept.get("concept_title", ""),
         "section_label":      concept.get("section_label", ""),
         "page_ref":           page_num,
