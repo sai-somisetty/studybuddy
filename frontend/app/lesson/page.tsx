@@ -621,7 +621,12 @@ function LessonContent() {
                         ))}
                       </div>
                     )}
-                    <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                    <div style={{ 
+                      display: "flex", 
+                      gap: 8, 
+                      marginTop: 8,
+                      alignItems: "center"
+                    }}>
                       <input
                         value={studentQuestion}
                         onChange={e => setStudentQuestion(e.target.value)}
@@ -648,11 +653,43 @@ function LessonContent() {
                         }}
                         placeholder="Type and press Enter..."
                         style={{
-                          flex: 1, padding: "10px 12px", borderRadius: 12,
+                          flex: 1, padding: "10px 12px", borderRadius: 20,
                           border: "1.5px solid #E5E0D8", background: "#FAFAF8",
                           fontSize: 12, color: "#1A1208", outline: "none"
                         }}
                       />
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={async () => {
+                          if (!studentQuestion.trim() || mamaTyping) return;
+                          const q = studentQuestion.trim();
+                          setStudentQuestion("");
+                          (document.activeElement as HTMLElement)?.blur();
+                          setStudentMessages(prev => [...prev, { role: "user", text: q }]);
+                          setMamaTyping(true);
+                          try {
+                            const res = await fetch(
+                              `${API}/ask?question=${encodeURIComponent(q)}&namespace=${namespace}&student_name=Kitty`
+                            );
+                            const data = await res.json();
+                            setStudentMessages(prev => [...prev, { role: "mama", text: data.answer }]);
+                          } catch {
+                            setStudentMessages(prev => [...prev, { role: "mama", text: "Sorry, try again!" }]);
+                          } finally {
+                            setMamaTyping(false);
+                          }
+                        }}
+                        disabled={!studentQuestion.trim() || mamaTyping}
+                        style={{
+                          width: 36, height: 36, borderRadius: "50%",
+                          background: studentQuestion.trim() && !mamaTyping ? "#0A2E28" : "#E5E0D8",
+                          border: "none", 
+                          cursor: studentQuestion.trim() && !mamaTyping ? "pointer" : "default",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          flexShrink: 0
+                        }}>
+                        <span style={{ color: "#fff", fontSize: 14 }}>↑</span>
+                      </motion.button>
                     </div>
                   </div>
                 )}
