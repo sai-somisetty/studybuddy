@@ -193,7 +193,7 @@ function SessionContent() {
     <div className="app-shell">
 
       {/* Header */}
-      <div style={{ background: "#0A2E28", padding: "14px 20px 12px" }}>
+      <div style={{ background: "linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)", padding: "14px 20px 12px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
           <button onClick={() => router.back()}
             style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>

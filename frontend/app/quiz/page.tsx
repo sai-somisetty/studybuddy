@@ -282,7 +282,7 @@ function QuizContent() {
   if (!started) {
     return (
       <div className="app-shell">
-        <div style={{ background:"#0A2E28", padding:"18px 24px 16px" }}>
+        <div style={{ background:"linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)", padding:"18px 24px 16px" }}>
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
             <button onClick={() => router.back()}
               style={{ background:"rgba(255,255,255,0.1)", border:"none", borderRadius:8, padding:"6px 12px", fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.7)", cursor:"pointer" }}>
@@ -377,7 +377,7 @@ function QuizContent() {
   if (!loading && questions.length === 0) {
     return (
       <div className="app-shell">
-        <div style={{ background:"#0A2E28", padding:"18px 24px 16px" }}>
+        <div style={{ background:"linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)", padding:"18px 24px 16px" }}>
           <button onClick={() => setStarted(false)}
             style={{ background:"rgba(255,255,255,0.1)", border:"none", borderRadius:8, padding:"6px 12px", fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.7)", cursor:"pointer" }}>
             ← Back
@@ -429,7 +429,7 @@ function QuizContent() {
     const passed = pct >= 60;
     return (
       <div className="app-shell">
-        <div style={{ background:"#0A2E28", padding:"18px 24px" }}>
+        <div style={{ background:"linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)", padding:"18px 24px" }}>
           <div style={{ fontFamily:"Georgia,serif", fontSize:18, fontWeight:700, color:"#fff" }}>Results</div>
           <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", marginTop:2 }}>
             {selectedMode?.label} · {concept}
@@ -476,7 +476,7 @@ function QuizContent() {
   const q = currentQ;
   return (
     <div className="app-shell">
-      <div style={{ background:"#0A2E28", padding:"14px 20px" }}>
+      <div style={{ background:"linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)", padding:"14px 20px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
           <button onClick={() => setStarted(false)}
             style={{ background:"rgba(255,255,255,0.1)", border:"none", borderRadius:8, padding:"6px 12px", fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.7)", cursor:"pointer" }}>

@@ -42,7 +42,7 @@ export default function Home() {
     <div className="app-shell">
 
       {/* Header */}
-      <div style={{ background:"#0A2E28", padding:"20px 24px" }}>
+      <div style={{ background:"linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)", padding:"20px 24px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
           <span style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:"#fff" }}>SOMI</span>
           <motion.div whileTap={{ scale:0.9 }}
