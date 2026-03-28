@@ -1,9 +1,9 @@
 "use client";
-import { use } from "react";
+import React, { use, useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { useEffect, useState, Suspense } from "react";
 import { getSubjects } from "@/lib/syllabus";
+import { House, BookOpen, Certificate, ChartBar } from '@phosphor-icons/react';
 
 const chapterColors = [
   { bg: "#FFF7ED", text: "#E67E22" },
@@ -37,7 +37,12 @@ function BottomNav({ active }: { active: string }) {
         <motion.div key={item.label} whileTap={{ scale:0.9 }}
           onClick={() => router.push(item.path)}
           style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4, cursor:"pointer" }}>
-          <div style={{ width:20, height:20, borderRadius:6, background:item.label===active?"#0E6655":"#E5E0D8" }} />
+          {({
+            Home:     <House       size={20} weight={item.label===active?"fill":"regular"} color={item.label===active?"#0E6655":"#A89880"} />,
+            Study:    <BookOpen    size={20} weight={item.label===active?"fill":"regular"} color={item.label===active?"#0E6655":"#A89880"} />,
+            Exams:    <Certificate size={20} weight={item.label===active?"fill":"regular"} color={item.label===active?"#0E6655":"#A89880"} />,
+            Progress: <ChartBar    size={20} weight={item.label===active?"fill":"regular"} color={item.label===active?"#0E6655":"#A89880"} />,
+          } as Record<string, React.ReactNode>)[item.label]}
           <div style={{ fontSize:10, fontWeight:item.label===active?700:400, color:item.label===active?"#0E6655":"#A89880" }}>{item.label}</div>
         </motion.div>
       ))}

@@ -3,6 +3,7 @@ import React, { use, useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
+import { PencilSimple, ClipboardText } from '@phosphor-icons/react';
 
 const chapterNames: Record<string, Record<number, string>> = {
   cma_f_law: {
@@ -384,13 +385,13 @@ function ChapterContent({ pageId }: { pageId: string }) {
           </div>
           {[
             {
-              icon:  "📝",
+              icon:  <PencilSimple size={16} weight="duotone" color="#0E6655" />,
               label: `Chapter ${chapterNum} Quiz`,
               sub:   "All question types",
               route: `/quiz?chapter=${chapterNum}&course=cma&paper=1&mode=textbook&subject=${encodeURIComponent(subjectTitle)}`,
             },
             {
-              icon:  "📋",
+              icon:  <ClipboardText size={16} weight="duotone" color="#E67E22" />,
               label: `Chapter ${chapterNum} Exam`,
               sub:   "Full timed exam",
               route: `/exams/chapter`,
@@ -418,7 +419,6 @@ function ChapterContent({ pageId }: { pageId: string }) {
                 display:         "flex",
                 alignItems:      "center",
                 justifyContent:  "center",
-                fontSize:        16,
                 flexShrink:      0,
               }}>
                 {item.icon}
