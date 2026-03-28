@@ -1,9 +1,9 @@
 "use client";
-import { use } from "react";
+import React, { use, useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { BookOpen, FileText, Shuffle, Sparkle } from '@phosphor-icons/react';
 
 const chapterNames: Record<string, Record<number, string>> = {
   cma_f_law: {
@@ -348,13 +348,13 @@ function ChapterContent({ pageId }: { pageId: string }) {
                 {done && <span style={{ marginRight:4 }}>✓</span>}
                 {concept}
               </div>
-              <div style={{ display:"flex", gap:5, marginBottom:8, justifyContent:"flex-end" }}>
+              <div style={{ display:"flex", gap:6, marginBottom:8 }}>
                 {([
-                  { idx:0, mode:"textbook" },
-                  { idx:1, mode:"previous" },
-                  { idx:2, mode:"tweaked"  },
-                  { idx:3, mode:"ai"       },
-                ] as { idx:number; mode:string }[]).map(({ idx, mode }) => {
+                  { idx:0, mode:"textbook", label:"Textbook",   icon:<BookOpen size={14} weight="duotone" />,  bg:"#E1F5EE", color:"#0E6655" },
+                  { idx:1, mode:"previous", label:"Prev Paper", icon:<FileText size={14} weight="duotone" />,  bg:"#FFF7ED", color:"#E67E22" },
+                  { idx:2, mode:"tweaked",  label:"Tweaked",    icon:<Shuffle  size={14} weight="duotone" />,  bg:"#DBEAFE", color:"#185FA5" },
+                  { idx:3, mode:"ai",       label:"AI",         icon:<Sparkle  size={14} weight="duotone" />,  bg:"#F5F3FF", color:"#7C3AED" },
+                ] as { idx:number; mode:string; label:string; icon:React.ReactElement; bg:string; color:string }[]).map(({ idx, mode, label, icon, bg, color }) => {
                   const isDone = (rings[concept] || [false,false,false,false])[idx];
                   return (
                     <button
@@ -366,15 +366,27 @@ function ChapterContent({ pageId }: { pageId: string }) {
                         `&subject=${encodeURIComponent(subjectTitle)}`+
                         `&course=cma&paper=1`
                       )}
+                      title={label}
                       style={{
-                        width:8, height:8, borderRadius:"50%",
-                        background: isDone ? "#0A2E28" : "transparent",
-                        border:     isDone ? "1.5px solid #0A2E28" : "1.5px solid #D0C8BE",
-                        cursor:     "pointer",
-                        padding:    0,
+                        width: 32, height: 32,
+                        borderRadius: 8,
+                        background: isDone ? "#0A2E28" : bg,
+                        border: "none",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                         flexShrink: 0,
-                      }}
-                    />
+                        color: isDone ? "#fff" : color,
+                      }}>
+                      {isDone
+                        ? <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                            stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        : icon
+                      }
+                    </button>
                   );
                 })}
               </div>
