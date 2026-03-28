@@ -57,35 +57,34 @@ export default function PDFViewer({
       </Document>
 
       <div style={{
-        display: "flex", justifyContent: "space-between",
-        alignItems: "center", padding: "12px 16px", gap: 10
+        display: "flex",
+        justifyContent: "center",
+        gap: 16,
+        padding: "8px 16px 16px"
       }}>
         <button
           onClick={onPrev}
           disabled={!canGoPrev}
           style={{
-            flex: 1, padding: "12px", borderRadius: 12,
+            width: 40, height: 40, borderRadius: "50%",
             background: !canGoPrev ? "#E5E0D8" : "#0A2E28",
             color: "#fff", border: "none",
             cursor: !canGoPrev ? "default" : "pointer",
-            fontSize: 13, fontWeight: 600
+            fontSize: 16
           }}>
-          ← Prev
+          ‹
         </button>
-        <span style={{ fontSize: 11, color: "#A89880", whiteSpace: "nowrap" }}>
-          Page {bookPage} · {totalPages} pages
-        </span>
         <button
           onClick={onNext}
           disabled={!canGoNext}
           style={{
-            flex: 1, padding: "12px", borderRadius: 12,
+            width: 40, height: 40, borderRadius: "50%",
             background: !canGoNext ? "#E5E0D8" : "#0A2E28",
             color: "#fff", border: "none",
             cursor: !canGoNext ? "default" : "pointer",
-            fontSize: 13, fontWeight: 600
+            fontSize: 16
           }}>
-          Next →
+          ›
         </button>
       </div>
     </div>
