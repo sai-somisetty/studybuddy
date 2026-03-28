@@ -3,8 +3,24 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "https://studybuddy-production-7776.up.railway.app";
+
+const PDFViewer = dynamic(
+  () => import('./PDFViewer'),
+  {
+    ssr: false,
+    loading: () => (
+      <div style={{
+        display: "flex", justifyContent: "center",
+        padding: 40, color: "#0A2E28"
+      }}>
+        Loading PDF...
+      </div>
+    )
+  }
+);
 
 function LessonContent() {
   const router = useRouter();
@@ -15,36 +31,40 @@ function LessonContent() {
   const subject   = params.get("subject")   || "Business Laws";
   const chapter   = params.get("chapter")   || "Chapter 1";
 
-  // State
-  const [activeZone, setActiveZone]       = useState<"mama" | "icmai">("mama");
-  const [pages, setPages]                 = useState<any[]>([]);
-  const [currentPageIdx, setCurrentPageIdx] = useState(0);
-  const [currentParaIdx, setCurrentParaIdx] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [showKitty, setShowKitty]         = useState(false);
-  const [kittyAnswered, setKittyAnswered] = useState(false);
-  const [showCheck, setShowCheck]         = useState(false);
-  const [touchStartX, setTouchStartX]     = useState<number | null>(null);
+  const [activeZone, setActiveZone]           = useState<"mama" | "icmai">("mama");
+  const [pages, setPages]                     = useState<any[]>([]);
+  const [currentPageIdx, setCurrentPageIdx]   = useState(0);
+  const [currentParaIdx, setCurrentParaIdx]   = useState(0);
+  const [selectedAnswer, setSelectedAnswer]   = useState<number | null>(null);
+  const [attempts, setAttempts]               = useState(0);
+  const [gaveUp, setGaveUp]                   = useState(false);
+  const [showKitty, setShowKitty]             = useState(false);
+  const [kittyAnswered, setKittyAnswered]     = useState(false);
+  const [isLocked, setIsLocked]               = useState(true);
+  const [touchStartX, setTouchStartX]         = useState<number | null>(null);
+  const [touchStartY, setTouchStartY]         = useState<number | null>(null);
   const [studentQuestion, setStudentQuestion] = useState("");
   const [studentMessages, setStudentMessages] = useState<any[]>([]);
-  const [askingMama, setAskingMama]       = useState(false);
-  const [loading, setLoading]             = useState(true);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const [mamaTyping, setMamaTyping]           = useState(false);
+  const [missedConcepts, setMissedConcepts]   = useState<string[]>([]);
+  const [loading, setLoading]                 = useState(true);
+  const contentRef = useRef<HTMLDivElement>(null);
 
-  const currentPage = pages[currentPageIdx];
-  const paragraphs = currentPage?.mama_lines || [];
-  const currentPara = paragraphs[currentParaIdx];
-  const isLastPara = currentParaIdx === paragraphs.length - 1;
-  const isLastPage = currentPageIdx === pages.length - 1;
+  const currentPage  = pages[currentPageIdx];
+  const paragraphs   = currentPage?.mama_lines || [];
+  const currentPara  = paragraphs[currentParaIdx];
+  const isLastPara   = currentParaIdx === paragraphs.length - 1;
+  const isLastPage   = currentPageIdx === pages.length - 1;
+  const isCorrect    = selectedAnswer === currentPara?.check_answer;
 
   // Fetch on mount
   useEffect(() => {
     async function fetchPages() {
       setLoading(true);
       try {
-        const res = await fetch(`${API}/lesson/smart?namespace=${namespace}&concept=${encodeURIComponent(concept)}`);
+        const res = await fetch(`${API}/lesson/smart?namespace=${namespace}`);
         const data = await res.json();
-        if (data.has_content && data.pages?.length > 0) {
+        if (data.pages?.length > 0) {
           setPages(data.pages);
         }
       } catch (e) {
@@ -54,69 +74,90 @@ function LessonContent() {
       }
     }
     fetchPages();
-  }, [namespace, concept]);
+  }, [namespace]);
 
-  // Show kitty after delay for key concepts
+  // Kitty auto-show + lock control
   useEffect(() => {
-    if (!currentPara?.is_key_concept) return;
-    const t = setTimeout(() => setShowKitty(true), 1500);
+    if (!currentPara?.is_key_concept) {
+      setIsLocked(false);
+      return;
+    }
+    setIsLocked(true);
+    const t = setTimeout(() => setShowKitty(true), 2000);
     return () => clearTimeout(t);
-  }, [currentParaIdx, currentPageIdx, currentPara]);
+  }, [currentParaIdx, currentPageIdx]);
 
-  // Show check after kitty answered (or directly if not key concept)
-  useEffect(() => {
-    if (!currentPara) return;
-    if (!currentPara.is_key_concept) {
-      const t = setTimeout(() => setShowCheck(true), 500);
-      return () => clearTimeout(t);
-    }
-    if (kittyAnswered) {
-      const t = setTimeout(() => setShowCheck(true), 1000);
-      return () => clearTimeout(t);
-    }
-  }, [kittyAnswered, currentPara, currentParaIdx]);
-
-  // Scroll
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [showKitty, kittyAnswered, showCheck, selectedAnswer, studentMessages]);
-
-  // Ask Mama
-  const askMama = async () => {
-    if (!studentQuestion.trim() || askingMama) return;
-    const q = studentQuestion.trim();
-    setStudentQuestion("");
-    setStudentMessages(prev => [...prev, { role: "student", text: q }]);
-    setAskingMama(true);
-    try {
-      const res = await fetch(`${API}/ask?question=${encodeURIComponent(q)}&namespace=${namespace}&student_name=Kitty`);
-      const data = await res.json();
-      setStudentMessages(prev => [...prev, { role: "mama", text: data.answer, source: data.source }]);
-    } catch {
-      setStudentMessages(prev => [...prev, { role: "mama", text: "Sorry Kitty — try again!" }]);
-    } finally {
-      setAskingMama(false);
-    }
+  // Navigation helpers
+  const resetParaState = () => {
+    setSelectedAnswer(null);
+    setAttempts(0);
+    setGaveUp(false);
+    setShowKitty(false);
+    setKittyAnswered(false);
+    setIsLocked(true);
+    setStudentMessages([]);
+    contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Navigate
   const goNextPara = () => {
-    setCurrentParaIdx(prev => prev + 1);
-    setSelectedAnswer(null);
-    setShowKitty(false);
-    setKittyAnswered(false);
-    setShowCheck(false);
-    setStudentMessages([]);
+    if (isLocked) return;
+    if (!isLastPara) {
+      setCurrentParaIdx(prev => prev + 1);
+      resetParaState();
+    } else if (!isLastPage) {
+      setCurrentPageIdx(prev => prev + 1);
+      setCurrentParaIdx(0);
+      resetParaState();
+    }
   };
 
-  const goNextPage = () => {
-    setCurrentPageIdx(prev => prev + 1);
-    setCurrentParaIdx(0);
-    setSelectedAnswer(null);
-    setShowKitty(false);
-    setKittyAnswered(false);
-    setShowCheck(false);
-    setStudentMessages([]);
+  const goPrevPara = () => {
+    if (currentParaIdx > 0) {
+      setCurrentParaIdx(prev => prev - 1);
+      setSelectedAnswer(null);
+      setAttempts(0);
+      setGaveUp(false);
+      setShowKitty(false);
+      setKittyAnswered(false);
+      setStudentMessages([]);
+      setIsLocked(false);
+      contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (currentPageIdx > 0) {
+      setCurrentPageIdx(prev => prev - 1);
+      setCurrentParaIdx(0);
+      setSelectedAnswer(null);
+      setAttempts(0);
+      setGaveUp(false);
+      setShowKitty(false);
+      setKittyAnswered(false);
+      setStudentMessages([]);
+      setIsLocked(false);
+      contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handleAnswer = (idx: number) => {
+    if (gaveUp) return;
+    if (selectedAnswer !== null && isCorrect) return;
+    setSelectedAnswer(idx);
+    setAttempts(prev => prev + 1);
+    if (idx === currentPara.check_answer) {
+      setTimeout(() => {
+        setIsLocked(false);
+        setTimeout(() => goNextPara(), 800);
+      }, 1500);
+    }
+  };
+
+  const handleGiveUp = () => {
+    setGaveUp(true);
+    setSelectedAnswer(currentPara?.check_answer);
+    setIsLocked(false);
+    setMissedConcepts(prev => [
+      ...prev,
+      currentPara?.text?.slice(0, 60) || "Unknown"
+    ]);
+    setTimeout(() => goNextPara(), 2500);
   };
 
   // ── LOADING ──
@@ -125,10 +166,14 @@ function LessonContent() {
       <div className="app-shell" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ textAlign: "center", padding: 24 }}>
           <div style={{ fontSize: 40, marginBottom: 16 }}>📖</div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#0A2E28", marginBottom: 8 }}>Mama is preparing your lesson...</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#0A2E28", marginBottom: 8 }}>
+            Mama is preparing your lesson...
+          </div>
           <div style={{ display: "flex", justifyContent: "center", gap: 6 }}>
             {[0, 1, 2].map(i => (
-              <motion.div key={i} animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.15 }}
+              <motion.div key={i}
+                animate={{ y: [0, -6, 0] }}
+                transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.15 }}
                 style={{ width: 8, height: 8, borderRadius: "50%", background: "#0A2E28" }} />
             ))}
           </div>
@@ -145,11 +190,15 @@ function LessonContent() {
           <button onClick={() => router.back()} style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>← Back</button>
           <div style={{ fontFamily: "Georgia,serif", fontSize: 17, fontWeight: 700, color: "#fff", marginTop: 10 }}>{concept}</div>
         </div>
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: 40, marginBottom: 16 }}>📖</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#1A1208", marginBottom: 8 }}>Mama is preparing this chapter...</div>
-            <div style={{ fontSize: 12, color: "#6B6560" }}>Content coming soon!</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#0A2E28", marginBottom: 8 }}>
+              Content coming soon!
+            </div>
+            <div style={{ fontSize: 12, color: "#A89880" }}>
+              Mama is preparing this chapter...
+            </div>
           </div>
         </div>
       </div>
@@ -168,7 +217,8 @@ function LessonContent() {
           </div>
         </div>
         <div style={{ height: 3, background: "rgba(255,255,255,0.15)", borderRadius: 2, overflow: "hidden", marginBottom: 6 }}>
-          <motion.div animate={{ width: `${paragraphs.length > 0 ? ((currentParaIdx + 1) / paragraphs.length) * 100 : 0}%` }}
+          <motion.div
+            animate={{ width: `${paragraphs.length > 0 ? ((currentParaIdx + 1) / paragraphs.length) * 100 : 0}%` }}
             style={{ height: "100%", background: "#E67E22", borderRadius: 2 }} />
         </div>
         <div style={{ fontFamily: "Georgia,serif", fontSize: 15, fontWeight: 700, color: "#fff" }}>{concept}</div>
@@ -176,229 +226,499 @@ function LessonContent() {
       </div>
 
       {/* Zone toggle */}
-      <div style={{ display: "flex", background: "#F5F0E8", borderBottom: "0.5px solid rgba(0,0,0,0.06)" }}>
-        <button onClick={() => setActiveZone("mama")} style={{ flex: 1, padding: "10px", fontSize: 12, fontWeight: activeZone === "mama" ? 700 : 500, background: activeZone === "mama" ? "#0A2E28" : "transparent", color: activeZone === "mama" ? "#fff" : "#6B6560", border: "none", cursor: "pointer" }}>
-          🧠 Mama Zone
-        </button>
-        <button onClick={() => setActiveZone("icmai")} style={{ flex: 1, padding: "10px", fontSize: 12, fontWeight: activeZone === "icmai" ? 700 : 500, background: activeZone === "icmai" ? "#0E6655" : "transparent", color: activeZone === "icmai" ? "#fff" : "#6B6560", border: "none", cursor: "pointer" }}>
-          📖 ICMAI Zone
-        </button>
+      <div style={{ display: "flex", borderBottom: "0.5px solid rgba(0,0,0,0.06)" }}>
+        {[
+          { id: "mama",  icon: "🧠", label: "Mama Zone",  bg: "#0A2E28" },
+          { id: "icmai", icon: "📖", label: "ICMAI Zone", bg: "#0E6655" },
+        ].map(z => (
+          <button key={z.id}
+            onClick={() => setActiveZone(z.id as "mama" | "icmai")}
+            style={{
+              flex: 1, padding: "10px", fontSize: 11,
+              fontWeight: activeZone === z.id ? 700 : 500,
+              background: activeZone === z.id ? z.bg : "transparent",
+              color: activeZone === z.id ? "#fff" : "#6B6560",
+              border: "none", cursor: "pointer",
+              display: "flex", alignItems: "center",
+              justifyContent: "center", gap: 4
+            }}>
+            {z.icon} {z.label}
+          </button>
+        ))}
       </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, padding: "14px 16px 140px", display: "flex", flexDirection: "column", gap: 12, overflowY: "auto" }}
-        onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
-        onTouchEnd={(e) => { if (touchStartX === null) return; const diff = touchStartX - e.changedTouches[0].clientX; if (Math.abs(diff) > 50) setActiveZone(diff > 0 ? "icmai" : "mama"); setTouchStartX(null); }}>
+      {/* ════ MAMA ZONE ════ */}
+      {activeZone === "mama" && (
+        <div
+          ref={contentRef}
+          style={{ flex: 1, overflowY: "auto", padding: "14px 20px 120px" }}
+          onTouchStart={(e) => {
+            setTouchStartX(e.touches[0].clientX);
+            setTouchStartY(e.touches[0].clientY);
+          }}
+          onTouchEnd={(e) => {
+            if (touchStartX === null || touchStartY === null) return;
+            const dx = touchStartX - e.changedTouches[0].clientX;
+            const dy = touchStartY - e.changedTouches[0].clientY;
+            if (Math.abs(dx) > Math.abs(dy)) {
+              if (Math.abs(dx) > 50) {
+                setActiveZone(dx > 0 ? "icmai" : "mama");
+              }
+            } else {
+              if (dy > 80 && !isLocked) goNextPara();
+              if (dy < -80) goPrevPara();
+            }
+            setTouchStartX(null);
+            setTouchStartY(null);
+          }}
+        >
+          {currentPara ? (
+            <AnimatePresence mode="wait">
+              <motion.div key={`${currentPageIdx}-${currentParaIdx}`}
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                style={{ display: "flex", flexDirection: "column", gap: 12 }}>
 
-        {/* ════ MAMA ZONE ════ */}
-        {activeZone === "mama" && currentPara && (
-          <AnimatePresence mode="wait">
-            <motion.div key={`${currentPageIdx}-${currentParaIdx}`}
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-
-              {/* Heading */}
-              {currentPara.heading && (
-                <div style={{ fontSize: 9, fontWeight: 700, color: "#0E6655", letterSpacing: "0.08em", background: "#E1F5EE", padding: "6px 12px", borderRadius: 8 }}>
-                  {currentPara.heading}
-                </div>
-              )}
-
-              {/* ICMAI text */}
-              <div style={{ background: "#E1F5EE", borderRadius: 14, padding: 14, border: "1px solid rgba(14,102,85,0.12)" }}>
-                <div style={{ fontSize: 8, fontWeight: 700, color: "#0E6655", letterSpacing: "0.08em", marginBottom: 6 }}>📖 ICMAI TEXTBOOK</div>
-                <div style={{ fontSize: 13, color: "#085041", lineHeight: 1.7, fontFamily: "Georgia,serif", fontStyle: "italic" }}>
-                  {currentPara.text}
-                </div>
-              </div>
-
-              {/* Mama explains */}
-              <div style={{ background: "#fff", borderRadius: 14, padding: 14, border: "0.5px solid rgba(0,0,0,0.06)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                  <div style={{ width: 26, height: 26, borderRadius: 8, background: "#0A2E28", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: 7, fontWeight: 800, color: "#fff" }}>MAMA</span>
+                {/* BLOCK 1 — Progress */}
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{
+                    fontSize: 10, color: "#A89880", marginBottom: 6,
+                    display: "flex", justifyContent: "space-between"
+                  }}>
+                    <span>Book Page {currentPage?.book_page}</span>
+                    <span>{currentParaIdx + 1} / {paragraphs.length}</span>
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: "#0A2E28" }}>Mama explains</span>
+                  <div style={{ height: 3, background: "#E5E0D8", borderRadius: 2 }}>
+                    <div style={{
+                      width: `${((currentParaIdx + 1) / paragraphs.length) * 100}%`,
+                      height: "100%", background: "#E67E22", borderRadius: 2,
+                      transition: "width 0.3s"
+                    }} />
+                  </div>
                 </div>
-                <div style={{ fontSize: 13, color: "#1A1208", lineHeight: 1.7 }}>{currentPara.tenglish}</div>
-              </div>
 
-              {/* Kitty interrupts */}
-              {currentPara.is_key_concept && showKitty && !kittyAnswered && currentPara.kitty_question && (
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "spring", damping: 20 }}
-                  style={{ background: "linear-gradient(135deg,#FEF9C3,#FFEDD5)", borderRadius: 14, padding: 14, border: "1px solid rgba(230,126,34,0.15)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                    <div style={{ width: 22, height: 22, borderRadius: 6, background: "#E67E22", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: 6, fontWeight: 800, color: "#fff" }}>KITTY</span>
-                    </div>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "#9a3412" }}>Kitty asks</span>
+                {/* BLOCK 2 — Official text */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  style={{
+                    background: "#E1F5EE", borderRadius: 16, padding: 16,
+                    border: "1px solid rgba(14,102,85,0.15)", marginBottom: 12
+                  }}>
+                  <div style={{
+                    fontSize: 9, fontWeight: 700, color: "#0E6655",
+                    letterSpacing: "0.08em", marginBottom: 8
+                  }}>
+                    📖 ICMAI TEXTBOOK
                   </div>
-                  <div style={{ fontSize: 13, color: "#431407", lineHeight: 1.6, fontStyle: "italic", marginBottom: 10 }}>
-                    &quot;{currentPara.kitty_question}&quot;
+                  <div style={{
+                    fontSize: 13, color: "#085041", lineHeight: 1.8,
+                    fontFamily: "Georgia,serif", fontStyle: "italic"
+                  }}>
+                    {currentPara?.text}
                   </div>
-                  <motion.button whileTap={{ scale: 0.95 }} onClick={() => setKittyAnswered(true)}
-                    style={{ padding: "8px 16px", borderRadius: 10, background: "#E67E22", color: "#fff", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer" }}>
-                    Mama — cheppu! 👆
-                  </motion.button>
                 </motion.div>
-              )}
 
-              {/* Mama answers Kitty */}
-              {kittyAnswered && currentPara.mama_kitty_answer && (
-                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                  style={{ background: "#fff", borderRadius: 14, padding: 14, border: "0.5px solid rgba(0,0,0,0.06)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                    <div style={{ width: 22, height: 22, borderRadius: 6, background: "#0A2E28", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: 6, fontWeight: 800, color: "#fff" }}>MAMA</span>
+                {/* BLOCK 3 — Mama explains */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  style={{
+                    background: "#fff", borderRadius: 16, padding: 16,
+                    border: "0.5px solid rgba(0,0,0,0.06)", marginBottom: 12
+                  }}>
+                  <div style={{
+                    display: "flex", alignItems: "center",
+                    gap: 8, marginBottom: 10
+                  }}>
+                    <div style={{
+                      width: 30, height: 30, borderRadius: 10,
+                      background: "#0A2E28", display: "flex",
+                      alignItems: "center", justifyContent: "center"
+                    }}>
+                      <span style={{ fontSize: 8, fontWeight: 800, color: "#fff" }}>MAMA</span>
                     </div>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "#0A2E28" }}>Mama answers Kitty</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#0A2E28" }}>
+                      Mama explains
+                    </span>
+                    {currentPage?.is_verified ? (
+                      <span style={{
+                        fontSize: 9, background: "#E1F5EE", color: "#0E6655",
+                        padding: "2px 8px", borderRadius: 20, fontWeight: 600
+                      }}>✓ Verified</span>
+                    ) : (
+                      <span style={{
+                        fontSize: 9, background: "#FFF7ED", color: "#E67E22",
+                        padding: "2px 8px", borderRadius: 20, fontWeight: 600
+                      }}>AI Draft</span>
+                    )}
                   </div>
-                  <div style={{ fontSize: 13, color: "#1A1208", lineHeight: 1.7 }}>{currentPara.mama_kitty_answer}</div>
+                  <div style={{ fontSize: 13, color: "#1A1208", lineHeight: 1.7 }}>
+                    {currentPara?.tenglish}
+                  </div>
                 </motion.div>
-              )}
 
-              {/* Check question */}
-              {showCheck && currentPara.check_question && (
-                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                  style={{ background: "#fff", borderRadius: 14, padding: 14, border: "1.5px solid rgba(10,46,40,0.1)" }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: "#185FA5", letterSpacing: "0.08em", marginBottom: 8 }}>
-                    Kitty — oka quick check! 🎯
-                  </div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1208", lineHeight: 1.6, marginBottom: 12 }}>
-                    {currentPara.check_question}
-                  </div>
-                  {(currentPara.check_options || []).map((opt: string, idx: number) => {
-                    const answered = selectedAnswer !== null;
-                    const isCorrect = idx === currentPara.check_answer;
-                    const isSelected = selectedAnswer === idx;
-                    let bg = "#FAFAF8", border = "1px solid #E5E0D8", color = "#1A1208";
-                    if (answered && isCorrect) { bg = "#F0FDF4"; border = "1.5px solid #16a34a"; color = "#14532d"; }
-                    else if (answered && isSelected) { bg = "#FEF2F2"; border = "1.5px solid #ef4444"; color = "#991b1b"; }
-                    return (
-                      <motion.button key={idx} whileTap={!answered ? { scale: 0.98 } : {}}
-                        onClick={() => { if (!answered) setSelectedAnswer(idx); }}
-                        style={{ display: "block", width: "100%", textAlign: "left", padding: "10px 12px", marginBottom: 6, borderRadius: 10, background: bg, border, color, fontSize: 12, fontWeight: 500, cursor: answered ? "default" : "pointer", lineHeight: 1.5 }}>
-                        <span style={{ fontWeight: 700, marginRight: 6 }}>{String.fromCharCode(65 + idx)}.</span>{opt}
-                        {answered && isCorrect && <span style={{ float: "right", color: "#16a34a" }}>✓</span>}
-                        {answered && isSelected && !isCorrect && <span style={{ float: "right", color: "#ef4444" }}>✗</span>}
-                      </motion.button>
-                    );
-                  })}
-
-                  {/* Answer feedback */}
-                  {selectedAnswer !== null && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                      <div style={{ marginTop: 8, borderRadius: 10, padding: "10px 12px", background: selectedAnswer === currentPara.check_answer ? "#F0FDF4" : "#FFF7ED", border: selectedAnswer === currentPara.check_answer ? "1px solid #16a34a33" : "1px solid #E67E2233" }}>
-                        <div style={{ fontSize: 12, color: selectedAnswer === currentPara.check_answer ? "#14532d" : "#9a3412", lineHeight: 1.6 }}>
-                          {selectedAnswer === currentPara.check_answer ? currentPara.mama_response_correct : currentPara.mama_response_wrong}
+                {/* BLOCK 4 — Kitty asks */}
+                <AnimatePresence>
+                  {currentPara?.is_key_concept && showKitty && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ type: "spring", damping: 20 }}
+                      style={{
+                        background: "linear-gradient(135deg,#FEF9C3,#FFEDD5)",
+                        borderRadius: 16, padding: 14, marginBottom: 12,
+                        border: "1px solid rgba(230,126,34,0.15)"
+                      }}>
+                      <div style={{
+                        display: "flex", alignItems: "center",
+                        gap: 8, marginBottom: 8
+                      }}>
+                        <div style={{
+                          width: 28, height: 28, borderRadius: 8,
+                          background: "#E67E22", display: "flex",
+                          alignItems: "center", justifyContent: "center"
+                        }}>
+                          <span style={{ fontSize: 7, fontWeight: 800, color: "#fff" }}>KITTY</span>
                         </div>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: "#9a3412" }}>
+                          Kitty asks...
+                        </span>
                       </div>
-                      {currentPara.check_explanation && (
-                        <div style={{ marginTop: 6, fontSize: 11, color: "#6B6560", lineHeight: 1.5 }}>
-                          {currentPara.check_explanation}
-                        </div>
+                      <div style={{
+                        fontSize: 13, color: "#431407",
+                        lineHeight: 1.6, fontStyle: "italic", marginBottom: 10
+                      }}>
+                        &quot;{currentPara?.kitty_question}&quot;
+                      </div>
+                      {!kittyAnswered && (
+                        <motion.button whileTap={{ scale: 0.97 }}
+                          onClick={() => setKittyAnswered(true)}
+                          style={{
+                            width: "100%", padding: "10px", borderRadius: 12,
+                            background: "#E67E22", color: "#fff",
+                            border: "none", cursor: "pointer",
+                            fontSize: 12, fontWeight: 700
+                          }}>
+                          Mama — cheppu! 👆
+                        </motion.button>
                       )}
                     </motion.div>
                   )}
-                </motion.div>
-              )}
+                </AnimatePresence>
 
-              {/* Student ask Mama */}
-              {selectedAnswer !== null && (
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {studentMessages.map((msg, i) => (
-                    <div key={i} style={{ display: "flex", justifyContent: msg.role === "student" ? "flex-end" : "flex-start" }}>
-                      <div style={{ maxWidth: "85%", padding: "8px 12px", borderRadius: msg.role === "student" ? "14px 14px 4px 14px" : "14px 14px 14px 4px", background: msg.role === "student" ? "#0A2E28" : "#fff", color: msg.role === "student" ? "#fff" : "#1A1208", fontSize: 12, lineHeight: 1.5, border: msg.role === "mama" ? "0.5px solid rgba(0,0,0,0.06)" : "none" }}>
-                        {msg.text}
+                {/* BLOCK 5 — Mama answers Kitty */}
+                <AnimatePresence>
+                  {kittyAnswered && currentPara?.mama_kitty_answer && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                      style={{
+                        background: "#fff", borderRadius: 16, padding: 16,
+                        border: "0.5px solid rgba(0,0,0,0.06)", marginBottom: 12
+                      }}>
+                      <div style={{
+                        display: "flex", alignItems: "center",
+                        gap: 8, marginBottom: 10
+                      }}>
+                        <div style={{
+                          width: 30, height: 30, borderRadius: 10,
+                          background: "#0A2E28", display: "flex",
+                          alignItems: "center", justifyContent: "center"
+                        }}>
+                          <span style={{ fontSize: 8, fontWeight: 800, color: "#fff" }}>MAMA</span>
+                        </div>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: "#0A2E28" }}>
+                          Mama answers Kitty
+                        </span>
                       </div>
+                      <div style={{ fontSize: 13, color: "#1A1208", lineHeight: 1.7 }}>
+                        {currentPara?.mama_kitty_answer}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* BLOCK 6 — Check question */}
+                <AnimatePresence>
+                  {(!currentPara?.is_key_concept || kittyAnswered) && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                      style={{
+                        background: "#fff", borderRadius: 16, padding: 16,
+                        border: "1.5px solid rgba(10,46,40,0.1)",
+                        marginBottom: 12
+                      }}>
+                      <div style={{
+                        fontSize: 10, fontWeight: 700, color: "#185FA5",
+                        letterSpacing: "0.08em", marginBottom: 10
+                      }}>
+                        🎯 QUICK CHECK KITTY!
+                      </div>
+                      <div style={{
+                        fontSize: 13, fontWeight: 600, color: "#1A1208",
+                        lineHeight: 1.6, marginBottom: 14
+                      }}>
+                        {currentPara?.check_question}
+                      </div>
+
+                      {currentPara?.check_options?.map((opt: string, idx: number) => {
+                        const isAnswered = selectedAnswer !== null;
+                        const isThisCorrect = idx === currentPara.check_answer;
+                        const isSelected = selectedAnswer === idx;
+                        let bg = "#FAFAF8", border = "1px solid #E5E0D8", color = "#1A1208";
+                        if (isAnswered && isThisCorrect) {
+                          bg = "#F0FDF4"; border = "1.5px solid #16a34a"; color = "#14532d";
+                        } else if (isAnswered && isSelected && !isThisCorrect) {
+                          bg = "#FEF2F2"; border = "1.5px solid #ef4444"; color = "#991b1b";
+                        }
+                        return (
+                          <motion.button key={idx}
+                            whileTap={!isAnswered ? { scale: 0.98 } : {}}
+                            onClick={() => handleAnswer(idx)}
+                            style={{
+                              display: "flex", alignItems: "center", gap: 10,
+                              width: "100%", padding: "12px 14px",
+                              marginBottom: 8, borderRadius: 12,
+                              background: bg, border, color,
+                              cursor: isAnswered ? "default" : "pointer",
+                              textAlign: "left"
+                            }}>
+                            <span style={{ fontWeight: 700, flexShrink: 0 }}>
+                              {String.fromCharCode(65 + idx)}.
+                            </span>
+                            <span style={{ fontSize: 13, flex: 1 }}>{opt}</span>
+                            {isAnswered && isThisCorrect &&
+                              <span style={{ color: "#16a34a", fontWeight: 700 }}>✓</span>}
+                            {isAnswered && isSelected && !isThisCorrect &&
+                              <span style={{ color: "#ef4444", fontWeight: 700 }}>✗</span>}
+                          </motion.button>
+                        );
+                      })}
+
+                      <AnimatePresence>
+                        {selectedAnswer !== null && (
+                          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
+                            {/* Explanation */}
+                            <div style={{
+                              background: "#F5F0E8", borderRadius: 10,
+                              padding: "10px 14px", marginTop: 8, marginBottom: 10
+                            }}>
+                              <div style={{
+                                fontSize: 9, fontWeight: 700, color: "#6B6560",
+                                letterSpacing: "0.06em", marginBottom: 4
+                              }}>EXPLANATION</div>
+                              <div style={{ fontSize: 12, color: "#1A1208", lineHeight: 1.6 }}>
+                                {currentPara?.check_explanation}
+                              </div>
+                            </div>
+
+                            {/* Mama personal response */}
+                            <div style={{
+                              background: isCorrect ? "#F0FDF4" :
+                                gaveUp ? "#FEF2F2" : "#FFF7ED",
+                              borderRadius: 12, padding: "12px 14px",
+                              border: `1px solid ${isCorrect ? "#16a34a33" :
+                                gaveUp ? "#ef444433" : "#E67E2233"}`
+                            }}>
+                              <div style={{
+                                display: "flex", alignItems: "center",
+                                gap: 6, marginBottom: 6
+                              }}>
+                                <div style={{
+                                  width: 24, height: 24, borderRadius: 8,
+                                  background: isCorrect ? "#0A2E28" : "#E67E22",
+                                  display: "flex", alignItems: "center",
+                                  justifyContent: "center"
+                                }}>
+                                  <span style={{ fontSize: 6, fontWeight: 800, color: "#fff" }}>MAMA</span>
+                                </div>
+                                <span style={{
+                                  fontSize: 10, fontWeight: 700,
+                                  color: isCorrect ? "#0A2E28" : "#9a3412"
+                                }}>
+                                  {isCorrect ? "🎉 Correct!" :
+                                    gaveUp ? "Parledu! Next time pakka!" : "Try again!"}
+                                </span>
+                              </div>
+                              <div style={{ fontSize: 12, lineHeight: 1.6, color: "#1A1208" }}>
+                                {isCorrect
+                                  ? currentPara?.mama_response_correct
+                                  : gaveUp
+                                  ? "Parledu Kitty — idi missed concepts lo save chesanu. Next time pakka chestav! 💪"
+                                  : currentPara?.mama_response_wrong}
+                              </div>
+                            </div>
+
+                            {/* Give up button */}
+                            {!isCorrect && !gaveUp && attempts >= 1 && (
+                              <motion.button
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                                whileTap={{ scale: 0.97 }}
+                                onClick={handleGiveUp}
+                                style={{
+                                  width: "100%", marginTop: 10, padding: "10px",
+                                  borderRadius: 12, background: "transparent",
+                                  border: "1px solid #ef4444", color: "#ef4444",
+                                  fontSize: 12, fontWeight: 600, cursor: "pointer"
+                                }}>
+                                Mama, I give up! Show me the answer 🏳️
+                              </motion.button>
+                            )}
+
+                            {/* Swipe hint when unlocked */}
+                            {!isLocked && (
+                              <motion.div
+                                animate={{ y: [0, -4, 0] }}
+                                transition={{ repeat: Infinity, duration: 1.5 }}
+                                style={{
+                                  textAlign: "center", marginTop: 16,
+                                  fontSize: 11, color: "#A89880"
+                                }}>
+                                {isLastPara && !isLastPage
+                                  ? `🎉 Page ${currentPage?.book_page} complete! Swipe up for next page`
+                                  : isLastPara && isLastPage
+                                  ? "🏆 Chapter complete!"
+                                  : "↑ Swipe up for next paragraph"}
+                              </motion.div>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* BLOCK 7 — Ask Mama */}
+                {selectedAnswer !== null && (
+                  <div style={{
+                    background: "#fff", borderRadius: 16, padding: 14,
+                    border: "0.5px solid rgba(0,0,0,0.06)", marginBottom: 12
+                  }}>
+                    <div style={{ fontSize: 10, color: "#A89880", marginBottom: 8 }}>
+                      💬 Oka doubt unte adugu Kitty...
                     </div>
-                  ))}
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <input value={studentQuestion} onChange={e => setStudentQuestion(e.target.value)}
-                      onKeyDown={e => e.key === "Enter" && askMama()}
-                      placeholder="Oka doubt unte adugu Kitty... 💬"
-                      style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: "1px solid #E5E0D8", background: "#FAFAF8", fontSize: 12, outline: "none" }} />
-                    <motion.button whileTap={{ scale: 0.95 }} onClick={askMama} disabled={!studentQuestion.trim() || askingMama}
-                      style={{ padding: "10px 14px", borderRadius: 10, background: studentQuestion.trim() ? "#0A2E28" : "#E5E0D8", color: "#fff", border: "none", fontSize: 12, cursor: studentQuestion.trim() ? "pointer" : "default" }}>↑</motion.button>
-                  </div>
-                </div>
-              )}
-
-              {/* Proceed */}
-              {selectedAnswer !== null && !isLastPara && (
-                <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} whileTap={{ scale: 0.97 }} onClick={goNextPara}
-                  style={{ width: "100%", padding: "14px", borderRadius: 14, background: "#0A2E28", color: "#fff", fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer" }}>
-                  Understood! Next paragraph →
-                </motion.button>
-              )}
-
-              {selectedAnswer !== null && isLastPara && !isLastPage && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  style={{ background: "linear-gradient(135deg,#F0FDF4,#DCFCE7)", borderRadius: 14, padding: 16, textAlign: "center", border: "1px solid rgba(14,102,85,0.15)" }}>
-                  <div style={{ fontSize: 24, marginBottom: 6 }}>🎉</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#0E6655", marginBottom: 4 }}>Chala baaga chesav Kitty!</div>
-                  <div style={{ fontSize: 12, color: "#6B9B8A", marginBottom: 12 }}>Book Page {currentPage?.page_ref} complete!</div>
-                  <motion.button whileTap={{ scale: 0.97 }} onClick={goNextPage}
-                    style={{ padding: "12px 24px", borderRadius: 14, background: "#E67E22", color: "#fff", fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer" }}>
-                    Next Page →
-                  </motion.button>
-                </motion.div>
-              )}
-
-              {selectedAnswer !== null && isLastPara && isLastPage && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  style={{ background: "linear-gradient(135deg,#F0FDF4,#DCFCE7)", borderRadius: 14, padding: 16, textAlign: "center", border: "1.5px solid rgba(14,102,85,0.2)" }}>
-                  <div style={{ fontSize: 36, marginBottom: 8 }}>🏆</div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: "#0E6655", marginBottom: 4 }}>Chapter complete! Amazing work Kitty!</div>
-                  <div style={{ fontSize: 12, color: "#6B9B8A", marginBottom: 14 }}>Ready for quiz?</div>
-                  <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
-                    {[{ icon: "📚", label: "Textbook", mode: "textbook" }, { icon: "🔄", label: "Tweaked", mode: "tweaked" }, { icon: "🤖", label: "AI Quiz", mode: "ai" }].map(q => (
-                      <motion.button key={q.mode} whileTap={{ scale: 0.95 }}
-                        onClick={() => router.push(`/quiz?namespace=${namespace}&concept=${encodeURIComponent(concept)}&mode=${q.mode}&subject=${encodeURIComponent(subject)}`)}
-                        style={{ padding: "8px 14px", borderRadius: 10, background: "#fff", border: "1px solid rgba(14,102,85,0.15)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-                        <span>{q.icon}</span>
-                        <span style={{ fontSize: 11, color: "#0E6655", fontWeight: 600 }}>{q.label}</span>
-                      </motion.button>
+                    {studentMessages.map((msg, i) => (
+                      <div key={i} style={{
+                        marginBottom: 8, display: "flex",
+                        justifyContent: msg.role === "user" ? "flex-end" : "flex-start"
+                      }}>
+                        <div style={{
+                          maxWidth: "85%", padding: "8px 12px", borderRadius: 12,
+                          background: msg.role === "user" ? "#0A2E28" : "#F5F0E8",
+                          color: msg.role === "user" ? "#fff" : "#1A1208",
+                          fontSize: 12, lineHeight: 1.6
+                        }}>
+                          {msg.text}
+                        </div>
+                      </div>
                     ))}
+                    {mamaTyping && (
+                      <div style={{ display: "flex", gap: 4, padding: "8px 12px" }}>
+                        {[0, 1, 2].map(i => (
+                          <motion.div key={i}
+                            animate={{ y: [0, -4, 0] }}
+                            transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.15 }}
+                            style={{ width: 6, height: 6, borderRadius: "50%", background: "#0A2E28" }} />
+                        ))}
+                      </div>
+                    )}
+                    <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                      <input
+                        value={studentQuestion}
+                        onChange={e => setStudentQuestion(e.target.value)}
+                        onKeyDown={async e => {
+                          if (e.key === "Enter" && studentQuestion.trim()) {
+                            const q = studentQuestion.trim();
+                            setStudentQuestion("");
+                            setStudentMessages(prev => [...prev, { role: "user", text: q }]);
+                            setMamaTyping(true);
+                            try {
+                              const res = await fetch(
+                                `${API}/ask?question=${encodeURIComponent(q)}&namespace=${namespace}&student_name=Kitty`
+                              );
+                              const data = await res.json();
+                              setStudentMessages(prev => [...prev, { role: "mama", text: data.answer }]);
+                            } catch {
+                              setStudentMessages(prev => [...prev, { role: "mama", text: "Sorry, try again!" }]);
+                            } finally {
+                              setMamaTyping(false);
+                            }
+                          }
+                        }}
+                        placeholder="Type and press Enter..."
+                        style={{
+                          flex: 1, padding: "10px 12px", borderRadius: 12,
+                          border: "1.5px solid #E5E0D8", background: "#FAFAF8",
+                          fontSize: 12, color: "#1A1208", outline: "none"
+                        }}
+                      />
+                    </div>
                   </div>
-                </motion.div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-        )}
+                )}
 
-        {/* ════ ICMAI ZONE ════ */}
-        {activeZone === "icmai" && currentPara && (
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-            style={{ background: "#FFFEF9", borderRadius: 16, padding: 20, border: "1px solid rgba(14,102,85,0.15)" }}>
-            <div style={{ fontSize: 9, fontWeight: 700, color: "#0E6655", letterSpacing: "0.08em", marginBottom: 12 }}>
-              📖 ICMAI OFFICIAL TEXT · PAGE {currentPage?.page_ref}
-            </div>
-            {currentPara.heading && (
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#0A2E28", marginBottom: 10 }}>{currentPara.heading}</div>
-            )}
-            <div style={{ fontSize: 13, color: "#1A1208", lineHeight: 1.9, fontFamily: "Georgia,serif" }}>
-              {currentPara.text}
-            </div>
-            <div style={{ marginTop: 16, paddingTop: 12, borderTop: "0.5px solid rgba(14,102,85,0.1)", fontSize: 10, color: "#6B9B8A", fontStyle: "italic" }}>
-              Source: ICMAI Study Material · {chapter}
-            </div>
+                {/* BLOCK 8 — Chapter complete */}
+                {isLastPara && isLastPage && selectedAnswer !== null && (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    style={{
+                      background: "linear-gradient(135deg,#F0FDF4,#DCFCE7)",
+                      borderRadius: 16, padding: 20, textAlign: "center",
+                      border: "1px solid rgba(14,102,85,0.15)"
+                    }}>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>🏆</div>
+                    <div style={{
+                      fontSize: 16, fontWeight: 700, color: "#0E6655", marginBottom: 4
+                    }}>
+                      Chapter Complete!
+                    </div>
+                    <div style={{ fontSize: 12, color: "#6B9B8A", marginBottom: 16 }}>
+                      Amazing work Kitty! Ready to practice?
+                    </div>
+                    <div style={{
+                      display: "flex", gap: 8, flexWrap: "wrap",
+                      justifyContent: "center"
+                    }}>
+                      {[
+                        { icon: "📄", label: "Prev Papers", mode: "previous" },
+                        { icon: "📚", label: "Textbook",    mode: "textbook" },
+                        { icon: "🔄", label: "Tweaked",     mode: "tweaked" },
+                        { icon: "🤖", label: "AI Quiz",     mode: "ai" },
+                      ].map(q => (
+                        <motion.button key={q.mode} whileTap={{ scale: 0.95 }}
+                          onClick={() => router.push(
+                            `/quiz?namespace=${namespace}&concept=${encodeURIComponent(concept)}&mode=${q.mode}&subject=${encodeURIComponent(subject)}`
+                          )}
+                          style={{
+                            padding: "8px 14px", borderRadius: 12,
+                            background: "#fff",
+                            border: "1px solid rgba(14,102,85,0.15)",
+                            cursor: "pointer", display: "flex",
+                            alignItems: "center", gap: 6
+                          }}>
+                          <span style={{ fontSize: 14 }}>{q.icon}</span>
+                          <span style={{ fontSize: 11, color: "#0E6655", fontWeight: 600 }}>
+                            {q.label}
+                          </span>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
 
-            {/* Page navigation in ICMAI zone */}
-            <div style={{ marginTop: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-              <button onClick={() => { if (currentParaIdx > 0) { setCurrentParaIdx(prev => prev - 1); setSelectedAnswer(null); setShowCheck(false); setShowKitty(false); setKittyAnswered(false); } }}
-                disabled={currentParaIdx === 0}
-                style={{ padding: "6px 14px", borderRadius: 20, background: currentParaIdx === 0 ? "#E5E0D8" : "#0E6655", color: "#fff", border: "none", fontSize: 11, cursor: currentParaIdx === 0 ? "default" : "pointer" }}>← Prev</button>
-              <span style={{ fontSize: 11, color: "#A89880" }}>Para {currentParaIdx + 1}/{paragraphs.length}</span>
-              <button onClick={() => { if (currentParaIdx < paragraphs.length - 1) goNextPara(); else if (!isLastPage) goNextPage(); }}
-                disabled={isLastPara && isLastPage}
-                style={{ padding: "6px 14px", borderRadius: 20, background: isLastPara && isLastPage ? "#E5E0D8" : "#0E6655", color: "#fff", border: "none", fontSize: 11, cursor: isLastPara && isLastPage ? "default" : "pointer" }}>Next →</button>
-            </div>
-          </motion.div>
-        )}
+              </motion.div>
+            </AnimatePresence>
+          ) : null}
+        </div>
+      )}
 
-        <div ref={bottomRef} />
-      </div>
+      {/* ════ ICMAI ZONE ════ */}
+      {activeZone === "icmai" && (
+        <PDFViewer
+          pageNumber={currentPage?.pdf_page || 11}
+          onPrev={() => setCurrentPageIdx(Math.max(0, currentPageIdx - 1))}
+          onNext={() => setCurrentPageIdx(Math.min(pages.length - 1, currentPageIdx + 1))}
+          canGoPrev={currentPageIdx > 0}
+          canGoNext={currentPageIdx < pages.length - 1}
+          bookPage={currentPage?.book_page || 1}
+          totalPages={pages.length}
+        />
+      )}
     </div>
   );
 }
