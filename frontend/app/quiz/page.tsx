@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState, useEffect, Suspense } from "react";
@@ -279,7 +280,7 @@ function QuizContent() {
   const isLast   = current === questions.length - 1;
   const selectedMode = MODES.find(m => m.id === mode);
 
-  const modeIcons: Record<string, JSX.Element> = {
+  const modeIcons: Record<string, React.ReactNode> = {
     textbook: <BookOpen size={16} weight="duotone" color="#0E6655" />,
     previous: <FileText size={16} weight="duotone" color="#E67E22" />,
     tweaked:  <Shuffle   size={16} weight="duotone" color="#185FA5" />,
