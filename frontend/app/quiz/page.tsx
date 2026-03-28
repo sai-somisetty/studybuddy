@@ -2,6 +2,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState, useEffect, Suspense } from "react";
+import { BookOpen, FileText, Shuffle, Sparkle } from "@phosphor-icons/react";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "https://studybuddy-production-7776.up.railway.app";
 
@@ -278,6 +279,13 @@ function QuizContent() {
   const isLast   = current === questions.length - 1;
   const selectedMode = MODES.find(m => m.id === mode);
 
+  const modeIcons: Record<string, JSX.Element> = {
+    textbook: <BookOpen size={16} weight="duotone" color="#0E6655" />,
+    previous: <FileText size={16} weight="duotone" color="#E67E22" />,
+    tweaked:  <Shuffle   size={16} weight="duotone" color="#185FA5" />,
+    ai:       <Sparkle   size={16} weight="duotone" color="#7C3AED" />,
+  };
+
   // ── MODE SELECTION ──
   if (!started) {
     return (
@@ -327,7 +335,7 @@ function QuizContent() {
                   display:"flex", alignItems:"center",
                   justifyContent:"center", flexShrink:0,
                 }}>
-                  <div style={{ width:12, height:12, borderRadius:"50%", background: item.color }}/>
+                  {modeIcons[item.mode]}
                 </div>
                 <div style={{ flex:1 }}>
                   <div style={{
