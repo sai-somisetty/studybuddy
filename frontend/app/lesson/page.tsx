@@ -696,46 +696,81 @@ function LessonContent() {
 
                 {/* BLOCK 8 — Chapter complete */}
                 {isLastPara && isLastPage && selectedAnswer !== null && (
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     style={{
-                      background: "linear-gradient(135deg,#F0FDF4,#DCFCE7)",
-                      borderRadius: 16, padding: 20, textAlign: "center",
-                      border: "1px solid rgba(14,102,85,0.15)"
-                    }}>
-                    <div style={{ fontSize: 32, marginBottom: 8 }}>🏆</div>
-                    <div style={{
-                      fontSize: 16, fontWeight: 700, color: "#0E6655", marginBottom: 4
-                    }}>
-                      Chapter Complete!
+                      background: "#FFFEF9",
+                      borderRadius: 16,
+                      border: "1px solid rgba(0,0,0,0.08)",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {/* Header */}
+                    <div style={{ padding: "16px 16px 12px", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+                      <div style={{ fontSize: 20, marginBottom: 4 }}>🎉</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: "#1C1C1E", marginBottom: 2 }}>
+                        Chapter Complete!
+                      </div>
+                      <div style={{ fontSize: 12, color: "#8E8E93", lineHeight: 1.4 }}>
+                        Proud of you, Kitty! Pick your next challenge.
+                      </div>
                     </div>
-                    <div style={{ fontSize: 12, color: "#6B9B8A", marginBottom: 16 }}>
-                      Amazing work Kitty! Ready to practice?
-                    </div>
-                    <div style={{
-                      display: "flex", gap: 8, flexWrap: "wrap",
-                      justifyContent: "center"
-                    }}>
+
+                    {/* iOS-style list menu */}
+                    <div style={{ padding: "6px 0" }}>
                       {[
-                        { icon: "📄", label: "Prev Papers", mode: "previous" },
-                        { icon: "📚", label: "Textbook",    mode: "textbook" },
-                        { icon: "🔄", label: "Tweaked",     mode: "tweaked" },
-                        { icon: "🤖", label: "AI Quiz",     mode: "ai" },
-                      ].map(q => (
-                        <motion.button key={q.mode} whileTap={{ scale: 0.95 }}
+                        { icon: "📄", label: "Previous Papers", sublabel: "Past exam questions", mode: "previous" },
+                        { icon: "📚", label: "Textbook Quiz",    sublabel: "Straight from the book",  mode: "textbook" },
+                        { icon: "🔄", label: "Tweaked Questions", sublabel: "Same concepts, new angles", mode: "tweaked" },
+                        { icon: "🤖", label: "AI-Generated Quiz", sublabel: "Fresh questions just for you", mode: "ai" },
+                      ].map((q, i, arr) => (
+                        <motion.button
+                          key={q.mode}
+                          whileTap={{ scale: 0.98 }}
                           onClick={() => router.push(
                             `/quiz?namespace=${namespace}&concept=${encodeURIComponent(concept)}&mode=${q.mode}&subject=${encodeURIComponent(subject)}`
                           )}
                           style={{
-                            padding: "8px 14px", borderRadius: 12,
-                            background: "#fff",
-                            border: "1px solid rgba(14,102,85,0.15)",
-                            cursor: "pointer", display: "flex",
-                            alignItems: "center", gap: 6
+                            width: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                            padding: "10px 16px",
+                            background: "transparent",
+                            border: "none",
+                            borderBottom: i < arr.length - 1 ? "1px solid rgba(0,0,0,0.05)" : "none",
+                            cursor: "pointer",
+                            textAlign: "left",
+                          }}
+                        >
+                          {/* Icon */}
+                          <span style={{
+                            fontSize: 20,
+                            width: 32,
+                            height: 32,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: "#F5F0E8",
+                            borderRadius: 8,
+                            flexShrink: 0,
                           }}>
-                          <span style={{ fontSize: 14 }}>{q.icon}</span>
-                          <span style={{ fontSize: 11, color: "#0E6655", fontWeight: 600 }}>
-                            {q.label}
+                            {q.icon}
                           </span>
+
+                          {/* Labels */}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 14, fontWeight: 500, color: "#1C1C1E", lineHeight: 1.3 }}>
+                              {q.label}
+                            </div>
+                            <div style={{ fontSize: 11, color: "#8E8E93", marginTop: 1 }}>
+                              {q.sublabel}
+                            </div>
+                          </div>
+
+                          {/* Chevron */}
+                          <span style={{ fontSize: 12, color: "#C7C7CC", flexShrink: 0 }}>›</span>
                         </motion.button>
                       ))}
                     </div>
