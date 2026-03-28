@@ -183,13 +183,127 @@ function ChapterContent({ pageId }: { pageId: string }) {
         <div style={{ fontFamily:"Georgia,serif", fontSize:18, fontWeight:700, color:"#fff", marginBottom:2 }}>
           Ch {chapterNum} — {chapterTitle}
         </div>
-        <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>
-          {subjectTitle} · {chapterConcepts.length} concepts · {completedCount} completed
+      </div>
+
+      {/* ── Hero Banner ── */}
+      <div style={{
+        background: "linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)",
+        padding: "20px 24px 24px",
+        position: "relative",
+        overflow: "hidden"
+      }}>
+        {/* Background decoration */}
+        <div style={{
+          position: "absolute", top: -20, right: -20,
+          width: 120, height: 120, borderRadius: "50%",
+          background: "rgba(230,126,34,0.1)"
+        }} />
+        <div style={{
+          position: "absolute", bottom: -30, right: 40,
+          width: 80, height: 80, borderRadius: "50%",
+          background: "rgba(255,255,255,0.05)"
+        }} />
+
+        {/* Mama speech bubble */}
+        <div style={{
+          background: "rgba(255,255,255,0.1)",
+          borderRadius: "12px 12px 12px 4px",
+          padding: "10px 14px",
+          marginBottom: 12,
+          display: "inline-block",
+          maxWidth: "85%"
+        }}>
+          <div style={{
+            fontSize: 9, fontWeight: 700,
+            color: "#E67E22", letterSpacing: "0.06em",
+            marginBottom: 4
+          }}>
+            MAMA
+          </div>
+          <div style={{ fontSize: 12, color: "#fff", lineHeight: 1.5 }}>
+            {chapterNum === 1
+              ? "Sources of Law nundi start cheyyandi Kitty — idi foundation of everything! 📚"
+              : `Chapter ${chapterNum} lo ${chapterConcepts.length} concepts unnay. Ready ga unnava?`}
+          </div>
         </div>
-        <div style={{ height:3, background:"rgba(255,255,255,0.15)", borderRadius:2, overflow:"hidden" }}>
-          <div style={{ width:`${progressPct}%`, height:"100%", background:"#E67E22", borderRadius:2 }} />
+
+        {/* Kitty reply */}
+        <div style={{
+          background: "rgba(230,126,34,0.15)",
+          borderRadius: "12px 12px 4px 12px",
+          padding: "8px 14px",
+          marginBottom: 16,
+          display: "inline-block",
+          maxWidth: "75%",
+          marginLeft: "auto",
+          float: "right",
+          clear: "both"
+        }}>
+          <div style={{
+            fontSize: 9, fontWeight: 700,
+            color: "#E67E22", letterSpacing: "0.06em",
+            marginBottom: 4
+          }}>
+            KITTY
+          </div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>
+            {completedCount === 0
+              ? "Ready Mama! First concept em cheppudu? 😊"
+              : completedCount === chapterConcepts.length
+              ? "Anni concepts complete chesanu Mama! 🏆"
+              : `${completedCount} concepts chesanu! Continue chestha! 💪`}
+          </div>
         </div>
-        <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)", marginTop:4 }}>{progressPct}% complete</div>
+
+        <div style={{ clear: "both" }} />
+
+        {/* Start Now CTA */}
+        {completedCount < chapterConcepts.length && (
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => {
+              const firstIncomplete = chapterConcepts.find(c => !allDone(c));
+              if (firstIncomplete) {
+                router.push(
+                  `/lesson?namespace=${encodeURIComponent(namespace)}`+
+                  `&concept=${encodeURIComponent(firstIncomplete)}`+
+                  `&subject=${encodeURIComponent(subjectTitle)}`+
+                  `&chapter=${encodeURIComponent(`Chapter ${chapterNum} — ${chapterTitle}`)}`+
+                  `&page=1`
+                );
+              }
+            }}
+            style={{
+              width: "100%",
+              padding: "13px",
+              borderRadius: 14,
+              background: "#E67E22",
+              color: "#fff",
+              border: "none",
+              cursor: "pointer",
+              fontSize: 13,
+              fontWeight: 700,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              marginTop: 8
+            }}>
+            ⚡ {completedCount === 0 ? "Start Chapter" : "Continue Learning"} →
+          </motion.button>
+        )}
+
+        {completedCount === chapterConcepts.length && (
+          <div style={{
+            textAlign: "center",
+            padding: "8px",
+            fontSize: 13,
+            color: "#E67E22",
+            fontWeight: 700
+          }}>
+            🏆 Chapter Complete! Well done Kitty!
+          </div>
+        )}
       </div>
 
       <div style={{ flex:1, padding:"16px 20px 100px", display:"flex", flexDirection:"column", gap:10 }}>
