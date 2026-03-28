@@ -196,8 +196,8 @@ function ChapterContent({ pageId }: { pageId: string }) {
 
         {/* Ring legend */}
         <div style={{ background:"#fff", borderRadius:14, padding:"10px 14px", border:"0.5px solid rgba(0,0,0,0.06)" }}>
-          <div style={{ fontSize:10, fontWeight:700, color:"#6B6560", marginBottom:6 }}>
-            COMPLETE ALL 4 QUIZ MODES PER CONCEPT
+          <div style={{ fontSize:11, fontWeight:400, color:"#C5B9A8", marginBottom:6 }}>
+            Complete all 4 quiz modes per concept
           </div>
           <div style={{ display:"flex", gap:14, flexWrap:"wrap" }}>
             {[
@@ -226,20 +226,43 @@ function ChapterContent({ pageId }: { pageId: string }) {
               transition={{ delay:i*0.04 }}
               style={{
                 background:   "#fff",
-                borderRadius: 16,
+                borderRadius: 14,
                 padding:      "14px 16px",
-                border:       done
-                  ? "1.5px solid rgba(14,102,85,0.25)"
-                  : "0.5px solid rgba(0,0,0,0.06)",
+                border:       "0.5px solid rgba(0,0,0,0.06)",
               }}>
               <div style={{ fontSize:13, fontWeight:600, color:done?"#0E6655":"#1A1208", marginBottom:8 }}>
                 {done && <span style={{ marginRight:4 }}>✓</span>}
                 {concept}
               </div>
-              <div style={{ display:"flex", gap:4, marginBottom:8 }}>
-                {[0,1,2,3].map(idx => (
-                  <div key={idx} style={{ flex:1, height:5, borderRadius:3, background:getRingColor(concept,idx), transition:"background 0.3s" }} />
-                ))}
+              <div style={{ display:"flex", gap:5, marginBottom:8, justifyContent:"flex-end" }}>
+                {([
+                  { idx:0, mode:"textbook" },
+                  { idx:1, mode:"previous" },
+                  { idx:2, mode:"tweaked"  },
+                  { idx:3, mode:"ai"       },
+                ] as { idx:number; mode:string }[]).map(({ idx, mode }) => {
+                  const isDone = (rings[concept] || [false,false,false,false])[idx];
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => router.push(
+                        `/quiz?namespace=${encodeURIComponent(namespace)}`+
+                        `&concept=${encodeURIComponent(concept)}`+
+                        `&mode=${mode}`+
+                        `&subject=${encodeURIComponent(subjectTitle)}`+
+                        `&course=cma&paper=1`
+                      )}
+                      style={{
+                        width:8, height:8, borderRadius:"50%",
+                        background: isDone ? "#0A2E28" : "transparent",
+                        border:     isDone ? "1.5px solid #0A2E28" : "1.5px solid #D0C8BE",
+                        cursor:     "pointer",
+                        padding:    0,
+                        flexShrink: 0,
+                      }}
+                    />
+                  );
+                })}
               </div>
               <div style={{ display:"flex", gap:6, marginTop:8, flexWrap:"wrap" }}>
                 <button
@@ -251,10 +274,10 @@ function ChapterContent({ pageId }: { pageId: string }) {
                     `&page=1`
                   )}
                   style={{
-                    padding:      "5px 12px",
+                    padding:      "5px 14px",
                     borderRadius: 20,
-                    background:   "#0A2E28",
-                    color:        "#fff",
+                    background:   "#E1F5EE",
+                    color:        "#0A2E28",
                     border:       "none",
                     fontSize:     11,
                     fontWeight:   600,
@@ -271,11 +294,11 @@ function ChapterContent({ pageId }: { pageId: string }) {
                     `&course=cma&paper=1`
                   )}
                   style={{
-                    padding:      "5px 12px",
+                    padding:      "5px 14px",
                     borderRadius: 20,
-                    background:   "transparent",
-                    color:        "#0A2E28",
-                    border:       "1px solid #0A2E28",
+                    background:   "#F5F0E8",
+                    color:        "#6B6560",
+                    border:       "none",
                     fontSize:     11,
                     fontWeight:   500,
                     cursor:       "pointer",
