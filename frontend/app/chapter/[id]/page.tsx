@@ -232,88 +232,123 @@ function ChapterContent({ pageId }: { pageId: string }) {
                   ? "1.5px solid rgba(14,102,85,0.25)"
                   : "0.5px solid rgba(0,0,0,0.06)",
               }}>
-              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:13, fontWeight:600, color:done?"#0E6655":"#1A1208", marginBottom:8 }}>
-                    {done && <span style={{ marginRight:4 }}>✓</span>}
-                    {concept}
-                  </div>
-                  <div style={{ display:"flex", gap:4 }}>
-                    {[0,1,2,3].map(idx => (
-                      <div key={idx} style={{ flex:1, height:5, borderRadius:3, background:getRingColor(concept,idx), transition:"background 0.3s" }} />
-                    ))}
-                  </div>
-                </div>
-                <div style={{ display:"flex", gap:6, flexShrink:0 }}>
-                  <motion.button whileTap={{ scale:0.95 }}
-                    onClick={() => router.push(
-                      `/lesson?namespace=${encodeURIComponent(namespace)}`+
-                      `&concept=${encodeURIComponent(concept)}`+
-                      `&subject=${encodeURIComponent(subjectTitle)}`+
-                      `&chapter=${encodeURIComponent(`Chapter ${chapterNum} — ${chapterTitle}`)}`+
-                      `&page=1`
-                    )}
-                    style={{
-                      background:   done ? "#E1F5EE" : "#0A2E28",
-                      color:        done ? "#0E6655" : "#fff",
-                      border:       "none",
-                      borderRadius: 10,
-                      padding:      "8px 12px",
-                      fontSize:     11,
-                      fontWeight:   600,
-                      cursor:       "pointer",
-                      whiteSpace:   "nowrap",
-                    }}>
-                    {done ? "Review" : "Study →"}
-                  </motion.button>
-                  <motion.button whileTap={{ scale:0.95 }}
-                    onClick={() => router.push(
-                      `/quiz?namespace=${encodeURIComponent(namespace)}`+
-                      `&concept=${encodeURIComponent(concept)}`+
-                      `&mode=textbook`+
-                      `&subject=${encodeURIComponent(subjectTitle)}`+
-                      `&course=cma&paper=1`
-                    )}
-                    style={{
-                      background:   "transparent",
-                      color:        "#0E6655",
-                      border:       "1.5px solid #0E6655",
-                      borderRadius: 10,
-                      padding:      "7px 10px",
-                      fontSize:     11,
-                      fontWeight:   600,
-                      cursor:       "pointer",
-                      whiteSpace:   "nowrap",
-                    }}>
-                    Quiz 📝
-                  </motion.button>
-                </div>
+              <div style={{ fontSize:13, fontWeight:600, color:done?"#0E6655":"#1A1208", marginBottom:8 }}>
+                {done && <span style={{ marginRight:4 }}>✓</span>}
+                {concept}
+              </div>
+              <div style={{ display:"flex", gap:4, marginBottom:8 }}>
+                {[0,1,2,3].map(idx => (
+                  <div key={idx} style={{ flex:1, height:5, borderRadius:3, background:getRingColor(concept,idx), transition:"background 0.3s" }} />
+                ))}
+              </div>
+              <div style={{ display:"flex", gap:6, marginTop:8, flexWrap:"wrap" }}>
+                <button
+                  onClick={() => router.push(
+                    `/lesson?namespace=${encodeURIComponent(namespace)}`+
+                    `&concept=${encodeURIComponent(concept)}`+
+                    `&subject=${encodeURIComponent(subjectTitle)}`+
+                    `&chapter=${encodeURIComponent(`Chapter ${chapterNum} — ${chapterTitle}`)}`+
+                    `&page=1`
+                  )}
+                  style={{
+                    padding:      "5px 12px",
+                    borderRadius: 20,
+                    background:   "#0A2E28",
+                    color:        "#fff",
+                    border:       "none",
+                    fontSize:     11,
+                    fontWeight:   600,
+                    cursor:       "pointer",
+                  }}>
+                  📖 {done ? "Review" : "Study"}
+                </button>
+                <button
+                  onClick={() => router.push(
+                    `/quiz?namespace=${encodeURIComponent(namespace)}`+
+                    `&concept=${encodeURIComponent(concept)}`+
+                    `&mode=textbook`+
+                    `&subject=${encodeURIComponent(subjectTitle)}`+
+                    `&course=cma&paper=1`
+                  )}
+                  style={{
+                    padding:      "5px 12px",
+                    borderRadius: 20,
+                    background:   "transparent",
+                    color:        "#0A2E28",
+                    border:       "1px solid #0A2E28",
+                    fontSize:     11,
+                    fontWeight:   500,
+                    cursor:       "pointer",
+                  }}>
+                  ✏️ Quiz
+                </button>
               </div>
             </motion.div>
           );
         })}
 
-        {/* Chapter Quiz — textbook exercises */}
-        <motion.button whileTap={{ scale:0.97 }}
-          onClick={() => router.push(
-            `/quiz?chapter=${chapterNum}&course=cma&paper=1&mode=textbook&subject=${encodeURIComponent(subjectTitle)}`
-          )}
-          style={{ width:"100%", padding:"14px 16px", borderRadius:16, background:"#0E6655", color:"#fff", fontSize:14, fontWeight:700, border:"none", cursor:"pointer", textAlign:"center", marginTop:4 }}>
-          Take Chapter {chapterNum} Quiz 📝
-        </motion.button>
-
-        {/* Chapter exam */}
-        <motion.div whileTap={{ scale:0.98 }}
-          onClick={() => router.push(`/exams/chapter`)}
-          style={{ background:"linear-gradient(135deg,#0A2E28,#0A4A3C)", borderRadius:16, padding:"14px 16px", display:"flex", justifyContent:"space-between", alignItems:"center", cursor:"pointer", marginTop:4 }}>
-          <div>
-            <div style={{ fontSize:13, fontWeight:700, color:"#fff" }}>Chapter {chapterNum} Exam</div>
-            <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", marginTop:2 }}>
-              20 questions · 30 mins · All 4 types
+        {/* Chapter-level actions */}
+        <div style={{
+          margin:       "8px 0 0",
+          background:   "#FFFEF9",
+          borderRadius: 16,
+          border:       "0.5px solid rgba(0,0,0,0.08)",
+          overflow:     "hidden",
+        }}>
+          <div style={{ padding:"12px 16px 8px" }}>
+            <div style={{ fontSize:11, fontWeight:700, color:"#A89880", letterSpacing:"0.06em" }}>
+              CHAPTER ACTIONS
             </div>
           </div>
-          <div style={{ fontSize:16, color:"#E67E22" }}>→</div>
-        </motion.div>
+          {[
+            {
+              icon:  "📝",
+              label: `Chapter ${chapterNum} Quiz`,
+              sub:   "All question types",
+              route: `/quiz?chapter=${chapterNum}&course=cma&paper=1&mode=textbook&subject=${encodeURIComponent(subjectTitle)}`,
+            },
+            {
+              icon:  "📋",
+              label: `Chapter ${chapterNum} Exam`,
+              sub:   "Full timed exam",
+              route: `/exams/chapter`,
+            },
+          ].map((item) => (
+            <button key={item.label}
+              onClick={() => router.push(item.route)}
+              style={{
+                width:       "100%",
+                padding:     "12px 16px",
+                display:     "flex",
+                alignItems:  "center",
+                gap:         12,
+                background:  "transparent",
+                border:      "none",
+                borderTop:   "0.5px solid rgba(0,0,0,0.06)",
+                cursor:      "pointer",
+                textAlign:   "left",
+              }}>
+              <div style={{
+                width:           32,
+                height:          32,
+                borderRadius:    8,
+                background:      "#F5F0E8",
+                display:         "flex",
+                alignItems:      "center",
+                justifyContent:  "center",
+                fontSize:        16,
+                flexShrink:      0,
+              }}>
+                {item.icon}
+              </div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:13, color:"#1A1208", fontWeight:500 }}>{item.label}</div>
+                <div style={{ fontSize:11, color:"#A89880" }}>{item.sub}</div>
+              </div>
+              <span style={{ fontSize:14, color:"#C5B9A8" }}>›</span>
+            </button>
+          ))}
+        </div>
 
       </div>
     </div>
