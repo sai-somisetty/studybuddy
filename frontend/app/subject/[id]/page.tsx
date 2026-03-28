@@ -5,6 +5,32 @@ import { motion } from "framer-motion";
 import { useEffect, useState, Suspense } from "react";
 import { getSubjects } from "@/lib/syllabus";
 
+const chapterColors = [
+  { bg: "#FFF7ED", text: "#E67E22" },
+  { bg: "#E1F5EE", text: "#0E6655" },
+  { bg: "#DBEAFE", text: "#185FA5" },
+  { bg: "#FEF2F2", text: "#DC2626" },
+  { bg: "#F5F3FF", text: "#7C3AED" },
+  { bg: "#ECFDF5", text: "#059669" },
+  { bg: "#FFF7ED", text: "#D97706" },
+  { bg: "#F0F9FF", text: "#0284C7" },
+];
+
+const chapterEmojis: Record<string, Record<number, string>> = {
+  cma_f_law: {
+    1: "⚖️", 2: "🤝", 3: "🛒", 4: "💳", 5: "💬"
+  },
+  cma_f_acc: {
+    1: "📊", 2: "📝", 3: "📋", 4: "💰"
+  },
+  cma_f_maths: {
+    1: "🔢", 2: "📐", 3: "📈", 4: "📊", 5: "📉", 6: "🔗", 7: "🎲", 8: "⏱️"
+  },
+  cma_f_eco: {
+    1: "🌍", 2: "🏪", 3: "🏦", 4: "🏢", 5: "👔"
+  },
+};
+
 const chapterNameMap: Record<string, Record<number, string>> = {
   cma_f_law:   {1:"Introduction to Business Laws",2:"Indian Contracts Act 1872",3:"Sale of Goods Act 1930",4:"Negotiable Instruments Act 1881",5:"Business Communication"},
   cma_f_acc:   {1:"Accounting Fundamentals",2:"Accounting for Special Transactions",3:"Preparation of Final Accounts",4:"Fundamentals of Cost Accounting"},
@@ -89,6 +115,53 @@ function SubjectContent({ pageId }: { pageId: string }) {
         <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)", marginTop:4 }}>0% complete</div>
       </div>
 
+      {/* ── Mama Hero ── */}
+      <div style={{
+        background: "linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)",
+        padding: "16px 24px 20px",
+        borderBottom: "1px solid rgba(255,255,255,0.05)"
+      }}>
+        {/* Mama bubble */}
+        <div style={{
+          background: "rgba(255,255,255,0.1)",
+          borderRadius: "12px 12px 12px 4px",
+          padding: "10px 14px",
+          marginBottom: 10,
+          display: "inline-block",
+          maxWidth: "90%"
+        }}>
+          <div style={{
+            fontSize: 9, fontWeight: 700, color: "#E67E22",
+            letterSpacing: "0.06em", marginBottom: 4
+          }}>MAMA</div>
+          <div style={{ fontSize: 12, color: "#fff", lineHeight: 1.5 }}>
+            {subject.title} lo {subject.chapters} chapters unnay Kitty.{" "}
+            Oka chapter complete chesthe next ki veldam! 📚
+          </div>
+        </div>
+
+        {/* Kitty bubble */}
+        <div style={{
+          background: "rgba(230,126,34,0.15)",
+          borderRadius: "12px 12px 4px 12px",
+          padding: "8px 14px",
+          display: "inline-block",
+          maxWidth: "70%",
+          marginLeft: "auto",
+          float: "right",
+          clear: "both"
+        }}>
+          <div style={{
+            fontSize: 9, fontWeight: 700, color: "#E67E22",
+            letterSpacing: "0.06em", marginBottom: 4
+          }}>KITTY</div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>
+            Chapter 1 nundi start chesthanu Mama! 😊
+          </div>
+        </div>
+        <div style={{ clear: "both" }} />
+      </div>
+
       {/* Chapter list */}
       <div style={{ flex:1, padding:"16px 20px 100px", display:"flex", flexDirection:"column", gap:10 }}>
         <div style={{ fontSize:12, fontWeight:600, color:"#6B6560" }}>All Chapters</div>
@@ -102,13 +175,18 @@ function SubjectContent({ pageId }: { pageId: string }) {
               `/chapter/${subject.id}?chapter=${ch.number}&subject=${encodeURIComponent(subject.title)}&subjectId=${subject.id}`
             )}
             style={{ background:"#fff", borderRadius:16, padding:"14px 16px", border:"0.5px solid rgba(0,0,0,0.06)", display:"flex", alignItems:"center", gap:14, cursor:"pointer" }}>
-            <div style={{ width:36, height:36, borderRadius:10,
-              background: ch.progress===100?"#E1F5EE": i===0?"#FFF7ED":"#F5F0E8",
-              display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-              <span style={{ fontSize:13, fontWeight:700,
-                color: ch.progress===100?"#0E6655": i===0?"#E67E22":"#A89880" }}>
-                {ch.progress===100 ? "✓" : ch.number}
-              </span>
+            <div style={{ width:36, height:36, borderRadius:10, flexShrink:0,
+              background: ch.progress===100 ? "#E1F5EE" : chapterColors[i % chapterColors.length].bg,
+              display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column" }}>
+              {ch.progress === 100 ? (
+                <span style={{ fontSize:13, fontWeight:700, color:"#0E6655" }}>✓</span>
+              ) : chapterEmojis[subjectKey]?.[ch.number] ? (
+                <span style={{ fontSize:18 }}>{chapterEmojis[subjectKey][ch.number]}</span>
+              ) : (
+                <span style={{ fontSize:13, fontWeight:700, color: chapterColors[i % chapterColors.length].text }}>
+                  {ch.number}
+                </span>
+              )}
             </div>
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontSize:13, fontWeight:600, color:"#1A1208", marginBottom:2 }}>
@@ -122,8 +200,18 @@ function SubjectContent({ pageId }: { pageId: string }) {
                   <div style={{ width:`${ch.progress}%`, height:"100%", background:"#0E6655", borderRadius:1 }} />
                 </div>
               )}
+              {i === chapters.findIndex(c => c.progress < 100) && (
+                <div style={{
+                  fontSize: 9, fontWeight: 700,
+                  background: "#E67E22", color: "#fff",
+                  padding: "2px 8px", borderRadius: 20,
+                  marginTop: 4, display: "inline-block"
+                }}>
+                  Start Here →
+                </div>
+              )}
             </div>
-            <div style={{ fontSize:12, color:"#A89880" }}>→</div>
+            <div style={{ fontSize:12, color: i === chapters.findIndex(c => c.progress < 100) ? "#E67E22" : "#A89880" }}>→</div>
           </motion.div>
         ))}
       </div>
