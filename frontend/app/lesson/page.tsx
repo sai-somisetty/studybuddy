@@ -43,6 +43,7 @@ function LessonContent() {
   const [isLocked, setIsLocked]               = useState(true);
   const [touchStartX, setTouchStartX]         = useState<number | null>(null);
   const [touchStartY, setTouchStartY]         = useState<number | null>(null);
+  const [inputFocused, setInputFocused]       = useState(false);
   const [studentQuestion, setStudentQuestion] = useState("");
   const [studentMessages, setStudentMessages] = useState<any[]>([]);
   const [mamaTyping, setMamaTyping]           = useState(false);
@@ -257,6 +258,7 @@ function LessonContent() {
             setTouchStartY(e.touches[0].clientY);
           }}
           onTouchEnd={(e) => {
+            if (inputFocused) return; // disable swipe when typing
             if (touchStartX === null || touchStartY === null) return;
             const dx = touchStartX - e.changedTouches[0].clientX;
             const dy = touchStartY - e.changedTouches[0].clientY;
@@ -623,6 +625,8 @@ function LessonContent() {
                       <input
                         value={studentQuestion}
                         onChange={e => setStudentQuestion(e.target.value)}
+                        onFocus={() => setInputFocused(true)}
+                        onBlur={() => setInputFocused(false)}
                         onKeyDown={async e => {
                           if (e.key === "Enter" && studentQuestion.trim()) {
                             const q = studentQuestion.trim();
