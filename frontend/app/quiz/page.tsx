@@ -295,36 +295,55 @@ function QuizContent() {
           <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)" }}>{subject}</div>
         </div>
         <div style={{ flex:1, padding:"16px 20px 40px", display:"flex", flexDirection:"column", gap:14 }}>
-          <div style={{ fontSize:12, fontWeight:600, color:"#6B6560" }}>Select question type</div>
-
-          {/* 2x2 Grid */}
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            {MODES.map((m, i) => {
-              const selected = mode === m.id;
-              return (
-                <motion.div key={m.id}
-                  initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }}
-                  transition={{ delay:i*0.05 }}
-                  whileTap={{ scale:0.97 }}
-                  onClick={() => setMode(m.id)}
-                  style={{
-                    background: selected ? "#E1F5EE" : "#fff",
-                    borderRadius: 16,
-                    padding: "16px 14px",
-                    border: selected ? "2px solid #0E6655" : "1px solid rgba(0,0,0,0.06)",
-                    cursor: "pointer",
-                    textAlign: "center",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 6,
+          <div style={{
+            background:"#fff", borderRadius:16,
+            border:"0.5px solid rgba(0,0,0,0.08)",
+            overflow:"hidden", margin:"0 0 4px",
+          }}>
+            <div style={{ padding:"12px 16px 8px" }}>
+              <div style={{ fontSize:11, color:"#A89880", fontWeight:400 }}>
+                Select question type
+              </div>
+            </div>
+            {[
+              { mode:"textbook", label:"Textbook Questions", sub:"From ICMAI Exercise sections", bg:"#E1F5EE", color:"#0E6655" },
+              { mode:"previous", label:"Previous Papers",    sub:"Past exam questions",           bg:"#FFF7ED", color:"#E67E22" },
+              { mode:"tweaked",  label:"Tweaked",            sub:"Same concept, new scenarios",   bg:"#DBEAFE", color:"#185FA5" },
+              { mode:"ai",       label:"AI Generated",       sub:"Fresh questions every time",    bg:"#F5F3FF", color:"#7C3AED" },
+            ].map((item) => (
+              <button key={item.mode}
+                onClick={() => setMode(item.mode)}
+                style={{
+                  width:"100%", padding:"12px 16px",
+                  display:"flex", alignItems:"center", gap:12,
+                  background: mode === item.mode ? item.bg : "transparent",
+                  border:"none",
+                  borderTop:"0.5px solid rgba(0,0,0,0.06)",
+                  cursor:"pointer", textAlign:"left",
+                }}>
+                <div style={{
+                  width:32, height:32, borderRadius:8,
+                  background: item.bg,
+                  display:"flex", alignItems:"center",
+                  justifyContent:"center", flexShrink:0,
+                }}>
+                  <div style={{ width:12, height:12, borderRadius:"50%", background: item.color }}/>
+                </div>
+                <div style={{ flex:1 }}>
+                  <div style={{
+                    fontSize:13,
+                    fontWeight: mode === item.mode ? 600 : 500,
+                    color: mode === item.mode ? item.color : "#1A1208",
                   }}>
-                  <div style={{ fontSize:28 }}>{m.icon}</div>
-                  <div style={{ fontSize:13, fontWeight:700, color: selected ? "#0E6655" : m.color }}>{m.label}</div>
-                  <div style={{ fontSize:10, color: selected ? "#0E6655" : "#A89880", lineHeight:1.4 }}>{m.desc}</div>
-                </motion.div>
-              );
-            })}
+                    {item.label}
+                  </div>
+                  <div style={{ fontSize:11, color:"#A89880" }}>{item.sub}</div>
+                </div>
+                {mode === item.mode && (
+                  <span style={{ color: item.color, fontSize:14 }}>✓</span>
+                )}
+              </button>
+            ))}
           </div>
 
           {/* Start button */}

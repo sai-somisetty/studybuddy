@@ -3,7 +3,6 @@ import React, { use, useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
-import { BookOpen, FileText, Shuffle, Sparkle } from '@phosphor-icons/react';
 
 const chapterNames: Record<string, Record<number, string>> = {
   cma_f_law: {
@@ -157,12 +156,6 @@ function ChapterContent({ pageId }: { pageId: string }) {
     if (saved) setRings(JSON.parse(saved));
   }, [subjectKey, chapterNum]);
 
-  const getRingColor = (concept: string, idx: number) => {
-    const colors = ["#E67E22","#0E6655","#185FA5","#6B6560"];
-    const done   = (rings[concept] || [false,false,false,false])[idx];
-    return done ? colors[idx] : "#E5E0D8";
-  };
-
   const allDone = (concept: string) =>
     (rings[concept] || [false,false,false,false]).every(Boolean);
 
@@ -308,26 +301,6 @@ function ChapterContent({ pageId }: { pageId: string }) {
 
       <div style={{ flex:1, padding:"16px 20px 100px", display:"flex", flexDirection:"column", gap:10 }}>
 
-        {/* Ring legend */}
-        <div style={{ background:"#fff", borderRadius:14, padding:"10px 14px", border:"0.5px solid rgba(0,0,0,0.06)" }}>
-          <div style={{ fontSize:11, fontWeight:400, color:"#C5B9A8", marginBottom:6 }}>
-            Complete all 4 quiz modes per concept
-          </div>
-          <div style={{ display:"flex", gap:14, flexWrap:"wrap" }}>
-            {[
-              { icon:"📄", label:"Previous Papers", color:"#E67E22" },
-              { icon:"📖", label:"Textbook Exact",  color:"#0E6655" },
-              { icon:"🔄", label:"Tweaked",         color:"#185FA5" },
-              { icon:"🤖", label:"AI Generated",    color:"#6B6560" },
-            ].map(r => (
-              <div key={r.label} style={{ display:"flex", alignItems:"center", gap:4 }}>
-                <span style={{ fontSize:12 }}>{r.icon}</span>
-                <span style={{ fontSize:10, color:r.color, fontWeight:500 }}>{r.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
         <div style={{ fontSize:12, fontWeight:600, color:"#6B6560" }}>
           {chapterConcepts.length} Concepts
         </div>
@@ -344,53 +317,23 @@ function ChapterContent({ pageId }: { pageId: string }) {
                 padding:      "14px 16px",
                 border:       "0.5px solid rgba(0,0,0,0.06)",
               }}>
-              <div style={{ fontSize:13, fontWeight:600, color:done?"#0E6655":"#1A1208", marginBottom:8 }}>
-                {done && <span style={{ marginRight:4 }}>✓</span>}
-                {concept}
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
+                <div style={{ fontSize:13, fontWeight:600, color:"#1A1208", flex:1 }}>
+                  {concept}
+                </div>
+                <div style={{ display:"flex", gap:4, paddingTop:2 }}>
+                  {[0,1,2,3].map(idx => {
+                    const isDone = (rings[concept]||[false,false,false,false])[idx];
+                    return (
+                      <div key={idx} style={{
+                        width:6, height:6, borderRadius:"50%",
+                        background: isDone ? "#0A2E28" : "#D0C8BE"
+                      }}/>
+                    );
+                  })}
+                </div>
               </div>
-              <div style={{ display:"flex", gap:6, marginBottom:8 }}>
-                {([
-                  { idx:0, mode:"textbook", label:"Textbook",   icon:<BookOpen size={14} weight="duotone" />,  bg:"#E1F5EE", color:"#0E6655" },
-                  { idx:1, mode:"previous", label:"Prev Paper", icon:<FileText size={14} weight="duotone" />,  bg:"#FFF7ED", color:"#E67E22" },
-                  { idx:2, mode:"tweaked",  label:"Tweaked",    icon:<Shuffle  size={14} weight="duotone" />,  bg:"#DBEAFE", color:"#185FA5" },
-                  { idx:3, mode:"ai",       label:"AI",         icon:<Sparkle  size={14} weight="duotone" />,  bg:"#F5F3FF", color:"#7C3AED" },
-                ] as { idx:number; mode:string; label:string; icon:React.ReactElement; bg:string; color:string }[]).map(({ idx, mode, label, icon, bg, color }) => {
-                  const isDone = (rings[concept] || [false,false,false,false])[idx];
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => router.push(
-                        `/quiz?namespace=${encodeURIComponent(namespace)}`+
-                        `&concept=${encodeURIComponent(concept)}`+
-                        `&mode=${mode}`+
-                        `&subject=${encodeURIComponent(subjectTitle)}`+
-                        `&course=cma&paper=1`
-                      )}
-                      title={label}
-                      style={{
-                        width: 32, height: 32,
-                        borderRadius: 8,
-                        background: isDone ? "#0A2E28" : bg,
-                        border: "none",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                        color: isDone ? "#fff" : color,
-                      }}>
-                      {isDone
-                        ? <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                            stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="20 6 9 17 4 12"/>
-                          </svg>
-                        : icon
-                      }
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{ display:"flex", gap:6, marginTop:8, flexWrap:"wrap" }}>
+              <div style={{ display:"flex", gap:6 }}>
                 <button
                   onClick={() => router.push(
                     `/lesson?namespace=${encodeURIComponent(namespace)}`+
@@ -400,16 +343,11 @@ function ChapterContent({ pageId }: { pageId: string }) {
                     `&page=1`
                   )}
                   style={{
-                    padding:      "5px 14px",
-                    borderRadius: 20,
-                    background:   "#E1F5EE",
-                    color:        "#0A2E28",
-                    border:       "none",
-                    fontSize:     11,
-                    fontWeight:   600,
-                    cursor:       "pointer",
+                    padding:"5px 14px", borderRadius:20,
+                    background:"#E1F5EE", color:"#0A2E28",
+                    border:"none", fontSize:11, fontWeight:600, cursor:"pointer",
                   }}>
-                  📖 {done ? "Review" : "Study"}
+                  📖 Study
                 </button>
                 <button
                   onClick={() => router.push(
@@ -420,14 +358,9 @@ function ChapterContent({ pageId }: { pageId: string }) {
                     `&course=cma&paper=1`
                   )}
                   style={{
-                    padding:      "5px 14px",
-                    borderRadius: 20,
-                    background:   "#F5F0E8",
-                    color:        "#6B6560",
-                    border:       "none",
-                    fontSize:     11,
-                    fontWeight:   500,
-                    cursor:       "pointer",
+                    padding:"5px 14px", borderRadius:20,
+                    background:"#F5F0E8", color:"#6B6560",
+                    border:"none", fontSize:11, fontWeight:500, cursor:"pointer",
                   }}>
                   ✏️ Quiz
                 </button>
