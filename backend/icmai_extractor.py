@@ -194,13 +194,32 @@ def parse_short(section_text: str) -> list:
     blocks = split_questions(section_text)
 
     for num, text in blocks:
-        ans_split = re.split(
-            r'\n?\s*Ans\s*[:\-]\s*',
-            text, maxsplit=1,
-            flags=re.IGNORECASE
-        )
-        q_text = ans_split[0].strip().replace('\n', ' ')
-        ans_text = ans_split[1].strip().replace('\n', ' ') if len(ans_split) > 1 else ""
+        lines = text.strip().split('\n')
+
+        q_lines = []
+        ans_lines = []
+        found_ans = False
+
+        for line in lines:
+            line = line.strip()
+            if not line:
+                if q_lines:
+                    found_ans = True
+                continue
+
+            if found_ans:
+                ans_lines.append(line)
+            elif re.match(r'^Ans\s*[:\-]', line, re.IGNORECASE):
+                ans_lines.append(
+                    re.sub(r'^Ans\s*[:\-]\s*', '', line,
+                           flags=re.IGNORECASE)
+                )
+                found_ans = True
+            else:
+                q_lines.append(line)
+
+        q_text = ' '.join(q_lines).strip()
+        ans_text = ' '.join(ans_lines).strip()
 
         questions.append({
             "number":   num,
@@ -440,11 +459,11 @@ def main():
     for q in fills[:3]:
         print(f"  Q{q['number']}: {q['question'][:55]}")
 
-    print("--- Short (first 3) ---")
-    for q in shorts[:3]:
-        print(f"  Q{q['number']}: {q['question'][:55]}")
+    print("--- Short (Q1–Q10) ---")
+    for q in shorts[:10]:
+        print(f"  Q{q['number']}: {q['question'][:70]}")
         if q['answer']:
-            print(f"    Ans: {q['answer'][:55]}")
+            print(f"    Ans: {q['answer'][:100]}")
 
     if not args.dry_run:
         print(f"\n💾 Storing {total} questions to DB...")
