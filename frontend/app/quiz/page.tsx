@@ -148,8 +148,8 @@ function QuizContent() {
       } else if (selectedMode === "textbook") {
         const typeParam = selectedSubType !== "all" ? `&q_type=${selectedSubType}` : "";
         const url = chapter
-          ? `${API}/questions/textbook?course=${course}&chapter=${chapter}&limit=50${typeParam}`
-          : `${API}/questions/textbook?course=${course}&limit=50${typeParam}`;
+          ? `${API}/questions/textbook?course=${course}&chapter=${chapter}&limit=999${typeParam}`
+          : `${API}/questions/textbook?course=${course}&limit=999${typeParam}`;
         const res  = await fetch(url);
         const data = await res.json();
         setQuestions(data.questions && data.questions.length > 0
