@@ -14,8 +14,8 @@ const EXAM_TYPES = [
     bg: "#E1F5EE",
     color: "#0E6655",
     label: "Chapter Exam",
-    sub: "20 questions · 45 mins · 40 marks",
-    description: "Test one chapter at a time",
+    sub: "50 questions · 120 mins · 100 marks",
+    description: "Full chapter deep test — real exam pressure",
   },
   {
     id: "combined",
@@ -23,8 +23,8 @@ const EXAM_TYPES = [
     bg: "#DBEAFE",
     color: "#185FA5",
     label: "Combined Exam",
-    sub: "Select multiple chapters · Custom time",
-    description: "Mix chapters for a tougher test",
+    sub: "50 questions · 120 mins · 100 marks",
+    description: "Mix chapters — like real paper distribution",
   },
   {
     id: "previous",
@@ -42,7 +42,7 @@ const EXAM_TYPES = [
     color: "#7C3AED",
     label: "Mock Exam",
     sub: "50 questions · 120 mins · 100 marks",
-    description: "Full paper simulation — pass at 80",
+    description: "Full paper simulation — all chapters",
   },
 ];
 
@@ -127,22 +127,12 @@ export default function ExamsPage() {
   const [selectedChapters, setSelectedChapters] = useState<number[]>([]);
 
   const getExamConfig = () => {
-    switch (selectedType) {
-      case "chapter":
-        return { questions: 20, marks: 40, duration: 45, passMark: Math.round(40 * 0.8) };
-      case "combined":
-        return {
-          questions: selectedChapters.length * 10,
-          marks: selectedChapters.length * 20,
-          duration: selectedChapters.length * 20,
-          passMark: Math.round(selectedChapters.length * 20 * 0.8),
-        };
-      case "previous":
-      case "mock":
-        return { questions: 50, marks: 100, duration: 120, passMark: 80 };
-      default:
-        return { questions: 50, marks: 100, duration: 120, passMark: 80 };
-    }
+    return {
+      questions: 50,
+      marks: 100,
+      duration: 120,
+      passMark: 80,
+    };
   };
 
   const handleTypeSelect = (type: string) => {
@@ -423,7 +413,7 @@ export default function ExamsPage() {
                     <div style={{ fontSize: 13, fontWeight: 500, color: "#1A1208" }}>
                       Ch {ch.num} — {ch.title}
                     </div>
-                    <div style={{ fontSize: 11, color: "#A89880" }}>20 questions · 45 mins</div>
+                    <div style={{ fontSize: 11, color: "#A89880" }}>50 questions · 120 mins</div>
                   </div>
                   <span style={{ fontSize: 16, color: "#C5B9A8" }}>›</span>
                 </motion.button>
