@@ -315,6 +315,7 @@ def get_textbook_questions(
 
     random.shuffle(questions)
     return {
+        "has_questions": len(questions) > 0,
         "questions": questions[:limit],
         "total_found": len(questions),
         "returned": min(len(questions), limit)
@@ -363,6 +364,7 @@ def get_questions(q_type: str, namespace: str,
 
     random.shuffle(questions)
     return {
+        "has_questions": len(questions) > 0,
         "questions": questions[:limit],
         "total_found": len(questions),
         "returned": min(len(questions), limit)
