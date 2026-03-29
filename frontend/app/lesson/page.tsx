@@ -786,7 +786,7 @@ function LessonContent() {
       {/* ════ ICMAI ZONE ════ */}
       {activeZone === "icmai" && (
         <PDFViewer
-          pageNumber={currentPage?.pdf_page || currentPage?.page_ref || 11}
+          pageNumber={currentPage?.book_page || 3}
           onPrev={() => setCurrentPageIdx(Math.max(0, currentPageIdx - 1))}
           onNext={() => setCurrentPageIdx(Math.min(pages.length - 1, currentPageIdx + 1))}
           canGoPrev={currentPageIdx > 0}
