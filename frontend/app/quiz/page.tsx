@@ -84,6 +84,8 @@ function QuizContent() {
   const paper     = params.get("paper")     || "1";
   const initMode  = params.get("mode")      || "";
 
+  const isConceptCheck = initMode === "concept_check";
+
   const [mode,       setMode]       = useState(initMode || "textbook");
   const [subType,    setSubType]    = useState("all");
   const [started,    setStarted]    = useState(false);
@@ -93,7 +95,16 @@ function QuizContent() {
   const [showResult, setShowResult] = useState(false);
   const [loading,    setLoading]    = useState(false);
 
-  const longTabDisabled = mode === "textbook" || mode === "previous";
+  const longTabDisabled = mode === "textbook" || mode === "previous" || mode === "concept_check";
+
+  // Auto-start for concept_check — skip mode selector
+  useEffect(() => {
+    if (isConceptCheck && !started) {
+      setStarted(true);
+      loadQuestions("concept_check", "all");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const startQuiz = () => {
     setStarted(true);
@@ -102,7 +113,7 @@ function QuizContent() {
 
   // Reload when subType tab changes during active quiz
   useEffect(() => {
-    if (started) {
+    if (started && !isConceptCheck) {
       setCurrent(0);
       setAnswers({});
       setShowResult(false);
@@ -122,7 +133,14 @@ function QuizContent() {
     setLoading(true);
 
     try {
-      if (selectedMode === "previous") {
+      if (selectedMode === "concept_check") {
+        const res  = await fetch(
+          `${API}/lesson/check-questions?namespace=${encodeURIComponent(namespace)}&chapter=${chapter}&limit=10`
+        );
+        const data = await res.json();
+        setQuestions(data.questions && data.questions.length > 0 ? data.questions : []);
+
+      } else if (selectedMode === "previous") {
         const res  = await fetch(`${API}/questions/previous_paper/${namespace}`);
         const data = await res.json();
         setQuestions(data.has_questions ? data.questions : []);
@@ -280,6 +298,15 @@ function QuizContent() {
   const isLast   = current === questions.length - 1;
   const selectedMode = MODES.find(m => m.id === mode);
 
+  const modeLabel: Record<string, string> = {
+    concept_check: "Concept Check ✓",
+    textbook:      "Textbook Quiz",
+    previous:      "Previous Papers",
+    tweaked:       "Tweaked Quiz",
+    ai:            "AI Quiz",
+  };
+  const modeTitle = modeLabel[mode] || selectedMode?.label || mode;
+
   const modeIcons: Record<string, React.ReactNode> = {
     textbook: <BookOpen size={16} weight="duotone" color="#0E6655" />,
     previous: <FileText size={16} weight="duotone" color="#E67E22" />,
@@ -287,8 +314,8 @@ function QuizContent() {
     ai:       <Sparkle   size={16} weight="duotone" color="#7C3AED" />,
   };
 
-  // ── MODE SELECTION ──
-  if (!started) {
+  // ── MODE SELECTION ── (skipped for concept_check)
+  if (!started && !isConceptCheck) {
     return (
       <div className="app-shell">
         <div style={{ background:"linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)", padding:"18px 24px 16px" }}>
@@ -372,17 +399,21 @@ function QuizContent() {
       <div className="app-shell" style={{ display:"flex", alignItems:"center", justifyContent:"center" }}>
         <div style={{ textAlign:"center", padding:24 }}>
           <div style={{ fontSize:40, marginBottom:16 }}>
-            {mode === "tweaked" ? "🔄" : mode === "ai" ? "🤖" : mode === "previous" ? "📄" : "📖"}
+            {mode === "concept_check" ? "✅" : mode === "tweaked" ? "🔄" : mode === "ai" ? "🤖" : mode === "previous" ? "📄" : "📖"}
           </div>
           <div style={{ fontSize:15, fontWeight:700, color:"#0A2E28", marginBottom:8 }}>
-            {mode === "tweaked"
+            {mode === "concept_check"
+              ? "Loading Mama's quick check..."
+              : mode === "tweaked"
               ? "Creating tweaked questions..."
               : mode === "ai"
               ? "Mama is reading ICAI content line by line..."
               : "Loading questions..."}
           </div>
           <div style={{ fontSize:12, color:"#A89880", lineHeight:1.6, marginBottom:16 }}>
-            {mode === "tweaked"
+            {mode === "concept_check"
+              ? "Questions from Mama's lesson paragraphs."
+              : mode === "tweaked"
               ? "Same concepts. Different scenarios. Tests real understanding."
               : mode === "ai"
               ? "One question per key point. Application over memory."
@@ -411,7 +442,7 @@ function QuizContent() {
             ← Back
           </button>
           <div style={{ fontFamily:"Georgia,serif", fontSize:18, fontWeight:700, color:"#fff", marginTop:10 }}>
-            {selectedMode?.label}
+            {modeTitle}
           </div>
         </div>
         <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
@@ -460,7 +491,7 @@ function QuizContent() {
         <div style={{ background:"linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)", padding:"18px 24px" }}>
           <div style={{ fontFamily:"Georgia,serif", fontSize:18, fontWeight:700, color:"#fff" }}>Results</div>
           <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", marginTop:2 }}>
-            {selectedMode?.label} · {concept}
+            {modeTitle} · {concept}
           </div>
         </div>
         <div style={{ flex:1, padding:"20px 20px 40px", display:"flex", flexDirection:"column", gap:14, overflowY:"auto" }}>
@@ -485,9 +516,9 @@ function QuizContent() {
               Try Again
             </motion.button>
             <motion.button whileTap={{ scale:0.97 }}
-              onClick={() => setStarted(false)}
+              onClick={() => isConceptCheck ? router.back() : setStarted(false)}
               style={{ flex:1, padding:"14px", borderRadius:16, background:"#F5F0E8", color:"#1A1208", fontSize:13, fontWeight:700, border:"none", cursor:"pointer" }}>
-              Other Modes
+              {isConceptCheck ? "Back" : "Other Modes"}
             </motion.button>
           </div>
           <motion.button whileTap={{ scale:0.97 }}
@@ -506,24 +537,31 @@ function QuizContent() {
     <div className="app-shell">
       <div style={{ background:"linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)", padding:"14px 20px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-          <button onClick={() => setStarted(false)}
+          <button onClick={() => isConceptCheck ? router.back() : setStarted(false)}
             style={{ background:"rgba(255,255,255,0.1)", border:"none", borderRadius:8, padding:"6px 12px", fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.7)", cursor:"pointer" }}>
             ← Exit
           </button>
           <div style={{ fontSize:12, color:"rgba(255,255,255,0.6)", fontWeight:600 }}>
-            {selectedMode?.icon} {current+1} / {questions.length}
+            {selectedMode?.icon || "✅"} {current+1} / {questions.length}
           </div>
         </div>
         <div style={{ height:3, background:"rgba(255,255,255,0.15)", borderRadius:2, overflow:"hidden" }}>
           <div style={{ width:`${((current+1)/questions.length)*100}%`, height:"100%", background:"#E67E22", borderRadius:2, transition:"width 0.3s" }} />
         </div>
-        <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:4 }}>
-          {concept} · {selectedMode?.label}
-        </div>
+        {isConceptCheck ? (
+          <>
+            <div style={{ fontSize:13, fontWeight:700, color:"#fff", marginTop:4 }}>Quick Check — {concept}</div>
+            <div style={{ fontSize:10, color:"rgba(255,255,255,0.45)", marginTop:2 }}>10 questions from Mama&apos;s lesson</div>
+          </>
+        ) : (
+          <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:4 }}>
+            {concept} · {modeTitle}
+          </div>
+        )}
       </div>
 
-      {/* Sub-type filter tabs */}
-      <div style={{ padding:"8px 16px 0", display:"flex", gap:6, overflowX:"auto", background:"#fff", borderBottom:"0.5px solid rgba(0,0,0,0.06)" }}>
+      {/* Sub-type filter tabs — hidden for concept_check (all MCQ) */}
+      {!isConceptCheck && <div style={{ padding:"8px 16px 0", display:"flex", gap:6, overflowX:"auto", background:"#fff", borderBottom:"0.5px solid rgba(0,0,0,0.06)" }}>
         {[
           { id:"all", label:"All" },
           { id:"mcq", label:"MCQ" },
@@ -548,7 +586,7 @@ function QuizContent() {
             </button>
           );
         })}
-      </div>
+      </div>}
 
       <div style={{ flex:1, padding:"14px 20px 120px", display:"flex", flexDirection:"column", gap:12, overflowY:"auto" }}>
 

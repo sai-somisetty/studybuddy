@@ -354,9 +354,9 @@ function ChapterContent({ pageId }: { pageId: string }) {
                   onClick={() => router.push(
                     `/quiz?namespace=${encodeURIComponent(namespace)}`+
                     `&concept=${encodeURIComponent(concept)}`+
-                    `&mode=textbook`+
+                    `&mode=concept_check`+
                     `&subject=${encodeURIComponent(subjectTitle)}`+
-                    `&course=cma&paper=1`
+                    `&chapter=${chapterNum}&course=cma&paper=1`
                   )}
                   style={{
                     padding:"5px 14px", borderRadius:20,
@@ -388,7 +388,7 @@ function ChapterContent({ pageId }: { pageId: string }) {
               icon:  <PencilSimple size={16} weight="duotone" color="#0E6655" />,
               label: `Chapter ${chapterNum} Quiz`,
               sub:   "All question types",
-              route: `/quiz?chapter=${chapterNum}&course=cma&paper=1&mode=textbook&subject=${encodeURIComponent(subjectTitle)}`,
+              route: `/quiz?namespace=${encodeURIComponent(namespace)}&mode=textbook&subject=${encodeURIComponent(subjectTitle)}&chapter=${chapterNum}&course=cma&paper=1`,
             },
             {
               icon:  <ClipboardText size={16} weight="duotone" color="#E67E22" />,

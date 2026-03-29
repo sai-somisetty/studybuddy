@@ -262,35 +262,22 @@ def get_concept_progress(student_id: str, namespace: str):
 
 # ── QUESTIONS ──
 
-@app.get("/questions/{q_type}/{namespace}")
-def get_questions(q_type: str, namespace: str, limit: int = 10):
-    if q_type == "previous_paper":
-        r = supabase.table("previous_papers")\
-            .select("*").eq("namespace", namespace).execute()
-    else:
-        r = supabase.table("questions")\
-            .select("*")\
-            .eq("namespace", namespace)\
-            .eq("q_type",    q_type)\
-            .eq("approved",  True).execute()
-
-    questions = r.data if r.data else []
-    random.shuffle(questions)
-    return {
-        "questions":     questions[:limit],
-        "total_found":   len(questions),
-        "has_questions": len(questions) > 0,
-    }
-
-
 @app.get("/questions/textbook")
-def get_textbook_questions(course: str = "cma", paper: int = 1,
-                           chapter: str = None, q_type: str = None):
+def get_textbook_questions(
+    course: str = "cma",
+    paper: int = 1,
+    chapter: str = None,
+    concept: str = None,
+    namespace: str = None,
+    q_type: str = None,
+    limit: int = 999
+):
     query = supabase.table("questions")\
         .select("*")\
         .eq("course", course)\
         .eq("approved", True)
 
+    # Filter by q_type
     if q_type and q_type != "all":
         query = query.like("q_type", f"textbook_{q_type}%")
     else:
@@ -298,13 +285,87 @@ def get_textbook_questions(course: str = "cma", paper: int = 1,
 
     r = query.limit(9999).execute()
     questions = r.data if r.data else []
+
+    # Filter by chapter — handle both int and string
     if chapter:
-        questions = [q for q in questions if str(q.get("chapter", "")) == str(chapter)]
+        questions = [q for q in questions
+                     if str(q.get("chapter", "")) == str(chapter)]
+
+    # Filter by namespace — handle both formats:
+    # "cma_f_law_ch1_s1" and "cma_f_law"
+    if namespace:
+        # Extract base namespace: cma_f_law_ch1_s1 → cma_f_law
+        base_ns = namespace.split("_ch")[0] if "_ch" in namespace else namespace
+        # Extract chapter from namespace if not provided
+        if not chapter and "_ch" in namespace:
+            ch_part = namespace.split("_ch")[1].split("_")[0]
+            questions = [q for q in questions
+                        if str(q.get("chapter", "")) == str(ch_part)]
+        questions = [q for q in questions
+                    if (q.get("namespace") or "").startswith(base_ns)
+                    or q.get("namespace") == namespace]
+
+    # Filter by concept/section
+    if concept:
+        # concept can be "1.1 Sources of Law" or "1.1"
+        concept_prefix = concept.split(" ")[0] if " " in concept else concept
+        questions = [q for q in questions
+                    if str(q.get("concept", "")).startswith(concept_prefix)
+                    or concept_prefix in str(q.get("concept", ""))]
+
     random.shuffle(questions)
     return {
-        "questions":     questions,
-        "total_found":   len(questions),
-        "has_questions": len(questions) > 0,
+        "questions": questions[:limit],
+        "total_found": len(questions),
+        "returned": min(len(questions), limit)
+    }
+
+
+@app.get("/questions/{q_type}/{namespace}")
+def get_questions(q_type: str, namespace: str,
+                  limit: int = 10, chapter: str = None):
+
+    # Extract chapter from namespace if not in params
+    if not chapter and "_ch" in namespace:
+        chapter = namespace.split("_ch")[1].split("_")[0]
+
+    # Extract base namespace
+    base_ns = namespace.split("_ch")[0] if "_ch" in namespace else namespace
+
+    if q_type == "previous_paper":
+        r = supabase.table("previous_papers")\
+            .select("*").eq("namespace", namespace).execute()
+        questions = r.data if r.data else []
+    elif q_type.startswith("textbook"):
+        # Use textbook questions table
+        r = supabase.table("questions")\
+            .select("*")\
+            .eq("course", "cma")\
+            .eq("approved", True)\
+            .like("q_type", "textbook_%")\
+            .limit(9999).execute()
+        questions = r.data if r.data else []
+        # Filter by chapter
+        if chapter:
+            questions = [q for q in questions
+                        if str(q.get("chapter", "")) == str(chapter)]
+        # Filter by namespace
+        questions = [q for q in questions
+                    if (q.get("namespace") or "").startswith(base_ns)
+                    or not q.get("namespace")]
+    else:
+        r = supabase.table("questions")\
+            .select("*")\
+            .eq("namespace", namespace)\
+            .eq("q_type", q_type)\
+            .eq("approved", True).execute()
+        questions = r.data if r.data else []
+
+    random.shuffle(questions)
+    return {
+        "questions": questions[:limit],
+        "total_found": len(questions),
+        "returned": min(len(questions), limit)
     }
 
 
@@ -903,6 +964,63 @@ def get_smart_lesson(namespace: str, concept: str = ""):
         "pages": pages,
         "has_content": len(pages) > 0,
         "total_pages": len(pages),
+    }
+
+
+# ── CHECK QUESTIONS FROM MAMA LINES ──
+
+@app.get("/lesson/check-questions")
+def get_check_questions(
+    namespace: str,
+    chapter: str = None,
+    limit: int = 10
+):
+    if not chapter and "_ch" in namespace:
+        chapter = namespace.split("_ch")[1].split("_")[0]
+
+    r = supabase.table("lesson_content")\
+        .select("mama_lines, book_page, pdf_page")\
+        .eq("chapter", chapter)\
+        .not_.is_("mama_lines", "null")\
+        .order("pdf_page")\
+        .execute()
+
+    questions = []
+    for page in (r.data or []):
+        lines = page.get("mama_lines", [])
+        if isinstance(lines, str):
+            try:
+                lines = json.loads(lines)
+            except Exception:
+                continue
+
+        for para in (lines or []):
+            if not para.get("check_question"):
+                continue
+            if not para.get("check_options"):
+                continue
+            if para.get("check_answer") is None:
+                continue
+
+            opts = para["check_options"]
+            questions.append({
+                "question_text":  para["check_question"],
+                "option_a":       opts[0] if len(opts) > 0 else "",
+                "option_b":       opts[1] if len(opts) > 1 else "",
+                "option_c":       opts[2] if len(opts) > 2 else "",
+                "option_d":       opts[3] if len(opts) > 3 else "",
+                "correct_option": ["A", "B", "C", "D"][para["check_answer"]],
+                "explanation":    para.get("check_explanation", ""),
+                "q_type":         "concept_check",
+                "source":         "mama_lines",
+                "book_page":      page.get("book_page"),
+            })
+
+    random.shuffle(questions)
+    return {
+        "questions":   questions[:limit],
+        "total_found": len(questions),
+        "source":      "mama_lines",
     }
 
 
