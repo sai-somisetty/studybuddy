@@ -22,6 +22,11 @@ const PDFViewer = dynamic(
   }
 );
 
+const MarkdownRenderer = dynamic(
+  () => import('@/components/MarkdownRenderer'),
+  { ssr: false }
+);
+
 function LessonContent() {
   const router = useRouter();
   const params = useSearchParams();
@@ -351,10 +356,75 @@ function LessonContent() {
                       }}>AI Draft</span>
                     )}
                   </div>
-                  <div style={{ fontSize: 13, color: "#1A1208", lineHeight: 1.7 }}>
-                    {currentPara?.tenglish}
-                  </div>
+                  <MarkdownRenderer
+                    content={currentPara?.tenglish || ''}
+                  />
                 </motion.div>
+
+                {/* BLOCK 3.5 — V2 variation */}
+                {currentPara?.tenglish_variation_2 && (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    style={{
+                      background: "#fff", borderRadius: 16, padding: 16,
+                      border: "0.5px solid rgba(0,0,0,0.06)", marginBottom: 12
+                    }}>
+                    <div style={{
+                      display: "flex", alignItems: "center",
+                      gap: 8, marginBottom: 10
+                    }}>
+                      <div style={{
+                        width: 30, height: 30, borderRadius: 10,
+                        background: "#0E6655", display: "flex",
+                        alignItems: "center", justifyContent: "center"
+                      }}>
+                        <span style={{ fontSize: 7, fontWeight: 800, color: "#fff" }}>V2</span>
+                      </div>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "#0E6655" }}>
+                        Another way to see it
+                      </span>
+                    </div>
+                    <MarkdownRenderer
+                      content={currentPara?.tenglish_variation_2 || ''}
+                    />
+                  </motion.div>
+                )}
+
+                {/* BLOCK 3.6 — V3 Deep Dive */}
+                {currentPara?.tenglish_variation_3 && (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    style={{
+                      borderRadius: 16, overflow: "hidden",
+                      border: "0.5px solid rgba(10,46,40,0.2)", marginBottom: 12
+                    }}>
+                    <div style={{
+                      background: 'linear-gradient(135deg, #0A2E28, #0A4A3C)',
+                      color: 'white',
+                      padding: '8px 16px',
+                      fontSize: 11,
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}>
+                      <span>📖</span>
+                      <span>Deep Dive — Mama&apos;s Full Explanation</span>
+                      <span style={{
+                        marginLeft: 'auto',
+                        opacity: 0.7,
+                        fontSize: 10
+                      }}>
+                        Swipe up for next concept
+                      </span>
+                    </div>
+                    <div style={{ background: "#fff", padding: 16 }}>
+                      <MarkdownRenderer
+                        content={currentPara?.tenglish_variation_3 || ''}
+                      />
+                    </div>
+                  </motion.div>
+                )}
 
                 {/* BLOCK 4 — Kitty asks */}
                 <AnimatePresence>
