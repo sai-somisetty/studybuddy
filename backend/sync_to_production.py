@@ -96,6 +96,7 @@ def sync_chapter(course: str, paper: int, chapter: int, dry_run: bool = False):
                 "mama_response_correct": c.get("mama_response_correct", ""),
                 "mama_response_wrong": c.get("mama_response_wrong", ""),
                 "mamas_tip": c.get("mamas_tip", ""),
+                "exam_rubric": c.get("exam_rubric", None),
                 "content_type": c.get("content_type", "text"),
                 "concept_title": c.get("concept_title", ""),
                 "order_index": c.get("order_index", 1),
