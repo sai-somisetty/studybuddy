@@ -984,6 +984,7 @@ def get_check_questions(
         .select("mama_lines, book_page, pdf_page")\
         .eq("chapter", chapter)\
         .not_.is_("mama_lines", "null")\
+        .eq("is_verified", True)\
         .order("pdf_page")\
         .execute()
 
