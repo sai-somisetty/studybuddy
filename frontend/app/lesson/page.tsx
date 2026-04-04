@@ -110,11 +110,6 @@ function LessonContent() {
   const [showConfidence, setShowConfidence]       = useState(false);
   const [confidence, setConfidence]               = useState<ConfidenceLevel | null>(null);
 
-  // ── Kitty (Fun mode) ──
-  const [showKitty, setShowKitty]             = useState(false);
-  const [kittyAnswered, setKittyAnswered]     = useState(false);
-  const [kittyTimer, setKittyTimer]           = useState<NodeJS.Timeout | null>(null);
-
   // ── ICMAI accordion ──
   const [icmaiExpanded, setIcmaiExpanded]     = useState(false);
 
@@ -173,28 +168,12 @@ function LessonContent() {
     fetchPages();
   }, [namespace]);
 
-  // ── Kitty idle timer (Fun mode only) ──
-  useEffect(() => {
-    if (kittyTimer) clearTimeout(kittyTimer);
-    setShowKitty(false);
-    setKittyAnswered(false);
-
-    if (studyMode === "fun" && currentPara?.is_key_concept && !showMCQ) {
-      const t = setTimeout(() => setShowKitty(true), 10000);
-      setKittyTimer(t);
-    }
-    return () => { if (kittyTimer) clearTimeout(kittyTimer); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentParaIdx, currentPageIdx, studyMode, showMCQ]);
-
   // ── Reset on para change ──
   const resetParaState = useCallback(() => {
     setSelectedAnswer(null);
     setAttempts(0);
     setGaveUp(false);
     setShowMCQ(false);
-    setShowKitty(false);
-    setKittyAnswered(false);
     setShowFailureReason(false);
     setFailureReason(null);
     setShowConfidence(false);
@@ -271,7 +250,6 @@ function LessonContent() {
     const next: StudyMode = studyMode === "fun" ? "focus" : "fun";
     setStudyMode(next);
     saveStudyMode(next);
-    setShowKitty(false);
   };
 
   // ── Ask Mama ──
@@ -550,7 +528,7 @@ function LessonContent() {
                         <span style={{ fontSize: 7, fontWeight: 800, color: "#fff" }}>MAMA</span>
                       </div>
                       <span style={{ fontSize: 11, fontWeight: 700, color: "#0A2E28" }}>
-                        {activeTab === "quick"    ? `${studentName}, simple ga cheptha...` :
+                        {activeTab === "quick"    ? `Mama explains, ${studentName}...` :
                          activeTab === "example"  ? "Real world example chuddam..." :
                                                     "Deep Dive — Full explanation"}
                       </span>
@@ -594,39 +572,6 @@ function LessonContent() {
                     )}
                   </div>
                 </div>
-
-                {/* ── BLOCK 3: Kitty popup (Fun mode only, idle 10s) ── */}
-                <AnimatePresence>
-                  {studyMode === "fun" && currentPara?.is_key_concept && showKitty && !showMCQ && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      style={{ background: "linear-gradient(135deg,#FEF9C3,#FFEDD5)", borderRadius: 16, padding: 14, border: "1px solid rgba(230,126,34,0.15)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                        <div style={{ width: 26, height: 26, borderRadius: 8, background: "#E67E22", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <span style={{ fontSize: 6, fontWeight: 800, color: "#fff" }}>KITTY</span>
-                        </div>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: "#9a3412" }}>Kitty asks {studentName}...</span>
-                      </div>
-                      <div style={{ fontSize: 13, color: "#431407", lineHeight: 1.6, fontStyle: "italic", marginBottom: 10 }}>
-                        &quot;{currentPara?.kitty_question}&quot;
-                      </div>
-                      {!kittyAnswered && (
-                        <button onClick={() => setKittyAnswered(true)}
-                          style={{ width: "100%", padding: 10, borderRadius: 12, background: "#E67E22", color: "#fff", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
-                          Mama — cheppu! 👆
-                        </button>
-                      )}
-                      {kittyAnswered && (
-                        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                          style={{ fontSize: 13, color: "#1A1208", lineHeight: 1.7 }}>
-                          {currentPara?.mama_kitty_answer}
-                        </motion.div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
 
                 {/* ── BLOCK 4: Student Action Buttons ── */}
                 {!showMCQ && (
