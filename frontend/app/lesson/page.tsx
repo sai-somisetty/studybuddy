@@ -568,8 +568,8 @@ function LessonContent() {
                         <MarkdownRenderer
                           content={
                             activeTab === "quick"    ? (currentPara?.tenglish || "") :
-                            activeTab === "example"  ? (currentPara?.tenglish_variation_2 || "") :
-                                                       (currentPara?.tenglish_variation_3 || "")
+                            activeTab === "example"  ? (currentPara?.tenglish_variation_2 || "Example inkaa ready kaaledhu.") :
+                                                       (currentPara?.tenglish_variation_3 || "Deep Dive inkaa ready kaaledhu.")
                           }
                         />
                         {activeTab === "deepdive" && !hasDeepDive && (
