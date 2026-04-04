@@ -944,22 +944,21 @@ def get_smart_lesson(namespace: str, concept: str = ""):
     r = supabase.table("lesson_content")\
         .select("*")\
         .eq("chapter", chapter)\
-        .order("page_ref")\
+        .eq("is_verified", True)\
+        .order("book_page")\
         .execute()
 
-    # Parse sections (mama_lines) from JSON string for each row
     pages = []
     for row in (r.data or []):
-        sections = row.get("sections")
-        if sections and isinstance(sections, str):
+        lines = row.get("mama_lines")
+        if isinstance(lines, str):
             try:
-                row["mama_lines"] = json.loads(sections)
+                lines = json.loads(lines)
             except json.JSONDecodeError:
-                row["mama_lines"] = []
-        elif sections and isinstance(sections, list):
-            row["mama_lines"] = sections
-        else:
-            row["mama_lines"] = []
+                lines = []
+        elif lines is None:
+            lines = []
+        row["mama_lines"] = lines
         pages.append(row)
 
     return {
