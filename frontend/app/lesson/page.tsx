@@ -545,9 +545,11 @@ function LessonContent() {
                         exit={{ opacity: 0, y: -6 }}>
                         <MarkdownRenderer
                           content={
-                            activeTab === "quick"    ? (currentPara?.tenglish || "") :
-                            activeTab === "example"  ? (currentPara?.tenglish_variation_2 || "Example inkaa ready kaaledhu.") :
-                                                       (currentPara?.tenglish_variation_3 || "Deep Dive inkaa ready kaaledhu.")
+                            (activeTab === "quick"    ? (currentPara?.tenglish || "") :
+                             activeTab === "example"  ? (currentPara?.tenglish_variation_2 || "") :
+                                                        (currentPara?.tenglish_variation_3 || "")
+                            ).replace(/\bthe student\b/gi, studentName)
+                             .replace(/\{name\}/gi, studentName)
                           }
                         />
                         {activeTab === "deepdive" && !hasDeepDive && (
