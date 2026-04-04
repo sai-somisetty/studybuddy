@@ -146,8 +146,8 @@ function LessonContent() {
   const isLastPara   = currentParaIdx === paragraphs.length - 1;
   const isLastPage   = currentPageIdx === pages.length - 1;
   const isCorrect    = selectedAnswer === currentPara?.check_answer;
-  const hasExample   = !!currentPara?.tenglish_variation_2;
-  const hasDeepDive  = !!currentPara?.tenglish_variation_3;
+  const hasExample   = true;
+  const hasDeepDive  = true;
   const paraKey      = `${currentPageIdx}-${currentParaIdx}`;
 
   // ── Load student prefs ──
@@ -531,7 +531,7 @@ function LessonContent() {
                       { id: "deepdive", label: "📖 Deep Dive", available: hasDeepDive },
                     ].map(tab => (
                       <button key={tab.id}
-                        onClick={() => tab.available && setActiveTab(tab.id as ExplanationTab)}
+                        onClick={() => setActiveTab(tab.id as ExplanationTab)}
                         style={{
                           flex: 1, padding: "10px 4px", fontSize: 10, fontWeight: activeTab === tab.id ? 700 : 500,
                           background: activeTab === tab.id ? "#0A2E28" : "transparent",
