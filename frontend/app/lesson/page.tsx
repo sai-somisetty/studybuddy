@@ -19,7 +19,6 @@ const PDFViewer = dynamic(() => import('./PDFViewer'), {
 const MarkdownRenderer = dynamic(() => import('@/components/MarkdownRenderer'), { ssr: false });
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
-type StudyMode = "fun" | "focus";
 type ExplanationTab = "quick" | "example" | "deepdive";
 type FailureReason = "concept" | "silly" | "misread";
 type ConfidenceLevel = "low" | "medium" | "high";
@@ -60,15 +59,6 @@ function getStudentName(): string {
   return localStorage.getItem("somi_student_name") || "Student";
 }
 
-function getStudyMode(): StudyMode {
-  if (typeof window === "undefined") return "fun";
-  return (localStorage.getItem("somi_study_mode") as StudyMode) || "fun";
-}
-
-function saveStudyMode(mode: StudyMode) {
-  if (typeof window !== "undefined") localStorage.setItem("somi_study_mode", mode);
-}
-
 function haptic() {
   if (typeof window !== "undefined" && "vibrate" in navigator) {
     navigator.vibrate(30);
@@ -93,7 +83,6 @@ function LessonContent() {
 
   // ── Student personalization ──
   const [studentName, setStudentName]         = useState("Student");
-  const [studyMode, setStudyMode]             = useState<StudyMode>("fun");
 
   // ── Explanation tab ──
   const [activeTab, setActiveTab]             = useState<ExplanationTab>("quick");
@@ -150,7 +139,6 @@ function LessonContent() {
   // ── Load student prefs ──
   useEffect(() => {
     setStudentName(getStudentName());
-    setStudyMode(getStudyMode());
   }, []);
 
   // ── Fetch pages ──
@@ -250,13 +238,6 @@ function LessonContent() {
     );
   };
   const isBookmarked = bookmarks.includes(`${paraKey}-${currentPara?.text?.slice(0, 30)}`);
-
-  // ── Study mode toggle ──
-  const toggleMode = () => {
-    const next: StudyMode = studyMode === "fun" ? "focus" : "fun";
-    setStudyMode(next);
-    saveStudyMode(next);
-  };
 
   // ── Ask Mama ──
   const sendQuestion = async () => {
@@ -400,17 +381,8 @@ function LessonContent() {
             </button>
           </div>
 
-          {/* Right — mode toggle + zone toggle */}
+          {/* Right — zone toggle */}
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            {/* Fun/Focus toggle */}
-            <button onClick={toggleMode}
-              style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 20, padding: "5px 12px", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-              <span>{studyMode === "fun" ? "✨" : "☕"}</span>
-              <span style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>
-                {studyMode === "fun" ? "FUN" : "FOCUS"}
-              </span>
-            </button>
-            {/* PDF toggle */}
             <button onClick={() => setActiveZone(z => z === "mama" ? "icmai" : "mama")}
               style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>
               {activeZone === "mama" ? "📖" : "🧠"}
@@ -572,8 +544,8 @@ function LessonContent() {
                       </motion.div>
                     </AnimatePresence>
 
-                    {/* Mama's Exam Tip — always shown in Focus mode */}
-                    {(studyMode === "focus" || activeTab === "deepdive") && currentPara?.mamas_tip && (
+                    {/* Mama's Exam Tip — Master tab */}
+                    {activeTab === "deepdive" && currentPara?.mamas_tip && (
                       <div style={{ marginTop: 12, padding: "10px 12px", background: "#FFF7ED", borderRadius: 10, border: "1px solid rgba(230,126,34,0.2)" }}>
                         <div style={{ fontSize: 9, fontWeight: 700, color: "#E67E22", marginBottom: 4 }}>💡 MAMA'S EXAM TIP</div>
                         <div style={{ fontSize: 12, color: "#1A1208", lineHeight: 1.6 }}>{currentPara.mamas_tip}</div>
