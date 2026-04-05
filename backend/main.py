@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from supabase import create_client
 from anthropic import Anthropic
 from dotenv import load_dotenv
@@ -7,6 +8,7 @@ from quiz import generate_mcq, evaluate_answer
 from backup import run_backup
 from session_engine import process_message
 import chromadb
+import httpx
 import os
 import json
 import random
@@ -31,6 +33,125 @@ supabase = create_client(
 )
 claude = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 chroma = chromadb.PersistentClient(path="./chromadb_data")
+
+
+# ── AUTH: Send OTP ─────────────────────────────────────────────────────────────
+@app.post("/auth/send-otp")
+async def send_otp(request: Request):
+    body = await request.json()
+    email = body.get("email", "").strip().lower()
+    if not email:
+        return JSONResponse({"error": "Email required"}, status_code=400)
+
+    SUPABASE_URL = os.getenv("SUPABASE_URL")
+    SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+    async with httpx.AsyncClient() as client:
+        res = await client.post(
+            f"{SUPABASE_URL}/auth/v1/otp",
+            headers={
+                "apikey": SUPABASE_KEY,
+                "Content-Type": "application/json",
+            },
+            json={"email": email, "create_user": True},
+        )
+
+    if res.status_code == 200:
+        return {"success": True, "message": "OTP sent"}
+    return JSONResponse(
+        {"error": "Failed to send OTP", "detail": res.text},
+        status_code=400,
+    )
+
+
+# ── AUTH: Verify OTP ─────────────────────────────────────────────────────────
+@app.post("/auth/verify-otp")
+async def verify_otp(request: Request):
+    body = await request.json()
+    email = body.get("email", "").strip().lower()
+    token = body.get("token", "").strip()
+
+    if not email or not token:
+        return JSONResponse({"error": "Email and token required"}, status_code=400)
+
+    SUPABASE_URL = os.getenv("SUPABASE_URL")
+    SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+    async with httpx.AsyncClient() as client:
+        res = await client.post(
+            f"{SUPABASE_URL}/auth/v1/verify",
+            headers={
+                "apikey": SUPABASE_KEY,
+                "Content-Type": "application/json",
+            },
+            json={"email": email, "token": token, "type": "email"},
+        )
+
+    if res.status_code == 200:
+        data = res.json()
+        user = data.get("user", {})
+        access_token = data.get("access_token", "")
+
+        sb_res = (
+            supabase.table("students")
+            .select("*")
+            .eq("auth_id", user.get("id"))
+            .execute()
+        )
+
+        is_new = len(sb_res.data) == 0
+        student = sb_res.data[0] if not is_new else None
+
+        return {
+            "success": True,
+            "access_token": access_token,
+            "user_id": user.get("id"),
+            "email": user.get("email"),
+            "is_new": is_new,
+            "student": student,
+        }
+    return JSONResponse(
+        {"error": "Invalid OTP", "detail": res.text},
+        status_code=400,
+    )
+
+
+# ── AUTH: Save Profile ───────────────────────────────────────────────────────
+@app.post("/auth/profile")
+async def save_profile(request: Request):
+    body = await request.json()
+    auth_id = body.get("auth_id")
+    email = body.get("email", "").strip().lower()
+    name = body.get("name", "").strip()
+    state = body.get("state", "")
+    gender = body.get("gender", "")
+    exam_level = body.get("exam_level", "")
+    language_pref = body.get("language_pref", "tenglish")
+
+    if not auth_id or not name:
+        return JSONResponse({"error": "auth_id and name required"}, status_code=400)
+
+    existing = (
+        supabase.table("students").select("id").eq("auth_id", auth_id).execute()
+    )
+
+    base = {
+        "auth_id": auth_id,
+        "email": email,
+        "name": name,
+        "state": state,
+        "gender": gender,
+        "exam_level": exam_level,
+        "language_pref": language_pref,
+    }
+
+    if existing.data:
+        supabase.table("students").update(base).eq("auth_id", auth_id).execute()
+    else:
+        insert_payload = {**base, "created_at": datetime.utcnow().isoformat()}
+        supabase.table("students").insert(insert_payload).execute()
+
+    return {"success": True, "name": name}
 
 
 # ── HEALTH CHECK ──
