@@ -453,7 +453,8 @@ function LessonContent() {
             const dx = touchStartX - e.changedTouches[0].clientX;
             const dy = touchStartY - e.changedTouches[0].clientY;
             if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
-              setActiveZone(dx > 0 ? "icmai" : "mama");
+              // dx > 0: swipe left → open ICMAI PDF
+              if (dx > 0) setActiveZone("icmai");
             }
             setTouchStartX(null);
             setTouchStartY(null);
@@ -843,15 +844,34 @@ function LessonContent() {
 
       {/* ── ICMAI / PDF ZONE ───────────────────────────────────────────── */}
       {activeZone === "icmai" && (
-        <PDFViewer
-          pageNumber={(currentPage?.book_page || 3) + 8}
-          onPrev={() => setCurrentPageIdx(Math.max(0, currentPageIdx - 1))}
-          onNext={() => setCurrentPageIdx(Math.min(pages.length - 1, currentPageIdx + 1))}
-          canGoPrev={currentPageIdx > 0}
-          canGoNext={currentPageIdx < pages.length - 1}
-          bookPage={currentPage?.book_page || 1}
-          totalPages={pages.length}
-        />
+        <div
+          style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}
+          onTouchStart={e => {
+            setTouchStartX(e.touches[0].clientX);
+            setTouchStartY(e.touches[0].clientY);
+          }}
+          onTouchEnd={e => {
+            if (touchStartX === null || touchStartY === null) return;
+            const dx = touchStartX - e.changedTouches[0].clientX;
+            const dy = touchStartY - e.changedTouches[0].clientY;
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
+              // dx < 0: swipe right → back to Mama
+              if (dx < 0) setActiveZone("mama");
+            }
+            setTouchStartX(null);
+            setTouchStartY(null);
+          }}
+        >
+          <PDFViewer
+            pageNumber={currentPage?.pdf_page || 11}
+            onPrev={() => setCurrentPageIdx(Math.max(0, currentPageIdx - 1))}
+            onNext={() => setCurrentPageIdx(Math.min(pages.length - 1, currentPageIdx + 1))}
+            canGoPrev={currentPageIdx > 0}
+            canGoNext={currentPageIdx < pages.length - 1}
+            bookPage={currentPage?.book_page || 1}
+            totalPages={pages.length}
+          />
+        </div>
       )}
     </div>
   );

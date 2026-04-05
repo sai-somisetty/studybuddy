@@ -8,9 +8,9 @@ pdfjs.GlobalWorkerOptions.workerSrc =
   `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const PDF_URL = "https://rwuntjxogfrqxaphjolj.supabase.co/storage/v1/object/public/textbooks/Paper1_20-06-2024_R_CMA_F.pdf";
-const PDF_OFFSET = 8;
 
 interface Props {
+  /** 1-based index in the PDF file (e.g. from lesson_content.pdf_page). */
   pageNumber: number;
   onPrev: () => void;
   onNext: () => void;
@@ -45,7 +45,7 @@ export default function PDFViewer({
         }
       >
         <PdfPage
-          pageNumber={pageNumber + PDF_OFFSET}
+          pageNumber={pageNumber}
           width={Math.min(
             typeof window !== "undefined"
               ? window.innerWidth - 8 : 400,
