@@ -529,8 +529,8 @@ function LessonContent() {
                       </div>
                       <span style={{ fontSize: 11, fontWeight: 700, color: "#0A2E28" }}>
                         {activeTab === "quick"    ? `Mama explains, ${studentName}...` :
-                         activeTab === "example"  ? "Real world example chuddam..." :
-                                                    "Deep Dive — Full explanation"}
+                         activeTab === "example"  ? `Revise with Mama, ${studentName}...` :
+                                                    `Master the depth, ${studentName}...`}
                       </span>
                       {currentPage?.is_verified ? (
                         <span style={{ fontSize: 8, background: "#E1F5EE", color: "#0E6655", padding: "2px 6px", borderRadius: 20, fontWeight: 600, marginLeft: "auto" }}>✓ Verified</span>
@@ -554,12 +554,12 @@ function LessonContent() {
                         />
                         {activeTab === "deepdive" && !hasDeepDive && (
                           <div style={{ fontSize: 12, color: "#A89880", fontStyle: "italic" }}>
-                            Deep Dive inkaa generate kaaledhu. Quick tab chuddu!
+                            Master tab inkaa generate kaaledhu. Quick tab chuddu!
                           </div>
                         )}
                         {activeTab === "example" && !hasExample && (
                           <div style={{ fontSize: 12, color: "#A89880", fontStyle: "italic" }}>
-                            Example inkaa ready kaaledhu.
+                            Revise tab inkaa ready kaaledhu.
                           </div>
                         )}
                       </motion.div>
