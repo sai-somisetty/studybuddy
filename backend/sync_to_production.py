@@ -20,6 +20,22 @@ admin_sb = create_client(ADMIN_URL, ADMIN_KEY)
 PDF_OFFSET = 8
 
 
+def clean_v3(text: str) -> str:
+    """Strip accidental JSON wrapper from Deep Dive text (e.g. {\"explanation\": \"...\"})."""
+    if not text or not str(text).strip():
+        return text or ""
+    stripped = str(text).strip()
+    try:
+        parsed = json.loads(stripped)
+        if isinstance(parsed, dict) and parsed.get("explanation"):
+            text = str(parsed["explanation"])
+    except (json.JSONDecodeError, TypeError, ValueError):
+        pass
+    # Fix double-escaped newlines
+    text = text.replace("\\n", "\n")
+    return text
+
+
 def get_subject(paper: int) -> str:
     mapping = {
         1: "law",
@@ -86,7 +102,7 @@ def sync_chapter(course: str, paper: int, chapter: int, dry_run: bool = False):
                 "is_key_concept": c.get("is_key_concept", False),
                 "tenglish": c.get("tenglish") or "",
                 "tenglish_variation_2": c.get("tenglish_variation_2") or "",
-                "tenglish_variation_3": c.get("tenglish_variation_3") or "",
+                "tenglish_variation_3": clean_v3(c.get("tenglish_variation_3") or ""),
                 "kitty_question": c.get("kitty_question") or "",
                 "mama_kitty_answer": c.get("mama_kitty_answer") or "",
                 "check_question": c.get("check_question") or "",
