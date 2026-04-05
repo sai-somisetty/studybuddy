@@ -504,9 +504,9 @@ function LessonContent() {
                   {/* Tab bar */}
                   <div style={{ display: "flex", borderBottom: "1px solid #F0EDE8" }}>
                     {[
-                      { id: "quick",    label: "⚡ Quick",     available: true },
-                      { id: "example",  label: "🏢 Example",   available: hasExample },
-                      { id: "deepdive", label: "📖 Deep Dive", available: hasDeepDive },
+                      { id: "quick",    label: "⚡ Quick",   available: true },
+                      { id: "example",  label: "📝 Revise",  available: hasExample },
+                      { id: "deepdive", label: "📖 Master",  available: hasDeepDive },
                     ].map(tab => (
                       <button key={tab.id}
                         onClick={() => setActiveTab(tab.id as ExplanationTab)}
