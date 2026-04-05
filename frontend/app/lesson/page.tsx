@@ -587,17 +587,17 @@ function LessonContent() {
                   <div style={{ display: "flex", gap: 8 }}>
                     <motion.button whileTap={{ scale: 0.97 }}
                       onClick={goNextPara}
-                      style={{ flex: 2, padding: "12px", borderRadius: 12, background: "#0A2E28", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+                      style={{ flex: 2, padding: "9px 14px", borderRadius: 10, background: "#E1F5EE", color: "#085041", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
                       ✅ Got it, Next
                     </motion.button>
                     <motion.button whileTap={{ scale: 0.97 }}
                       onClick={() => { setShowMCQ(true); haptic(); }}
-                      style={{ flex: 2, padding: "12px", borderRadius: 12, background: "#E67E22", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+                      style={{ flex: 2, padding: "9px 14px", borderRadius: 10, background: "#FFF0E0", color: "#9a4e00", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
                       🎯 Test Me
                     </motion.button>
                     <motion.button whileTap={{ scale: 0.97 }}
                       onClick={toggleBookmark}
-                      style={{ flex: 1, padding: "12px", borderRadius: 12, background: isBookmarked ? "#FEF9C3" : "#F5F0E8", color: isBookmarked ? "#92400E" : "#6B6560", border: "none", cursor: "pointer", fontSize: 16 }}>
+                      style={{ flex: 1, padding: "9px", borderRadius: 10, background: isBookmarked ? "#FEF9C3" : "#F5F0E8", color: isBookmarked ? "#92400E" : "#6B6560", border: "none", cursor: "pointer", fontSize: 14 }}>
                       {isBookmarked ? "🔖" : "📌"}
                     </motion.button>
                   </div>
