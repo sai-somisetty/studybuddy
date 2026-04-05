@@ -132,6 +132,8 @@ function LessonContent() {
   const [touchStartX, setTouchStartX]         = useState<number | null>(null);
   const [touchStartY, setTouchStartY]         = useState<number | null>(null);
 
+  const [conceptDone, setConceptDone]         = useState(false);
+
   const contentRef = useRef<HTMLDivElement>(null);
 
   // Derived
@@ -170,6 +172,7 @@ function LessonContent() {
 
   // ── Reset on para change ──
   const resetParaState = useCallback(() => {
+    setConceptDone(false);
     setSelectedAnswer(null);
     setAttempts(0);
     setGaveUp(false);
@@ -194,6 +197,9 @@ function LessonContent() {
       setCurrentPageIdx(p => p + 1);
       setCurrentParaIdx(0);
       resetParaState();
+    } else {
+      // Last concept of last page — show complete
+      setConceptDone(true);
     }
   }, [isLastPara, isLastPage, resetParaState]);
 
@@ -795,7 +801,7 @@ function LessonContent() {
                 )}
 
                 {/* ── BLOCK 7: Chapter Complete ── */}
-                {isLastPara && isLastPage && selectedAnswer !== null && (
+                {((isLastPara && isLastPage && selectedAnswer !== null) || conceptDone) ? (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                     style={{ background: "#FFFEF9", borderRadius: 16, border: "1px solid rgba(0,0,0,0.08)", overflow: "hidden" }}>
                     <div style={{ padding: "16px 16px 12px", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
@@ -827,7 +833,7 @@ function LessonContent() {
                       ))}
                     </div>
                   </motion.div>
-                )}
+                ) : null}
 
               </motion.div>
             </AnimatePresence>
