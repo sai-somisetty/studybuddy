@@ -122,6 +122,10 @@ function LessonContent() {
   const [touchStartY, setTouchStartY]         = useState<number | null>(null);
 
   const [conceptDone, setConceptDone]         = useState(false);
+  const [showTestYourself, setShowTestYourself] = useState(false);
+  const [testIdx, setTestIdx]                 = useState(0);
+  const [testAnswers, setTestAnswers]         = useState<{ [key: number]: number }>({});
+  const [testComplete, setTestComplete]       = useState(false);
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -161,6 +165,10 @@ function LessonContent() {
   // ── Reset on para change ──
   const resetParaState = useCallback(() => {
     setConceptDone(false);
+    setShowTestYourself(false);
+    setTestIdx(0);
+    setTestAnswers({});
+    setTestComplete(false);
     setSelectedAnswer(null);
     setAttempts(0);
     setGaveUp(false);
@@ -238,6 +246,15 @@ function LessonContent() {
     );
   };
   const isBookmarked = bookmarks.includes(`${paraKey}-${currentPara?.text?.slice(0, 30)}`);
+
+  // Collect all check questions from all pages
+  const allQuestions = pages.flatMap(p =>
+    (p.mama_lines || []).filter(l => l.check_question)
+  );
+  const testCorrectTotal = allQuestions.reduce(
+    (n, q, i) => n + (testAnswers[i] === q.check_answer ? 1 : 0),
+    0
+  );
 
   // ── Ask Mama ──
   const sendQuestion = async () => {
@@ -773,38 +790,120 @@ function LessonContent() {
                   </div>
                 )}
 
-                {/* ── BLOCK 7: Chapter Complete ── */}
+                {/* ── BLOCK 7: Section complete + Test Yourself ── */}
                 {((isLastPara && isLastPage && selectedAnswer !== null) || conceptDone) ? (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                    style={{ background: "#FFFEF9", borderRadius: 16, border: "1px solid rgba(0,0,0,0.08)", overflow: "hidden" }}>
-                    <div style={{ padding: "16px 16px 12px", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
-                      <div style={{ fontSize: 20, marginBottom: 4 }}>🎉</div>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: "#1C1C1E", marginBottom: 2 }}>
-                        Chapter Complete, {studentName}!
-                      </div>
-                      <div style={{ fontSize: 12, color: "#8E8E93", lineHeight: 1.4 }}>
-                        Proud of you! Pick your next challenge.
-                      </div>
-                    </div>
-                    <div style={{ padding: "6px 0" }}>
-                      {[
-                        { icon: "📄", label: "Previous Papers",    sublabel: "Past exam questions",          mode: "previous" },
-                        { icon: "📚", label: "Textbook Quiz",      sublabel: "Straight from the book",       mode: "textbook" },
-                        { icon: "🔄", label: "Tweaked Questions",  sublabel: "Same concepts, new angles",    mode: "tweaked"  },
-                        { icon: "🤖", label: "AI-Generated Quiz",  sublabel: "Fresh questions just for you", mode: "ai"       },
-                      ].map((q, i, arr) => (
-                        <motion.button key={q.mode} whileTap={{ scale: 0.98 }}
-                          onClick={() => router.push(`/quiz?namespace=${namespace}&concept=${encodeURIComponent(concept)}&mode=${q.mode}&subject=${encodeURIComponent(subject)}`)}
-                          style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", background: "transparent", border: "none", borderBottom: i < arr.length - 1 ? "1px solid rgba(0,0,0,0.05)" : "none", cursor: "pointer", textAlign: "left" }}>
-                          <span style={{ fontSize: 20, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", background: "#F5F0E8", borderRadius: 8, flexShrink: 0 }}>{q.icon}</span>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 14, fontWeight: 500, color: "#1C1C1E" }}>{q.label}</div>
-                            <div style={{ fontSize: 11, color: "#8E8E93", marginTop: 1 }}>{q.sublabel}</div>
+                    style={{ background: "#fff", borderRadius: 16, border: "1px solid rgba(0,0,0,0.08)", overflow: "hidden" }}>
+
+                    {!showTestYourself && !testComplete && (
+                      <>
+                        <div style={{ padding: "16px 16px 12px", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+                          <div style={{ fontSize: 20, marginBottom: 4 }}>🎉</div>
+                          <div style={{ fontSize: 15, fontWeight: 600, color: "#1C1C1E", marginBottom: 2 }}>
+                            Section Complete, {studentName}!
                           </div>
-                          <span style={{ fontSize: 12, color: "#C7C7CC" }}>›</span>
-                        </motion.button>
-                      ))}
-                    </div>
+                          <div style={{ fontSize: 12, color: "#8E8E93" }}>
+                            Ready to test what you learned?
+                          </div>
+                        </div>
+                        <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+                          <motion.button whileTap={{ scale: 0.97 }}
+                            onClick={() => { setShowTestYourself(true); setTestIdx(0); }}
+                            style={{ width: "100%", padding: "12px", borderRadius: 12, background: "#0A2E28", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                            📝 Test Yourself ({allQuestions.length} questions)
+                          </motion.button>
+                          <motion.button whileTap={{ scale: 0.97 }}
+                            onClick={() => router.back()}
+                            style={{ width: "100%", padding: "12px", borderRadius: 12, background: "#F5F0E8", color: "#6B6560", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                            → Back to Chapters
+                          </motion.button>
+                        </div>
+                      </>
+                    )}
+
+                    {showTestYourself && !testComplete && allQuestions[testIdx] && (
+                      <div style={{ padding: 16 }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: "#A89880", marginBottom: 4 }}>
+                          Question {testIdx + 1} of {allQuestions.length}
+                        </div>
+                        <div style={{ height: 3, background: "#E5E0D8", borderRadius: 2, marginBottom: 14 }}>
+                          <div style={{ width: `${((testIdx + 1) / allQuestions.length) * 100}%`, height: "100%", background: "#0A2E28", borderRadius: 2, transition: "width 0.3s" }} />
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1208", lineHeight: 1.6, marginBottom: 14 }}>
+                          {allQuestions[testIdx].check_question}
+                        </div>
+                        {allQuestions[testIdx].check_options?.map((opt: string, idx: number) => {
+                          const answered = testAnswers[testIdx] !== undefined;
+                          const isRight = idx === allQuestions[testIdx].check_answer;
+                          const isSelected = testAnswers[testIdx] === idx;
+                          let bg = "#FAFAF8", border = "1px solid #E5E0D8", color = "#1A1208";
+                          if (answered && isRight) { bg = "#F0FDF4"; border = "1.5px solid #16a34a"; color = "#14532d"; }
+                          else if (answered && isSelected && !isRight) { bg = "#FEF2F2"; border = "1.5px solid #ef4444"; color = "#991b1b"; }
+                          return (
+                            <motion.button key={idx}
+                              whileTap={!answered ? { scale: 0.98 } : {}}
+                              onClick={() => {
+                                if (answered) return;
+                                setTestAnswers(prev => ({ ...prev, [testIdx]: idx }));
+                                haptic();
+                              }}
+                              style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "10px 14px", marginBottom: 8, borderRadius: 12, background: bg, border, color, cursor: answered ? "default" : "pointer", textAlign: "left" }}>
+                              <span style={{ fontWeight: 700, flexShrink: 0 }}>{String.fromCharCode(65 + idx)}.</span>
+                              <span style={{ fontSize: 12, flex: 1 }}>{opt}</span>
+                              {answered && isRight && <span style={{ color: "#16a34a" }}>✓</span>}
+                              {answered && isSelected && !isRight && <span style={{ color: "#ef4444" }}>✗</span>}
+                            </motion.button>
+                          );
+                        })}
+                        {testAnswers[testIdx] !== undefined && (
+                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                            <div style={{ background: "#F5F0E8", borderRadius: 10, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: "#1A1208", lineHeight: 1.6 }}>
+                              {allQuestions[testIdx].check_explanation}
+                            </div>
+                            <motion.button whileTap={{ scale: 0.97 }}
+                              onClick={() => {
+                                if (testIdx < allQuestions.length - 1) {
+                                  setTestIdx(p => p + 1);
+                                } else {
+                                  setTestComplete(true);
+                                }
+                              }}
+                              style={{ width: "100%", padding: "11px", borderRadius: 12, background: "#0A2E28", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                              {testIdx < allQuestions.length - 1 ? "Next Question →" : "See Results 🎯"}
+                            </motion.button>
+                          </motion.div>
+                        )}
+                      </div>
+                    )}
+
+                    {testComplete && (
+                      <div style={{ padding: 20, textAlign: "center" }}>
+                        <div style={{ fontSize: 32, marginBottom: 12 }}>
+                          {testCorrectTotal === allQuestions.length ? "🏆" : "💪"}
+                        </div>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: "#0A2E28", marginBottom: 6 }}>
+                          {testCorrectTotal} / {allQuestions.length} Correct!
+                        </div>
+                        <div style={{ fontSize: 12, color: "#8E8E93", marginBottom: 16 }}>
+                          {testCorrectTotal === allQuestions.length
+                            ? `Perfect score ${studentName}! Section mastered! 🎉`
+                            : `Good effort ${studentName}! Review the Master tab for weak concepts.`}
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                          <motion.button whileTap={{ scale: 0.97 }}
+                            onClick={() => { setTestIdx(0); setTestAnswers({}); setTestComplete(false); setShowTestYourself(true); }}
+                            style={{ width: "100%", padding: "11px", borderRadius: 12, background: "#E1F5EE", color: "#085041", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                            🔄 Retry Test
+                          </motion.button>
+                          <motion.button whileTap={{ scale: 0.97 }}
+                            onClick={() => router.back()}
+                            style={{ width: "100%", padding: "11px", borderRadius: 12, background: "#F5F0E8", color: "#6B6560", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                            → Back to Chapters
+                          </motion.button>
+                        </div>
+                      </div>
+                    )}
+
                   </motion.div>
                 ) : null}
 
