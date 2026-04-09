@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from supabase import create_client
@@ -8,6 +8,9 @@ from quiz import generate_mcq, evaluate_answer
 from backup import run_backup
 from session_engine import process_message
 from parent_routes import router as parent_router
+from college_routes import router as college_router
+from exam_controller import router as exam_kiosk_router
+from nudge_engine import run_nudge_engine, verify_admin_key
 import chromadb
 import httpx
 import os
@@ -29,6 +32,8 @@ app.add_middleware(
 )
 
 app.include_router(parent_router)
+app.include_router(college_router)
+app.include_router(exam_kiosk_router)
 
 supabase = create_client(
     os.getenv("SUPABASE_URL"),
@@ -36,6 +41,56 @@ supabase = create_client(
 )
 claude = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 chroma = chromadb.PersistentClient(path="./chromadb_data")
+
+
+@app.api_route("/admin/run-nudges", methods=["GET", "POST"])
+async def admin_run_nudges(x_admin_key: str | None = Header(None, alias="X-Admin-Key")):
+    """Cron / manual: generate nudges for all students with linked parents."""
+    verify_admin_key(x_admin_key)
+    return await run_nudge_engine(supabase, None)
+
+
+@app.get("/admin/send-daily-summary")
+async def admin_send_daily_summary(x_admin_key: str | None = Header(None, alias="X-Admin-Key")):
+    verify_admin_key(x_admin_key)
+    from notification_service import send_push_to_parent
+
+    sent = 0
+    parents = supabase.table("parents").select("id").execute()
+    for prow in parents.data or []:
+        pid = str(prow["id"])
+        links = (
+            supabase.table("parent_student_links")
+            .select("student_id")
+            .eq("parent_id", pid)
+            .eq("status", "active")
+            .execute()
+        )
+        parts: list[str] = []
+        for link in links.data or []:
+            sid = link.get("student_id")
+            if not sid:
+                continue
+            st = supabase.table("students").select("name").eq("id", sid).execute()
+            name = st.data[0]["name"] if st.data else "Student"
+            streak_r = supabase.table("streaks").select("current_streak").eq("student_id", sid).execute()
+            streak = streak_r.data[0]["current_streak"] if streak_r.data else 0
+            today = datetime.utcnow().date().isoformat()
+            exams = (
+                supabase.table("exam_attempts")
+                .select("id")
+                .eq("student_id", sid)
+                .gte("created_at", f"{today}T00:00:00")
+                .execute()
+            )
+            qc = len(exams.data or [])
+            parts.append(f"{name}: {qc} quizzes, {streak}d streak")
+        if not parts:
+            continue
+        body = "Today — " + "; ".join(parts)
+        if send_push_to_parent(supabase, pid, "SOMI daily summary", body, {"route": "/dashboard"}):
+            sent += 1
+    return {"parents_notified": sent}
 
 
 # ── AUTH: Send OTP ─────────────────────────────────────────────────────────────
@@ -320,6 +375,12 @@ async def update_streak(request: dict):
         "last_login":     today,
         "total_days":     total + 1,
     }).eq("student_id", student_id).execute()
+
+    if student_id:
+        try:
+            await run_nudge_engine(supabase, str(student_id))
+        except Exception as _e:  # noqa: BLE001
+            print(f"nudge_engine after streak: {_e}")
 
     return {
         "current_streak": new_streak,
@@ -830,6 +891,12 @@ async def submit_exam(request: dict):
         "answers":       json.dumps(answers),
         "weak_concepts": json.dumps(weak[:10]),
     }).execute()
+
+    if student_id:
+        try:
+            await run_nudge_engine(supabase, str(student_id))
+        except Exception as _e:  # noqa: BLE001
+            print(f"nudge_engine after exam: {_e}")
 
     return {
         "score":         score,

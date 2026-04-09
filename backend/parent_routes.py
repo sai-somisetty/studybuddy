@@ -7,15 +7,20 @@ from __future__ import annotations
 import json
 import os
 import secrets
+import uuid
 from datetime import datetime, timedelta
 from typing import Any, Optional
 
 import bcrypt
 import httpx
+from anthropic import Anthropic
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
 from supabase import create_client
+
+from health_parser import extract_from_pdf_or_image
+from nudge_engine import run_nudge_engine
 
 load_dotenv()
 
@@ -580,7 +585,23 @@ async def parent_health_record(request: Request, auth_id: str = Depends(require_
     }
     ins = supabase.table("health_records").insert(record).execute()
     rid = ins.data[0]["id"] if ins.data else None
+    try:
+        await run_nudge_engine(supabase, str(student_id))
+    except Exception:  # noqa: BLE001
+        pass
     return {"success": True, "id": rid}
+
+
+@router.post("/trigger-nudges/{student_id}")
+async def parent_trigger_nudges(
+    student_id: str,
+    auth_id: str = Depends(require_parent_auth),
+):
+    """Run nudge engine for one linked student (e.g. after manual refresh)."""
+    parent = _require_parent_row(auth_id)
+    _ensure_linked(parent["id"], student_id)
+    result = await run_nudge_engine(supabase, student_id)
+    return {"success": True, **result}
 
 
 @router.get("/health/records/{student_id}")
@@ -750,3 +771,213 @@ async def parent_sync_push(request: Request, auth_id: str = Depends(require_pare
     ).execute()
 
     return {"success": True, **results}
+
+
+# ── Device token (FCM) ───────────────────────────────────────────────────────
+
+
+@router.post("/device-token")
+async def parent_device_token(request: Request, auth_id: str = Depends(require_parent_auth)):
+    body = await request.json()
+    token = body.get("device_token")
+    platform = (body.get("platform") or "android").strip()
+    parent = _require_parent_row(auth_id)
+    supabase.table("parents").update(
+        {
+            "device_token": token,
+            "device_platform": platform,
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+    ).eq("id", parent["id"]).execute()
+    return {"success": True}
+
+
+# ── WhatsApp opt-in ────────────────────────────────────────────────────────────
+
+
+@router.post("/whatsapp/opt-in")
+async def whatsapp_opt_in(request: Request, auth_id: str = Depends(require_parent_auth)):
+    body = await request.json()
+    phone = (body.get("phone_number") or body.get("whatsapp_number") or "").strip()
+    if not phone:
+        return JSONResponse({"error": "phone_number required"}, status_code=400)
+    parent = _require_parent_row(auth_id)
+    supabase.table("parents").update(
+        {
+            "whatsapp_number": phone,
+            "whatsapp_opt_in": True,
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+    ).eq("id", parent["id"]).execute()
+    return {"success": True}
+
+
+@router.post("/whatsapp/opt-out")
+async def whatsapp_opt_out(auth_id: str = Depends(require_parent_auth)):
+    parent = _require_parent_row(auth_id)
+    supabase.table("parents").update(
+        {
+            "whatsapp_opt_in": False,
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+    ).eq("id", parent["id"]).execute()
+    return {"success": True}
+
+
+@router.get("/whatsapp/status")
+async def whatsapp_status(auth_id: str = Depends(require_parent_auth)):
+    parent = _require_parent_row(auth_id)
+    return {
+        "opt_in": bool(parent.get("whatsapp_opt_in")),
+        "phone": parent.get("whatsapp_number"),
+    }
+
+
+# ── Health report upload (Claude) ──────────────────────────────────────────────
+
+
+def _metrics_from_parsed(parsed: dict[str, Any]) -> dict[str, Any]:
+    keys = (
+        "hemoglobin",
+        "wbc_count",
+        "platelet_count",
+        "rbc_count",
+        "vitamin_b12",
+        "vitamin_d3",
+        "iron_level",
+        "ferritin",
+        "fasting_glucose",
+        "thyroid_tsh",
+        "calcium",
+    )
+    m: dict[str, Any] = {}
+    for k in keys:
+        v = parsed.get(k)
+        if v is not None:
+            m[k] = v
+    return m
+
+
+@router.post("/health/upload-report")
+async def parent_health_upload_report(
+    file: UploadFile = File(...),
+    student_id: str = Form(...),
+    source: str = Form("other"),
+    auth_id: str = Depends(require_parent_auth),
+):
+    parent = _require_parent_row(auth_id)
+    _ensure_linked(parent["id"], student_id)
+    raw = await file.read()
+    fname = file.filename or "report.pdf"
+    path = f"{student_id}/{uuid.uuid4()}_{fname}"
+
+    try:
+        supabase.storage.from_("health-reports").upload(
+            path,
+            raw,
+            file_options={"content-type": file.content_type or "application/octet-stream"},
+        )
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse({"error": f"upload failed: {e}"}, status_code=500)
+
+    try:
+        pub = supabase.storage.from_("health-reports").get_public_url(path)
+    except Exception:  # noqa: BLE001
+        pub = path
+
+    key = os.getenv("ANTHROPIC_API_KEY")
+    if not key:
+        return JSONResponse({"error": "ANTHROPIC_API_KEY not set"}, status_code=500)
+    claude = Anthropic(api_key=key)
+    try:
+        parsed = extract_from_pdf_or_image(claude, raw, fname)
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse(
+            {"error": "parse_failed", "detail": str(e), "raw_report_url": pub},
+            status_code=422,
+        )
+
+    metrics = _metrics_from_parsed(parsed)
+    recorded = parsed.get("report_date") or datetime.utcnow().date().isoformat()
+    ins = (
+        supabase.table("health_records")
+        .insert(
+            {
+                "parent_id": parent["id"],
+                "student_id": student_id,
+                "recorded_at": recorded,
+                "metrics": metrics,
+                "notes": json.dumps({"parsed_full": parsed}, ensure_ascii=False)[:8000],
+                "source": source,
+                "raw_report_url": str(pub),
+                "parsed_data": parsed,
+                "record_type": "lab_report",
+                "created_at": datetime.utcnow().isoformat(),
+            }
+        )
+        .execute()
+    )
+    rid = ins.data[0]["id"] if ins.data else None
+    try:
+        await run_nudge_engine(supabase, str(student_id))
+    except Exception:  # noqa: BLE001
+        pass
+    return {
+        "success": True,
+        "health_record_id": rid,
+        "parsed": parsed,
+        "metrics": metrics,
+        "raw_report_url": pub,
+    }
+
+
+@router.post("/health/confirm-parsed")
+async def parent_health_confirm_parsed(
+    request: Request, auth_id: str = Depends(require_parent_auth)
+):
+    body = await request.json()
+    hid = body.get("health_record_id")
+    corrections = body.get("corrections") or {}
+    if not hid:
+        return JSONResponse({"error": "health_record_id required"}, status_code=400)
+    parent = _require_parent_row(auth_id)
+    r = (
+        supabase.table("health_records")
+        .select("*")
+        .eq("id", hid)
+        .eq("parent_id", parent["id"])
+        .execute()
+    )
+    if not r.data:
+        raise HTTPException(404, "record not found")
+    row = r.data[0]
+    metrics = row.get("metrics") or {}
+    if isinstance(metrics, str):
+        try:
+            metrics = json.loads(metrics)
+        except json.JSONDecodeError:
+            metrics = {}
+    for k, v in corrections.items():
+        metrics[k] = v
+    pd = row.get("parsed_data") or {}
+    if isinstance(pd, str):
+        try:
+            pd = json.loads(pd)
+        except json.JSONDecodeError:
+            pd = {}
+    if isinstance(pd, dict):
+        pd = {**pd, **corrections}
+    supabase.table("health_records").update(
+        {
+            "metrics": metrics,
+            "parsed_data": pd,
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+    ).eq("id", hid).execute()
+    sid = str(row.get("student_id") or "")
+    if sid:
+        try:
+            await run_nudge_engine(supabase, sid)
+        except Exception:  # noqa: BLE001
+            pass
+    return {"success": True}
