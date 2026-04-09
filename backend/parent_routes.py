@@ -8,7 +8,8 @@ import json
 import os
 import secrets
 import uuid
-from datetime import datetime, timedelta
+from collections import defaultdict
+from datetime import date, datetime, timedelta
 from typing import Any, Optional
 
 import bcrypt
@@ -102,6 +103,34 @@ def _parse_json_field(raw: Any) -> Any:
         except json.JSONDecodeError:
             return raw
     return raw
+
+
+def _college_subject_from_daily_log_row(row: dict[str, Any]) -> dict[str, Any]:
+    """Map `college_daily_logs` row to API subject shape."""
+    topics_raw = row.get("topics_covered")
+    if isinstance(topics_raw, list):
+        topics = [str(t) for t in topics_raw]
+    elif isinstance(topics_raw, str):
+        topics = [topics_raw]
+    else:
+        topics = []
+    return {
+        "subject_name": str(row.get("subject") or "Subject"),
+        "topics": topics,
+        "homework": row.get("homework"),
+        "teacher_name": row.get("teacher_name"),
+    }
+
+
+def _max_iso_timestamp(rows: list[dict[str, Any]]) -> Any:
+    best: Any = None
+    for row in rows:
+        ts = row.get("created_at")
+        if ts is None:
+            continue
+        if best is None or str(ts) > str(best):
+            best = ts
+    return best
 
 
 # ── Auth OTP (same Supabase Auth as student app) ─────────────────────────────
@@ -378,6 +407,83 @@ async def parent_activity(
         "exam_attempts": exams.data or [],
         "concept_progress_recent": progress.data or [],
     }
+
+
+@router.get("/college-log/{student_id}/today")
+async def parent_college_log_today(
+    student_id: str,
+    auth_id: str = Depends(require_parent_auth),
+):
+    """Today's college log (`college_daily_logs`: one row per subject per day)."""
+    parent = _require_parent_row(auth_id)
+    _ensure_linked(parent["id"], student_id)
+    today_str = date.today().isoformat()
+    try:
+        r = (
+            supabase.table("college_daily_logs")
+            .select("*")
+            .eq("student_id", student_id)
+            .eq("log_date", today_str)
+            .execute()
+        )
+    except Exception:
+        return {"date": today_str, "updated_at": None, "subjects": []}
+
+    rows = [x for x in (r.data or []) if isinstance(x, dict)]
+    if not rows:
+        return {"date": today_str, "updated_at": None, "subjects": []}
+    subjects = [_college_subject_from_daily_log_row(row) for row in rows]
+    return {
+        "date": today_str,
+        "updated_at": _max_iso_timestamp(rows),
+        "subjects": subjects,
+    }
+
+
+@router.get("/college-log/{student_id}")
+async def parent_college_log_range(
+    student_id: str,
+    auth_id: str = Depends(require_parent_auth),
+    days: int = 7,
+):
+    """Recent college log days (newest first). Query: days=1..31 (default 7)."""
+    parent = _require_parent_row(auth_id)
+    _ensure_linked(parent["id"], student_id)
+    days = max(1, min(int(days), 31))
+    start = (date.today() - timedelta(days=days - 1)).isoformat()
+    try:
+        r = (
+            supabase.table("college_daily_logs")
+            .select("*")
+            .eq("student_id", student_id)
+            .gte("log_date", start)
+            .execute()
+        )
+    except Exception:
+        return {"days": []}
+
+    by_date: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in r.data or []:
+        if not isinstance(row, dict):
+            continue
+        ld = row.get("log_date")
+        if ld is None:
+            continue
+        key = str(ld)[:10]
+        by_date[key].append(row)
+
+    out: list[dict[str, Any]] = []
+    for log_date in sorted(by_date.keys(), reverse=True):
+        day_rows = by_date[log_date]
+        subjects = [_college_subject_from_daily_log_row(x) for x in day_rows]
+        out.append(
+            {
+                "log_date": log_date,
+                "updated_at": _max_iso_timestamp(day_rows),
+                "subjects": subjects,
+            }
+        )
+    return {"days": out}
 
 
 @router.get("/scores/{student_id}")

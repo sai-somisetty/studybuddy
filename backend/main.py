@@ -10,6 +10,7 @@ from session_engine import process_message
 from parent_routes import router as parent_router
 from college_routes import router as college_router
 from exam_controller import router as exam_kiosk_router
+from college_log_routes import router as college_log_router
 from nudge_engine import run_nudge_engine, verify_admin_key
 import chromadb
 import httpx
@@ -34,6 +35,7 @@ app.add_middleware(
 app.include_router(parent_router)
 app.include_router(college_router)
 app.include_router(exam_kiosk_router)
+app.include_router(college_log_router)
 
 supabase = create_client(
     os.getenv("SUPABASE_URL"),
