@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "SOMI — Student's Own Mentor Intelligence",
-  description: "Mama explains. Kitty asks. You pass.",
+  description: "Mama explains. You pass.",
 };
 
 export default function RootLayout({

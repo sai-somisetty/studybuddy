@@ -1,0 +1,12 @@
+venv/
+.next/
+__pycache__/
+*.pyc
+.pytest_cache/
+chromadb_data/
+*.pdf
+vision_raw_*.json
+vision_test_*.json
+seeded_*.json
+progress_*.json
+backups/

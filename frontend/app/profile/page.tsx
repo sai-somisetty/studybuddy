@@ -144,7 +144,7 @@ export default function Profile() {
         {/* Bottom tagline */}
         <div style={{ textAlign:"center", marginTop:24 }}>
           <div style={{ fontSize:12, fontFamily:"Georgia,serif", color:"#A89880" }}>SOMI</div>
-          <div style={{ fontSize:10, color:"#C8C0B4", marginTop:2 }}>Mama explains. Kitty asks. You pass.</div>
+          <div style={{ fontSize:10, color:"#C8C0B4", marginTop:2 }}>Mama explains. You pass.</div>
         </div>
 
       </div>

@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from quiz import generate_mcq, evaluate_answer
 from backup import run_backup
 from session_engine import process_message
+from parent_routes import router as parent_router
 import chromadb
 import httpx
 import os
@@ -26,6 +27,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(parent_router)
 
 supabase = create_client(
     os.getenv("SUPABASE_URL"),
@@ -53,7 +56,13 @@ async def send_otp(request: Request):
                 "apikey": SUPABASE_KEY,
                 "Content-Type": "application/json",
             },
-            json={"email": email, "create_user": True},
+            json={
+                "email": email,
+                "create_user": True,
+                "options": {
+                    "should_create_user": True,
+                },
+            },
         )
 
     if res.status_code == 200:
