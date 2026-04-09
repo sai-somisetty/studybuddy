@@ -13,7 +13,7 @@ from typing import Any, Optional
 import httpx
 from anthropic import Anthropic
 from dotenv import load_dotenv
-from fastapi import APIRouter, Depends, File, Header, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Request, UploadFile
 from supabase import create_client
 
 load_dotenv()
