@@ -486,6 +486,219 @@ async def parent_college_log_range(
     return {"days": out}
 
 
+def _norm_topic_key(s: str) -> str:
+    return " ".join((s or "").lower().replace("-", " ").split())
+
+
+def _topic_matches_concept(topic: str, concept: str) -> bool:
+    """Case-insensitive partial / token overlap match between college topic and app concept name."""
+    t = _norm_topic_key(topic)
+    c = _norm_topic_key(concept)
+    if not t or not c:
+        return False
+    if t == c:
+        return True
+    if t in c or c in t:
+        return True
+    ta = t.split()
+    ca = c.split()
+    if not ta or not ca:
+        return False
+    sa, sb = set(ta), set(ca)
+    inter = sa & sb
+    if not inter:
+        return False
+    if len(ta) == 1 and ta[0] in sb:
+        return True
+    if len(ca) == 1 and ca[0] in sa:
+        return True
+    return len(inter) >= min(2, len(sa), len(sb)) or (
+        len(inter) / max(1, min(len(sa), len(sb))) >= 0.5
+    )
+
+
+def _progress_from_concept_row(row: dict[str, Any]) -> float:
+    v = row.get("progress_percent")
+    if v is not None:
+        try:
+            return max(0.0, min(100.0, float(v)))
+        except (TypeError, ValueError):
+            pass
+    keys = ("previous_done", "textbook_done", "tweaked_done", "ai_done")
+    done = sum(1 for k in keys if row.get(k) is True)
+    return float(min(100, done * 25))
+
+
+def _concept_match_list(rows: list[Any]) -> list[tuple[str, float]]:
+    pairs: list[tuple[str, float]] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        name = str(row.get("concept_name") or row.get("concept") or "").strip()
+        if not name:
+            continue
+        pairs.append((name, _progress_from_concept_row(row)))
+    return pairs
+
+
+def _best_concept_match(topic: str, pairs: list[tuple[str, float]]) -> tuple[bool, float]:
+    best = 0.0
+    found = False
+    for cname, pct in pairs:
+        if _topic_matches_concept(topic, cname):
+            found = True
+            if pct > best:
+                best = pct
+    return found, best
+
+
+def _coverage_status(covered: bool, progress: float) -> str:
+    if not covered:
+        return "missing"
+    if progress >= 80:
+        return "covered"
+    if progress > 0:
+        return "started"
+    return "started"
+
+
+def _topic_payload(subject: str, topic: str, pairs: list[tuple[str, float]]) -> dict[str, Any]:
+    cov, pct = _best_concept_match(topic, pairs)
+    st = _coverage_status(cov, pct)
+    return {
+        "topic": topic,
+        "subject": subject,
+        "covered_in_app": cov,
+        "app_progress": round(pct, 1),
+        "status": st,
+    }
+
+
+@router.get("/bridge/{student_id}")
+async def parent_bridge(
+    student_id: str,
+    auth_id: str = Depends(require_parent_auth),
+):
+    """
+    Classroom-to-app bridge: college_daily_logs vs concept_progress (fuzzy topic ↔ concept).
+    """
+    parent = _require_parent_row(auth_id)
+    _ensure_linked(parent["id"], student_id)
+    today_str = date.today().isoformat()
+    start = (date.today() - timedelta(days=6)).isoformat()
+
+    try:
+        log_r = (
+            supabase.table("college_daily_logs")
+            .select("*")
+            .eq("student_id", student_id)
+            .gte("log_date", start)
+            .execute()
+        )
+        logs = [x for x in (log_r.data or []) if isinstance(x, dict)]
+    except Exception:
+        logs = []
+
+    try:
+        cp_r = (
+            supabase.table("concept_progress")
+            .select("*")
+            .eq("student_id", student_id)
+            .execute()
+        )
+        cprows = [x for x in (cp_r.data or []) if isinstance(x, dict)]
+    except Exception:
+        cprows = []
+
+    pairs = _concept_match_list(cprows)
+
+    # Today college subjects (same shape as college-log today)
+    today_rows = [r for r in logs if str(r.get("log_date") or "")[:10] == today_str]
+    today_subjects = [_college_subject_from_daily_log_row(r) for r in today_rows]
+
+    today_topics: list[dict[str, Any]] = []
+    for sub in today_subjects:
+        sn = str(sub.get("subject_name") or "Subject")
+        for topic in sub.get("topics") or []:
+            if not str(topic).strip():
+                continue
+            today_topics.append(_topic_payload(sn, str(topic), pairs))
+
+    # Unique (subject, topic) across week for stats & gaps
+    seen_week: set[str] = set()
+    week_unique: list[tuple[str, str, str]] = []  # subject, topic, first_date
+
+    by_date: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in logs:
+        ld = str(row.get("log_date") or "")[:10]
+        if not ld:
+            continue
+        subj = _college_subject_from_daily_log_row(row)
+        sn = str(subj.get("subject_name") or "Subject")
+        for topic in subj.get("topics") or []:
+            ts = str(topic).strip()
+            if not ts:
+                continue
+            key = f"{_norm_topic_key(sn)}::{_norm_topic_key(ts)}"
+            if key not in seen_week:
+                seen_week.add(key)
+                week_unique.append((sn, ts, ld))
+            by_date[ld].append(_topic_payload(sn, ts, pairs))
+
+    total_u = len(week_unique)
+    covered_u = sum(
+        1 for sn, ts, _ in week_unique if _best_concept_match(ts, pairs)[0]
+    )
+    pct_w = round(100.0 * covered_u / total_u) if total_u else 100
+
+    gaps: list[dict[str, Any]] = []
+    for sn, ts, ld in week_unique:
+        if not _best_concept_match(ts, pairs)[0]:
+            gaps.append({"topic": ts, "subject": sn, "date_taught": ld})
+
+    homework: list[dict[str, Any]] = []
+    for row in logs:
+        hw = row.get("homework")
+        if hw is None or str(hw).strip() == "":
+            continue
+        ld = str(row.get("log_date") or "")[:10]
+        homework.append(
+            {
+                "subject": str(row.get("subject") or "Subject"),
+                "homework": str(hw).strip(),
+                "date": ld,
+            }
+        )
+
+    daily_breakdown = [
+        {"log_date": d, "topics": by_date[d]}
+        for d in sorted(by_date.keys(), reverse=True)
+    ]
+
+    # Summary ring: today's topics
+    n_today = len(today_topics)
+    n_today_cov = sum(1 for t in today_topics if t.get("covered_in_app"))
+    today_pct = round(100.0 * n_today_cov / n_today) if n_today else 100
+
+    return {
+        "today_subjects": today_subjects,
+        "today_topics": today_topics,
+        "today_summary": {
+            "total_topics": n_today,
+            "covered_in_app": n_today_cov,
+            "percentage": today_pct,
+        },
+        "weekly_coverage": {
+            "total_college_topics": total_u,
+            "covered_in_app": covered_u,
+            "percentage": pct_w,
+        },
+        "gaps": gaps,
+        "homework": homework,
+        "daily_breakdown": daily_breakdown,
+    }
+
+
 @router.get("/scores/{student_id}")
 async def parent_scores(
     student_id: str,

@@ -7,6 +7,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { getSubjects } from "@/lib/syllabus";
+import MamaAgent from "@/components/MamaAgent";
 import { House, BookOpen, Certificate, ChartBar } from '@phosphor-icons/react';
 
 export default function Home() {
@@ -145,6 +146,14 @@ export default function Home() {
         )}
 
       </div>
+
+      {/* ── MAMA AGENT (global mode) ── */}
+      <MamaAgent
+        mode="global"
+        studentName={name}
+        course={course}
+        level={level}
+      />
 
       {/* Bottom nav */}
       <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, background:"#fff", borderTop:"0.5px solid rgba(0,0,0,0.06)", padding:"10px 20px 20px", display:"flex", justifyContent:"space-around", zIndex:100 }}>

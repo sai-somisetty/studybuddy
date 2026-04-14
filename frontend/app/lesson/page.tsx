@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import MamaAgent from "@/components/MamaAgent";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "https://studybuddy-production-7776.up.railway.app";
 
@@ -108,12 +109,6 @@ function LessonContent() {
   // ── Active zone (Mama / PDF) ──
   const [activeZone, setActiveZone]           = useState<"mama" | "icmai">("mama");
 
-  // ── Ask Mama chat ──
-  const [studentQuestion, setStudentQuestion] = useState("");
-  const [studentMessages, setStudentMessages] = useState<any[]>([]);
-  const [mamaTyping, setMamaTyping]           = useState(false);
-  const [inputFocused, setInputFocused]       = useState(false);
-
   // ── Bookmarks ──
   const [bookmarks, setBookmarks]             = useState<string[]>([]);
 
@@ -177,7 +172,6 @@ function LessonContent() {
     setFailureReason(null);
     setShowConfidence(false);
     setConfidence(null);
-    setStudentMessages([]);
     setActiveTab("quick");
     setIcmaiExpanded(false);
     contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
@@ -255,24 +249,6 @@ function LessonContent() {
     (n, q, i) => n + (testAnswers[i] === q.check_answer ? 1 : 0),
     0
   );
-
-  // ── Ask Mama ──
-  const sendQuestion = async () => {
-    if (!studentQuestion.trim() || mamaTyping) return;
-    const q = studentQuestion.trim();
-    setStudentQuestion("");
-    setStudentMessages(prev => [...prev, { role: "user", text: q }]);
-    setMamaTyping(true);
-    try {
-      const res  = await fetch(`${API}/ask?question=${encodeURIComponent(q)}&namespace=${namespace}&student_name=${encodeURIComponent(studentName)}`);
-      const data = await res.json();
-      setStudentMessages(prev => [...prev, { role: "mama", text: data.answer }]);
-    } catch {
-      setStudentMessages(prev => [...prev, { role: "mama", text: "Sorry, try again!" }]);
-    } finally {
-      setMamaTyping(false);
-    }
-  };
 
   // ─────────────────────────────────────────────────────────────────────────
   // LOADING
@@ -437,7 +413,6 @@ function LessonContent() {
             setTouchStartY(e.touches[0].clientY);
           }}
           onTouchEnd={e => {
-            if (inputFocused) return;
             if (touchStartX === null || touchStartY === null) return;
             const dx = touchStartX - e.changedTouches[0].clientX;
             const dy = touchStartY - e.changedTouches[0].clientY;
@@ -749,47 +724,6 @@ function LessonContent() {
                   )}
                 </AnimatePresence>
 
-                {/* ── BLOCK 6: Ask Mama (after MCQ answered) ── */}
-                {selectedAnswer !== null && (
-                  <div style={{ background: "#fff", borderRadius: 16, padding: 14, border: "0.5px solid rgba(0,0,0,0.06)" }}>
-                    <div style={{ fontSize: 10, color: "#A89880", marginBottom: 8 }}>
-                      💬 {studentName}, oka doubt unte adugu...
-                    </div>
-                    {studentMessages.map((msg, i) => (
-                      <div key={i} style={{ marginBottom: 8, display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start" }}>
-                        <div style={{ maxWidth: "85%", padding: "8px 12px", borderRadius: 12, background: msg.role === "user" ? "#0A2E28" : "#F5F0E8", color: msg.role === "user" ? "#fff" : "#1A1208", fontSize: 12, lineHeight: 1.6 }}>
-                          {msg.text}
-                        </div>
-                      </div>
-                    ))}
-                    {mamaTyping && (
-                      <div style={{ display: "flex", gap: 4, padding: "8px 12px" }}>
-                        {[0, 1, 2].map(i => (
-                          <motion.div key={i} animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.15 }}
-                            style={{ width: 6, height: 6, borderRadius: "50%", background: "#0A2E28" }} />
-                        ))}
-                      </div>
-                    )}
-                    <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center" }}>
-                      <input
-                        value={studentQuestion}
-                        onChange={e => setStudentQuestion(e.target.value)}
-                        onFocus={() => setInputFocused(true)}
-                        onBlur={() => setInputFocused(false)}
-                        onKeyDown={e => { if (e.key === "Enter") sendQuestion(); }}
-                        placeholder="Type your doubt..."
-                        style={{ flex: 1, padding: "10px 12px", borderRadius: 20, border: "1.5px solid #E5E0D8", background: "#FAFAF8", fontSize: 12, color: "#1A1208", outline: "none" }}
-                      />
-                      <motion.button whileTap={{ scale: 0.95 }}
-                        onClick={sendQuestion}
-                        disabled={!studentQuestion.trim() || mamaTyping}
-                        style={{ width: 36, height: 36, borderRadius: "50%", background: studentQuestion.trim() && !mamaTyping ? "#0A2E28" : "#E5E0D8", border: "none", cursor: studentQuestion.trim() && !mamaTyping ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <span style={{ color: "#fff", fontSize: 14 }}>↑</span>
-                      </motion.button>
-                    </div>
-                  </div>
-                )}
-
                 {/* ── BLOCK 7: Section complete + Test Yourself ── */}
                 {((isLastPara && isLastPage && selectedAnswer !== null) || conceptDone) ? (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
@@ -910,6 +844,17 @@ function LessonContent() {
               </motion.div>
             </AnimatePresence>
           ) : null}
+
+        {/* ── MAMA AGENT (always accessible) ── */}
+        <MamaAgent
+          mode="concept"
+          studentName={studentName}
+          namespace={namespace}
+          concept={concept}
+          subject={subject}
+          chapter={chapter}
+          conceptId={currentPage?.id}
+        />
         </div>
       )}
 

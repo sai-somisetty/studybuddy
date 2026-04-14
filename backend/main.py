@@ -11,6 +11,7 @@ from parent_routes import router as parent_router
 from college_routes import router as college_router
 from exam_controller import router as exam_kiosk_router
 from college_log_routes import router as college_log_router
+from agent_routes import router as agent_router, init_agent
 from nudge_engine import run_nudge_engine, verify_admin_key
 import chromadb
 import httpx
@@ -36,6 +37,7 @@ app.include_router(parent_router)
 app.include_router(college_router)
 app.include_router(exam_kiosk_router)
 app.include_router(college_log_router)
+app.include_router(agent_router)
 
 supabase = create_client(
     os.getenv("SUPABASE_URL"),
@@ -43,6 +45,8 @@ supabase = create_client(
 )
 claude = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 chroma = chromadb.PersistentClient(path="./chromadb_data")
+
+init_agent(supabase, claude)
 
 
 @app.api_route("/admin/run-nudges", methods=["GET", "POST"])
