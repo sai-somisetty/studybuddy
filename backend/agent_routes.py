@@ -268,6 +268,8 @@ def search_kg(namespace: str, chapter: str, concept: str, query: str) -> dict:
 def get_or_create_session(student_id: str, mode: str, namespace: str = "",
                           concept: str = "", chapter: str = "") -> dict:
     """Get existing session or create new one."""
+    if not student_id or student_id == "anonymous":
+        return {"id": "local", "total_interactions": 0}
     if not _supabase:
         return {"id": "local", "total_interactions": 0}
 
@@ -518,7 +520,7 @@ async def agent_chat(request: Request):
 
         try:
             r = _claude.messages.create(
-                model="claude-3-5-haiku-20241022",
+                model="claude-haiku-4-5-20251001",
                 max_tokens=400,
                 system=system_prompt,
                 messages=[
