@@ -189,7 +189,10 @@ async def verify_otp(request: Request):
 # ── AUTH: Save Profile ───────────────────────────────────────────────────────
 @app.post("/auth/profile")
 async def save_profile(request: Request):
-    body = await request.json()
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"error": "Invalid request body"}, status_code=400)
     auth_id = body.get("auth_id")
     email = body.get("email", "").strip().lower()
     name = body.get("name", "").strip()
