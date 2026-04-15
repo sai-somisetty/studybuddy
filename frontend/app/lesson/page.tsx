@@ -271,7 +271,7 @@ function LessonContent() {
   if (!loading && pages.length === 0) {
     return (
       <div className="app-shell">
-        <div style={{ background: "linear-gradient(135deg, #071739 0%, #0D2248 100%)", padding: "14px 20px" }}>
+        <div style={{ background: "#071739", padding: "14px 20px" }}>
           <button onClick={() => router.back()} style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>← Back</button>
           <div style={{ fontFamily: "Georgia,serif", fontSize: 17, fontWeight: 700, color: "#fff", marginTop: 10 }}>{concept}</div>
         </div>
@@ -397,7 +397,7 @@ function LessonContent() {
       </AnimatePresence>
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      <div style={{ background: "linear-gradient(135deg, #071739 0%, #0D2248 100%)", padding: "14px 20px 10px", flexShrink: 0 }}>
+      <div style={{ background: "#071739", padding: "14px 20px 10px", flexShrink: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           {/* Left — hamburger + back */}
           <div style={{ display: "flex", gap: 8 }}>
