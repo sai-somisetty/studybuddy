@@ -438,19 +438,23 @@ ICMAI OFFICIAL TEXT:
 
 GENERATE:
 
-tenglish_v1: SHORT AND PUNCHY (2-3 sentences max)
-  Core concept only. Direct and clear.
-  Different opening hook from v2.
-  No company example needed.
+tenglish_v1: ⚡ QUICK MODE (max 150 words)
+  Student reads this in 60 seconds for fast understanding.
+  FORMAT STRICTLY AS:
+  1. **One-line definition** — crisp, no fluff
+  2. **3-5 numbered points** — each starts with **bold term** then explanation
+  3. End with > MAMA: "one-line Tenglish exam tip"
+  RULES: Every point self-contained. Bold all key terms. No paragraphs. Tenglish connecting words.
 
-tenglish_v2: REAL WORLD EXAMPLE (3-4 sentences)
-  Pick the MOST RELEVANT real Indian scenario.
-  Think freely — political events, business drama,
-  supply chain incidents, CMA employer stories,
-  local AP/TS examples, student daily life.
-  Do NOT just pick Tata or Zomato by default.
-  Pick what BEST illustrates THIS specific concept.
-  Different opening hook from v1.
+tenglish_v2: 📝 REVISE MODE (max 200 words)
+  Student reads this before exam to recall and reproduce.
+  FORMAT STRICTLY AS:
+  1. Start with **Definition:** in 1 crisp line
+  2. If concept has categories/types/stages → MANDATORY markdown table
+  3. Then 3-4 bullet points: - **Bold term** — explanation
+  4. If formula exists: > 📐 **Formula:** [formula here]
+  5. End with > MAMA: "exam tip in Tenglish"
+  RULES: Tables mandatory for categories. No storytelling. No paragraphs. Pure structured revision.
 
 tenglish_v3: output empty string ""
   (Deep dive generated separately)
