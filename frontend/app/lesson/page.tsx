@@ -112,6 +112,9 @@ function LessonContent() {
   // ── Bookmarks ──
   const [bookmarks, setBookmarks]             = useState<string[]>([]);
 
+  // Re-read localStorage "important" flag after toggle (localStorage does not trigger React)
+  const [paraImportantTick, setParaImportantTick] = useState(0);
+
   // ── Touch ──
   const [touchStartX, setTouchStartX]         = useState<number | null>(null);
   const [touchStartY, setTouchStartY]         = useState<number | null>(null);
@@ -498,16 +501,109 @@ function LessonContent() {
                       <div style={{ width: 28, height: 28, borderRadius: 8, background: "#071739", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <span style={{ fontSize: 7, fontWeight: 800, color: "#E3C39D" }}>MAMA</span>
                       </div>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#071739" }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#071739", flex: 1, minWidth: 0 }}>
                         {activeTab === "quick"    ? `Mama explains, ${studentName}...` :
                          activeTab === "example"  ? `Revise with Mama, ${studentName}...` :
                                                     `Master the depth, ${studentName}...`}
                       </span>
-                      {currentPage?.is_verified ? (
-                        <span style={{ fontSize: 8, background: "rgba(7,23,57,0.05)", color: "#071739", padding: "2px 6px", borderRadius: 20, fontWeight: 600, marginLeft: "auto" }}>✓ Verified</span>
-                      ) : (
-                        <span style={{ fontSize: 8, background: "rgba(227,195,157,0.08)", color: "#E3C39D", padding: "2px 6px", borderRadius: 20, fontWeight: 600, marginLeft: "auto" }}>AI Draft</span>
-                      )}
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: "auto", flexShrink: 0 }}>
+                        {currentPage?.is_verified ? (
+                          <span style={{ fontSize: 8, background: "rgba(7,23,57,0.05)", color: "#071739", padding: "2px 6px", borderRadius: 20, fontWeight: 600 }}>✓ Verified</span>
+                        ) : (
+                          <span style={{ fontSize: 8, background: "rgba(227,195,157,0.08)", color: "#E3C39D", padding: "2px 6px", borderRadius: 20, fontWeight: 600 }}>AI Draft</span>
+                        )}
+                        {/* ── Important + Report icons ── */}
+                        <div style={{ display: "flex", gap: 4, marginLeft: 4 }}>
+                          <motion.button
+                            whileTap={{ scale: 0.85 }}
+                            onClick={() => {
+                              const key = `imp_${currentPage?.id}_${currentParaIdx}`;
+                              const isImp = typeof window !== "undefined" && localStorage.getItem(key);
+                              if (isImp) {
+                                localStorage.removeItem(key);
+                              } else {
+                                localStorage.setItem(key, "1");
+                              }
+                              haptic();
+                              setParaImportantTick((t) => t + 1);
+                            }}
+                            style={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: 8,
+                              background:
+                                typeof window !== "undefined" &&
+                                localStorage.getItem(`imp_${currentPage?.id}_${currentParaIdx}`)
+                                  ? "rgba(227,195,157,0.15)"
+                                  : "transparent",
+                              border:
+                                typeof window !== "undefined" &&
+                                localStorage.getItem(`imp_${currentPage?.id}_${currentParaIdx}`)
+                                  ? "1.5px solid #E3C39D"
+                                  : "1.5px solid rgba(7,23,57,0.06)",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: 12,
+                              padding: 0,
+                            }}
+                          >
+                            {typeof window !== "undefined" &&
+                            localStorage.getItem(`imp_${currentPage?.id}_${currentParaIdx}`)
+                              ? "⭐"
+                              : "☆"}
+                          </motion.button>
+
+                          <motion.button
+                            whileTap={{ scale: 0.85 }}
+                            onClick={() => {
+                              const reason = window.prompt(
+                                "Somisetty, em issue kanipinchindi?\n\n" +
+                                  "1. Wrong answer/explanation\n" +
+                                  "2. Spelling/grammar error\n" +
+                                  "3. Content doesn't match textbook\n" +
+                                  "4. Other\n\n" +
+                                  "Type 1-4 or describe the issue:"
+                              );
+                              if (reason) {
+                                fetch(`${API}/report`, {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({
+                                    page_id: currentPage?.id,
+                                    para_index: currentParaIdx,
+                                    concept: concept,
+                                    namespace: namespace,
+                                    reason: reason,
+                                    student: studentName,
+                                    timestamp: new Date().toISOString(),
+                                  }),
+                                }).catch(console.error);
+                                alert("Report sent! MAMA team will fix this. Thanks 🙏");
+                                haptic();
+                              }
+                            }}
+                            style={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: 8,
+                              background: "transparent",
+                              border: "1.5px solid rgba(7,23,57,0.06)",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: 11,
+                              padding: 0,
+                              color: "#071739",
+                              opacity: 0.35,
+                            }}
+                          >
+                            🚩
+                          </motion.button>
+                        </div>
+                      </div>
                     </div>
 
                     <AnimatePresence mode="wait">
