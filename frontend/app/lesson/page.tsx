@@ -625,7 +625,7 @@ function LessonContent() {
                             {/* Mama response */}
                             <div style={{ background: isCorrect ? "#F0FDF4" : gaveUp ? "#FEF2F2" : "rgba(227,195,157,0.08)", borderRadius: 12, padding: "12px 14px", border: `1px solid ${isCorrect ? "#16a34a33" : gaveUp ? "#ef444433" : "#E3C39D33"}`, marginBottom: 10 }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                                <div style={{ width: 26, height: 26, borderRadius: 8, background: isCorrect ? "#071739" : "#E3C39D", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <div style={{ width: 26, height: 26, borderRadius: 8, background: "#071739", display: "flex", alignItems: "center", justifyContent: "center" }}>
                                   <span style={{ fontSize: 7, fontWeight: 800, color: "#E3C39D" }}>MAMA</span>
                                 </div>
                                 <span style={{ fontSize: 10, fontWeight: 700, color: isCorrect ? "#071739" : "#A68868" }}>
