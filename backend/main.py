@@ -980,6 +980,30 @@ def get_paper_questions(course: str, level: str,
     }
 
 
+# ── CONTENT REPORTS (lesson flag / prompt) ───────────────────────────────────
+
+@app.post("/report")
+async def report_error(request: Request):
+    try:
+        data = await request.json()
+    except Exception:
+        return JSONResponse({"error": "Invalid request body"}, status_code=400)
+    try:
+        supabase.table("reports").insert({
+            "page_id": data.get("page_id"),
+            "para_index": data.get("para_index"),
+            "concept": data.get("concept"),
+            "namespace": data.get("namespace"),
+            "reason": data.get("reason"),
+            "student_name": data.get("student"),
+            "status": "open",
+            "created_at": data.get("timestamp"),
+        }).execute()
+    except Exception as e:  # noqa: BLE001
+        print(f"Report save failed: {e}")
+    return {"ok": True}
+
+
 # ── BUG REPORTS ──
 
 @app.post("/bug-report")
