@@ -316,35 +316,81 @@ function LessonContent() {
               }}>
               <div style={{ padding: "0 20px 16px", borderBottom: "1px solid rgba(7,23,57,0.08)" }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#071739" }}>📍 Chapter Map</div>
-                <div style={{ fontSize: 10, color: "#A4B5C4", marginTop: 2 }}>{subject} · {chapter}</div>
+                <div style={{ fontSize: 10, color: "#4B6382", marginTop: 2 }}>{subject} · {chapter}</div>
               </div>
-              {pages.map((page, pi) =>
-                page.mama_lines.map((line, li) => {
-                  const isActive = pi === currentPageIdx && li === currentParaIdx;
-                  return (
-                    <button key={`${pi}-${li}`}
-                      onClick={() => {
-                        setCurrentPageIdx(pi);
-                        setCurrentParaIdx(li);
-                        resetParaState();
-                        setShowDrawer(false);
-                      }}
+              {pages.map((page, pi) => {
+                const isActivePage = pi === currentPageIdx;
+                const conceptName =
+                  page.mama_lines[0]?.concept_title ||
+                  page.concept ||
+                  `Concept ${pi + 1}`;
+                const paraCount = page.mama_lines.length;
+                const keyCount = page.mama_lines.filter((l) => l.is_key_concept).length;
+
+                return (
+                  <button
+                    key={page.id || `page-${pi}`}
+                    type="button"
+                    onClick={() => {
+                      setCurrentPageIdx(pi);
+                      setCurrentParaIdx(0);
+                      resetParaState();
+                      setShowDrawer(false);
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "12px 20px",
+                      textAlign: "left",
+                      background: isActivePage ? "rgba(7,23,57,0.05)" : "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      borderLeft: isActivePage ? "3px solid #071739" : "3px solid transparent",
+                      borderBottom: "1px solid rgba(7,23,57,0.04)",
+                    }}
+                  >
+                    <div
                       style={{
-                        width: "100%", padding: "10px 20px", textAlign: "left",
-                        background: isActive ? "rgba(7,23,57,0.05)" : "transparent",
-                        border: "none", cursor: "pointer",
-                        borderLeft: isActive ? "3px solid #071739" : "3px solid transparent"
-                      }}>
-                      <div style={{ fontSize: 11, fontWeight: isActive ? 700 : 500, color: isActive ? "#071739" : "#071739" }}>
-                        {line.concept_title || line.text?.slice(0, 40) || `Concept ${li + 1}`}
+                        fontSize: 13,
+                        fontWeight: isActivePage ? 700 : 500,
+                        color: "#071739",
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      {conceptName}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        color: "#4B6382",
+                        marginTop: 3,
+                        display: "flex",
+                        gap: 8,
+                      }}
+                    >
+                      <span>Page {page.book_page}</span>
+                      <span>·</span>
+                      <span>{paraCount} sections</span>
+                      {keyCount > 0 && (
+                        <span>
+                          · 🔑 {keyCount}
+                        </span>
+                      )}
+                    </div>
+                    {isActivePage && (
+                      <div
+                        style={{
+                          fontSize: 9,
+                          color: "#E3C39D",
+                          marginTop: 4,
+                          fontWeight: 600,
+                        }}
+                      >
+                        Currently on section {currentParaIdx + 1}/{paraCount}
                       </div>
-                      <div style={{ fontSize: 9, color: "#A4B5C4", marginTop: 2 }}>
-                        Page {page.book_page} · {line.is_key_concept ? "🔑 Key Concept" : "Reading"}
-                      </div>
-                    </button>
-                  );
-                })
-              )}
+                    )}
+                  </button>
+                );
+              })}
             </motion.div>
           </>
         )}
