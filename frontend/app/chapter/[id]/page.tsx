@@ -59,17 +59,17 @@ function PageJumper({show,onClose}:{show:boolean;onClose:()=>void}){
       const subKey = localStorage.getItem("somi_course") === "ca" ? "ca_f" : "cma_f";
       const res = await fetch(`${API}/jump?page=${val}&namespace_prefix=${subKey}`);
       const data = await res.json();
-      if (data.found) {
-        setFeedback("→ "+data.concept);
+      if (data.found && data.has_content) {
+        setFeedback("→ " + data.concept);
         setTimeout(() => {
           onClose();
           window.location.href = `/lesson?namespace=${encodeURIComponent(data.namespace)}&concept=${encodeURIComponent(data.concept)}&subject=&chapter=Chapter%20${data.chapter_num}&page=${data.book_page}`;
         }, 600);
       } else {
-        setFeedback("⚠️ Page not found in this paper");
+        setFeedback("📖 Page " + val + " — concept not loaded yet. Coming soon!");
       }
     } catch {
-      setFeedback("⚠️ Could not look up page");
+      setFeedback("📖 Page " + val + " — concept not loaded yet. Coming soon!");
     }
   };
 
