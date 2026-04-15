@@ -288,17 +288,14 @@ export default function MarkdownRenderer({ content, className }: Props) {
     if (line.trim().startsWith("•") || line.trim().startsWith("- ") || line.trim().startsWith("* ")) {
       elements.push(
         <div key={elements.length} style={{
-          display: "flex", gap: 12, margin: "6px 0",
-          padding: "11px 14px", background: C.white,
-          borderRadius: 10, border: `1px solid ${C.border}`,
-          alignItems: "flex-start", boxShadow: C.shadow,
+          display: "flex", gap: 12, margin: "4px 0",
+          paddingLeft: 4, alignItems: "flex-start",
         }}>
           <span style={{
-            width: 7, height: 7, borderRadius: "50%",
-            background: C.gold, opacity: 0.7, flexShrink: 0, marginTop: 7,
-            boxShadow: "0 0 4px rgba(227,195,157,0.3)",
+            width: 6, height: 6, borderRadius: "50%",
+            background: C.gold, opacity: 0.6, flexShrink: 0, marginTop: 8,
           }} />
-          <p style={{ fontSize: 14, color: C.navy, margin: 0, lineHeight: 1.65, flex: 1 }}>
+          <p style={{ fontSize: 14, color: C.navy, margin: 0, lineHeight: 1.7, flex: 1 }}>
             {renderInlineFormatting(line.trim().replace(/^[•\-*]\s*/, ""))}
           </p>
         </div>
