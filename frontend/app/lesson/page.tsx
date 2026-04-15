@@ -109,9 +109,6 @@ function LessonContent() {
   // ── Active zone (Mama / PDF) ──
   const [activeZone, setActiveZone]           = useState<"mama" | "icmai">("mama");
 
-  // ── Bookmarks ──
-  const [bookmarks, setBookmarks]             = useState<string[]>([]);
-
   // Re-read localStorage "important" flag after toggle (localStorage does not trigger React)
   const [paraImportantTick, setParaImportantTick] = useState(0);
 
@@ -234,15 +231,6 @@ function LessonContent() {
     // Auto advance after 600ms
     setTimeout(() => goNextPara(), 600);
   };
-
-  // ── Bookmark ──
-  const toggleBookmark = () => {
-    const key = `${paraKey}-${currentPara?.text?.slice(0, 30)}`;
-    setBookmarks(prev =>
-      prev.includes(key) ? prev.filter(b => b !== key) : [...prev, key]
-    );
-  };
-  const isBookmarked = bookmarks.includes(`${paraKey}-${currentPara?.text?.slice(0, 30)}`);
 
   // Collect all check questions from all pages
   const allQuestions = pages.flatMap(p =>
@@ -647,18 +635,13 @@ function LessonContent() {
                   <div style={{ display: "flex", gap: 8 }}>
                     <motion.button whileTap={{ scale: 0.97 }}
                       onClick={goNextPara}
-                      style={{ flex: 2, padding: "11px 16px", borderRadius: 10, background: "transparent", color: "#071739", border: "1.5px solid rgba(7,23,57,0.12)", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                      style={{ flex: 1, padding: "11px 16px", borderRadius: 10, background: "transparent", color: "#071739", border: "1.5px solid rgba(7,23,57,0.12)", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
                       Got it, Next →
                     </motion.button>
                     <motion.button whileTap={{ scale: 0.97 }}
                       onClick={() => { setShowMCQ(true); haptic(); }}
-                      style={{ flex: 2, padding: "11px 16px", borderRadius: 10, background: "#071739", color: "#E3C39D", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                      style={{ flex: 1, padding: "11px 16px", borderRadius: 10, background: "#071739", color: "#E3C39D", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
                       Test Me
-                    </motion.button>
-                    <motion.button whileTap={{ scale: 0.97 }}
-                      onClick={toggleBookmark}
-                      style={{ flex: "0 0 44px", padding: "9px", borderRadius: 10, background: "transparent", color: isBookmarked ? "#A68868" : "#4B6382", border: "1.5px solid rgba(7,23,57,0.08)", cursor: "pointer", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      🔖
                     </motion.button>
                   </div>
                 )}
