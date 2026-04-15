@@ -1156,6 +1156,59 @@ Return ONLY valid JSON with this structure — no preamble no markdown:
     }
 
 
+# ── TEXTBOOK PAGE → CONCEPT (jump) ───────────────────────────────────────────
+
+@app.get("/jump")
+async def jump_to_page(page: int, namespace_prefix: str = "cma_f"):
+    """Find which concept covers a given textbook page number."""
+    try:
+        result = (
+            supabase.table("lesson_content")
+            .select("id, namespace, concept, book_page")
+            .like("namespace", f"{namespace_prefix}%")
+            .eq("is_verified", True)
+            .order("book_page")
+            .execute()
+        )
+
+        if not result.data:
+            return {"found": False}
+
+        closest = None
+        for row in result.data:
+            bp = row.get("book_page")
+            if bp is None:
+                continue
+            if bp <= page:
+                closest = row
+            else:
+                break
+
+        if not closest:
+            closest = result.data[0]
+
+        ns = closest["namespace"]
+        parts = ns.split("_")
+        ch_num = "1"
+        subject_key = ns
+        for p in parts:
+            if p.startswith("ch"):
+                ch_num = p.replace("ch", "")
+                subject_key = ns.split(f"_ch{ch_num}")[0]
+                break
+
+        return {
+            "found": True,
+            "namespace": ns,
+            "concept": closest["concept"],
+            "book_page": closest["book_page"],
+            "chapter_num": ch_num,
+            "subject_key": subject_key,
+        }
+    except Exception as e:  # noqa: BLE001
+        return {"found": False, "error": str(e)}
+
+
 # ── SMART LESSON ──
 
 @app.get("/lesson/smart")
