@@ -38,6 +38,32 @@ function PageJumper({show,onClose}:{show:boolean;onClose:()=>void}){
   const [val,setVal]=useState("");
   const [feedback,setFeedback]=useState("");
   const [fbColor,setFbColor]=useState(C.gold);
+
+  const jumpToPage = async () => {
+    if (!val) return;
+    setFbColor(C.gold);
+    setFeedback("Looking up page "+val+"...");
+    try {
+      const API = process.env.NEXT_PUBLIC_API_URL || "https://studybuddy-production-7776.up.railway.app";
+      const subKey = localStorage.getItem("somi_course") === "ca" ? "ca_f" : "cma_f";
+      const res = await fetch(`${API}/jump?page=${val}&namespace_prefix=${subKey}`);
+      const data = await res.json();
+      if (data.found) {
+        setFeedback("→ "+data.concept);
+        setTimeout(() => {
+          onClose();
+          window.location.href = `/lesson?namespace=${encodeURIComponent(data.namespace)}&concept=${encodeURIComponent(data.concept)}&subject=&chapter=Chapter%20${data.chapter_num}&page=${data.book_page}`;
+        }, 600);
+      } else {
+        setFbColor(C.steel);
+        setFeedback("⚠️ Page not found in this paper");
+      }
+    } catch {
+      setFbColor(C.steel);
+      setFeedback("⚠️ Could not look up page");
+    }
+  };
+
   return(
     <AnimatePresence>
       {show&&(
@@ -56,11 +82,11 @@ function PageJumper({show,onClose}:{show:boolean;onClose:()=>void}){
             <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:16}}>
               <span style={{fontSize:14,fontWeight:600,color:C.navy,opacity:0.35,flexShrink:0}}>Page</span>
               <input value={val} onChange={e=>{setVal(e.target.value);setFeedback("")}}
-                onKeyDown={e=>{if(e.key==="Enter"){/* jump logic */}}}
+                onKeyDown={e=>{if(e.key==="Enter")jumpToPage();}}
                 type="number" inputMode="numeric" placeholder="189" autoFocus
                 style={{flex:1,height:48,borderRadius:12,border:"2px solid rgba(7,23,57,0.1)",background:"#fff",fontFamily:"'DM Serif Display',serif",fontSize:24,color:C.navy,textAlign:"center",outline:"none",WebkitAppearance:"none"}}/>
             </div>
-            <button disabled={!val} onClick={()=>{setFeedback("→ Navigating to page "+val+"...");setFbColor(C.gold);setTimeout(onClose,800)}}
+            <button disabled={!val} onClick={jumpToPage}
               style={{width:"100%",height:44,borderRadius:10,background:C.navy,color:C.gold,border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:14,fontWeight:600,opacity:val?1:0.3}}>Jump to Page</button>
             <div style={{fontSize:11,opacity:0.3,marginTop:10}}>Paper 1 · Pages 1 — 420</div>
             {feedback&&<div style={{marginTop:10,fontSize:12,color:fbColor}}>{feedback}</div>}
