@@ -1164,7 +1164,7 @@ async def jump_to_page(page: int, namespace_prefix: str = "cma_f"):
     try:
         result = (
             supabase.table("lesson_content")
-            .select("id, namespace, concept, book_page")
+            .select("id, namespace, concept, book_page, mama_lines")
             .like("namespace", f"{namespace_prefix}%")
             .eq("is_verified", True)
             .order("book_page")
@@ -1184,8 +1184,18 @@ async def jump_to_page(page: int, namespace_prefix: str = "cma_f"):
             else:
                 break
 
-        if not closest:
-            closest = result.data[0]
+        if not closest or abs(closest["book_page"] - page) > 10:
+            return {
+                "found": False,
+                "message": "Concept not loaded yet for this page",
+            }
+
+        has_content = bool(closest.get("mama_lines"))
+        if not has_content:
+            return {
+                "found": False,
+                "message": "Concept not loaded yet for this page",
+            }
 
         ns = closest["namespace"]
         parts = ns.split("_")
@@ -1204,6 +1214,7 @@ async def jump_to_page(page: int, namespace_prefix: str = "cma_f"):
             "book_page": closest["book_page"],
             "chapter_num": ch_num,
             "subject_key": subject_key,
+            "has_content": has_content,
         }
     except Exception as e:  # noqa: BLE001
         return {"found": False, "error": str(e)}
