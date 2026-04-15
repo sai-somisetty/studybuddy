@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useRef, useEffect, useCallback, Suspense } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import MamaAgent from "@/components/MamaAgent";
@@ -66,6 +66,17 @@ function haptic() {
   }
 }
 
+function isParaStarred(pageId: string | undefined, paraIdx: number): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = JSON.parse(localStorage.getItem("somi_starred") || "[]");
+    const arr = Array.isArray(raw) ? raw : [];
+    return arr.some((s: { key: string }) => s.key === `${pageId}_${paraIdx}`);
+  } catch {
+    return false;
+  }
+}
+
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 function LessonContent() {
   const router = useRouter();
@@ -109,7 +120,7 @@ function LessonContent() {
   // ── Active zone (Mama / PDF) ──
   const [activeZone, setActiveZone]           = useState<"mama" | "icmai">("mama");
 
-  // Re-read localStorage "important" flag after toggle (localStorage does not trigger React)
+  // Re-read somi_starred after toggle (localStorage does not trigger React)
   const [paraImportantTick, setParaImportantTick] = useState(0);
 
   // ── Touch ──
@@ -134,6 +145,11 @@ function LessonContent() {
   const hasExample   = true;
   const hasDeepDive  = true;
   const paraKey      = `${currentPageIdx}-${currentParaIdx}`;
+
+  const paraIsStarred = useMemo(
+    () => isParaStarred(currentPage?.id, currentParaIdx),
+    [currentPage?.id, currentParaIdx, paraImportantTick]
+  );
 
   // ── Load student prefs ──
   useEffect(() => {
@@ -551,13 +567,40 @@ function LessonContent() {
                           <motion.button
                             whileTap={{ scale: 0.85 }}
                             onClick={() => {
-                              const key = `imp_${currentPage?.id}_${currentParaIdx}`;
-                              const isImp = typeof window !== "undefined" && localStorage.getItem(key);
-                              if (isImp) {
-                                localStorage.removeItem(key);
-                              } else {
-                                localStorage.setItem(key, "1");
+                              const key = `${currentPage?.id}_${currentParaIdx}`;
+                              let stored: { key: string }[] = [];
+                              try {
+                                const raw = JSON.parse(localStorage.getItem("somi_starred") || "[]");
+                                stored = Array.isArray(raw) ? raw : [];
+                              } catch {
+                                stored = [];
                               }
+                              const exists = stored.findIndex((s) => s.key === key);
+
+                              if (exists >= 0) {
+                                stored.splice(exists, 1);
+                              } else {
+                                stored.push({
+                                  key,
+                                  pageId: currentPage?.id,
+                                  paraIdx: currentParaIdx,
+                                  namespace,
+                                  concept,
+                                  subject,
+                                  chapter,
+                                  title: currentPara?.concept_title || currentPara?.text?.slice(0, 60) || concept,
+                                  bookPage: currentPage?.book_page,
+                                  quickContent: currentPara?.tenglish || "",
+                                  reviseContent: currentPara?.tenglish_variation_2 || "",
+                                  starredAt: new Date().toISOString(),
+                                });
+                              }
+                              localStorage.setItem("somi_starred", JSON.stringify(stored));
+
+                              const impKey = `imp_${currentPage?.id}_${currentParaIdx}`;
+                              if (exists >= 0) localStorage.removeItem(impKey);
+                              else localStorage.setItem(impKey, "1");
+
                               haptic();
                               setParaImportantTick((t) => t + 1);
                             }}
@@ -565,16 +608,10 @@ function LessonContent() {
                               width: 28,
                               height: 28,
                               borderRadius: 8,
-                              background:
-                                typeof window !== "undefined" &&
-                                localStorage.getItem(`imp_${currentPage?.id}_${currentParaIdx}`)
-                                  ? "rgba(227,195,157,0.15)"
-                                  : "transparent",
-                              border:
-                                typeof window !== "undefined" &&
-                                localStorage.getItem(`imp_${currentPage?.id}_${currentParaIdx}`)
-                                  ? "1.5px solid #E3C39D"
-                                  : "1.5px solid rgba(7,23,57,0.06)",
+                              background: paraIsStarred ? "rgba(227,195,157,0.15)" : "transparent",
+                              border: paraIsStarred
+                                ? "1.5px solid #E3C39D"
+                                : "1.5px solid rgba(7,23,57,0.06)",
                               cursor: "pointer",
                               display: "flex",
                               alignItems: "center",
@@ -583,10 +620,7 @@ function LessonContent() {
                               padding: 0,
                             }}
                           >
-                            {typeof window !== "undefined" &&
-                            localStorage.getItem(`imp_${currentPage?.id}_${currentParaIdx}`)
-                              ? "⭐"
-                              : "☆"}
+                            {paraIsStarred ? "⭐" : "☆"}
                           </motion.button>
 
                           <motion.button
