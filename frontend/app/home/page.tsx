@@ -116,18 +116,18 @@ export default function Home(){
             return(
               <motion.div key={s.id} initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.4+i*0.06}}
                 whileTap={!isLocked?{scale:0.98}:{}} onClick={()=>!isLocked&&router.push(`/subject/${s.id}`)}
-                style={{position:"relative",borderRadius:14,background:"#fff",border:`1px solid ${C.navy}0A`,padding:i===0?"28px":"22px",gridColumn:i===0?"span 2":"span 1",overflow:"hidden",cursor:isLocked?"default":"pointer",filter:isLocked?"grayscale(0.3)":"none"}}>
-                <span style={{position:"absolute",top:i===0?-20:-15,right:i===0?10:-5,fontFamily:"'Playfair Display',serif",fontSize:i===0?"clamp(100px,14vw,180px)":"clamp(80px,12vw,140px)",fontWeight:900,color:C.navy,opacity:0.025,lineHeight:1,userSelect:"none",pointerEvents:"none"}}>{meta.ghost}</span>
+                style={{position:"relative",borderRadius:14,background:"#fff",border:`1px solid ${C.navy}0A`,padding:"22px",gridColumn:"span 1",overflow:"hidden",cursor:isLocked?"default":"pointer",filter:isLocked?"grayscale(0.3)":"none"}}>
+                <span style={{position:"absolute",top:-15,right:-5,fontFamily:"'Playfair Display',serif",fontSize:"clamp(80px,12vw,140px)",fontWeight:900,color:C.navy,opacity:0.025,lineHeight:1,userSelect:"none",pointerEvents:"none"}}>{meta.ghost}</span>
                 <div style={{position:"relative",zIndex:1}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:i===0?16:12}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
                     <span style={{fontSize:10,fontWeight:600,letterSpacing:"0.18em",textTransform:"uppercase" as const,color:C.navy}}>{s.code}</span>
-                    {meta.progress>0&&<OrbitalRing percent={meta.progress} size={i===0?48:40} delay={500+i*100}/>}
+                    {meta.progress>0&&<OrbitalRing percent={meta.progress} size={40} delay={500+i*100}/>}
                   </div>
-                  <h3 style={{fontFamily:"'DM Serif Display',serif",fontSize:i===0?"clamp(20px,3vw,26px)":"clamp(17px,2.5vw,20px)",fontWeight:400,color:C.navy,lineHeight:1.25,marginBottom:12,maxWidth:i===0?"70%":"85%"}}>{s.title}</h3>
+                  <h3 style={{fontFamily:"'DM Serif Display',serif",fontSize:"clamp(17px,2.5vw,20px)",fontWeight:400,color:C.navy,lineHeight:1.25,marginBottom:12,maxWidth:"85%"}}>{s.title}</h3>
                   {meta.progress>0?(
                     <>
-                      <div style={{display:"flex",gap:i===0?28:18,alignItems:"baseline",marginBottom:i===0?18:14}}>
-                        <div><span style={{fontFamily:"'DM Serif Display',serif",fontSize:i===0?28:22,color:C.navy}}>{meta.mastered}</span><span style={{fontSize:11,color:C.navy,opacity:0.75,marginLeft:4}}>/ {meta.total} mastered</span></div>
+                      <div style={{display:"flex",gap:18,alignItems:"baseline",marginBottom:14}}>
+                        <div><span style={{fontFamily:"'DM Serif Display',serif",fontSize:22,color:C.navy}}>{meta.mastered}</span><span style={{fontSize:11,color:C.navy,opacity:0.75,marginLeft:4}}>/ {meta.total} mastered</span></div>
                         <div style={{height:16,width:1,background:C.navy,opacity:0.08}}/>
                         <span style={{fontSize:12,color:C.navy,opacity:0.75}}>{meta.chapters} chapters</span>
                       </div>
