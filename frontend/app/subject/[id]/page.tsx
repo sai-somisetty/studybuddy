@@ -1,180 +1,185 @@
 "use client";
 import React, { use, useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { getSubjects } from "@/lib/syllabus";
-import { House, BookOpen, Certificate, ChartBar } from '@phosphor-icons/react';
 
-const chapterColors = [
-  { bg: "#FFF7ED", text: "#E67E22" },
-  { bg: "#E1F5EE", text: "#0E6655" },
-  { bg: "#DBEAFE", text: "#185FA5" },
-  { bg: "#FEF2F2", text: "#DC2626" },
-  { bg: "#F5F3FF", text: "#7C3AED" },
-];
+const C = { navy:"#071739",gold:"#E3C39D",goldLight:"#F0DCC4",steel:"#4B6382",silver:"#A4B5C4",sand:"#A68868",bg:"#FAFAF8" };
 
-const chapterNameMap: Record<string, Record<number, string>> = {
-  cma_f_law:   {1:"Introduction to Business Laws",2:"Indian Contracts Act 1872",3:"Sale of Goods Act 1930",4:"Negotiable Instruments Act 1881",5:"Business Communication"},
-  cma_f_acc:   {1:"Accounting Fundamentals",2:"Accounting for Special Transactions",3:"Preparation of Final Accounts",4:"Fundamentals of Cost Accounting"},
-  cma_f_maths: {1:"Arithmetic",2:"Algebra",3:"Calculus Application in Business",4:"Statistical Representation of Data",5:"Measures of Central Tendency and Dispersion",6:"Correlation and Regression",7:"Probability",8:"Index Numbers and Time Series"},
-  cma_f_eco:   {1:"Basic Concepts of Economics",2:"Forms of Market",3:"Money and Banking",4:"Economic and Business Environment",5:"Fundamentals of Management"},
-  ca_f_acc:    {1:"Introduction & Accounting Standards",2:"Journal, Ledger & Trial Balance",3:"Bank Reconciliation",4:"Depreciation AS10",5:"Bills of Exchange",6:"Final Accounts",7:"Partnership Accounts",8:"Company Accounts"},
-  ca_f_law:    {1:"Indian Contract Act",2:"Sale of Goods Act",3:"Negotiable Instruments",4:"Partnership Act",5:"LLP Act",6:"Companies Act"},
-  ca_f_maths:  {1:"Ratio & Proportion",2:"Indices & Logarithms",3:"Simple & Compound Interest",4:"Permutations & Combinations",5:"Sets & Functions",6:"Limits & Continuity",7:"Differential Calculus"},
-  ca_f_eco:    {1:"Introduction to Economics",2:"Demand & Supply",3:"Production & Cost",4:"Market Structures",5:"National Income"},
+const chapterNameMap: Record<string,Record<number,string>> = {
+  cma_f_law:{1:"Introduction to Business Laws",2:"Indian Contracts Act 1872",3:"Sale of Goods Act 1930",4:"Negotiable Instruments Act 1881",5:"Business Communication"},
+  cma_f_acc:{1:"Accounting Fundamentals",2:"Accounting for Special Transactions",3:"Preparation of Final Accounts",4:"Fundamentals of Cost Accounting"},
+  cma_f_maths:{1:"Arithmetic",2:"Algebra",3:"Calculus Application",4:"Statistical Representation",5:"Central Tendency & Dispersion",6:"Correlation & Regression",7:"Probability",8:"Index Numbers & Time Series"},
+  cma_f_eco:{1:"Basic Concepts of Economics",2:"Forms of Market",3:"Money & Banking",4:"Economic & Business Environment",5:"Fundamentals of Management"},
+  ca_f_acc:{1:"Introduction & Standards",2:"Journal, Ledger & Trial Balance",3:"Bank Reconciliation",4:"Depreciation",5:"Bills of Exchange",6:"Final Accounts",7:"Partnership",8:"Company Accounts"},
+  ca_f_law:{1:"Indian Contract Act",2:"Sale of Goods Act",3:"Negotiable Instruments",4:"Partnership Act",5:"LLP Act",6:"Companies Act"},
+  ca_f_maths:{1:"Ratio & Proportion",2:"Indices & Logarithms",3:"Interest",4:"Permutations",5:"Sets & Functions",6:"Limits",7:"Calculus"},
+  ca_f_eco:{1:"Introduction",2:"Demand & Supply",3:"Production & Cost",4:"Market Structures",5:"National Income"},
 };
 
-function BottomNav({ active }: { active: string }) {
-  const router = useRouter();
-  return (
-    <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, background:"#fff", borderTop:"0.5px solid rgba(0,0,0,0.06)", padding:"10px 20px 20px", display:"flex", justifyContent:"space-around", zIndex:100 }}>
-      {[
-        { label:"Home",     path:"/home"      },
-        { label:"Study",    path:"/subject/cma_f_law" },
-        { label:"Exams",    path:"/exams"     },
-        { label:"Progress", path:"/progress"  },
-      ].map(item => (
-        <motion.div key={item.label} whileTap={{ scale:0.9 }}
-          onClick={() => router.push(item.path)}
-          style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4, cursor:"pointer" }}>
-          {({
-            Home:     <House       size={20} weight={item.label===active?"fill":"regular"} color={item.label===active?"#0E6655":"#A89880"} />,
-            Study:    <BookOpen    size={20} weight={item.label===active?"fill":"regular"} color={item.label===active?"#0E6655":"#A89880"} />,
-            Exams:    <Certificate size={20} weight={item.label===active?"fill":"regular"} color={item.label===active?"#0E6655":"#A89880"} />,
-            Progress: <ChartBar    size={20} weight={item.label===active?"fill":"regular"} color={item.label===active?"#0E6655":"#A89880"} />,
-          } as Record<string, React.ReactNode>)[item.label]}
-          <div style={{ fontSize:10, fontWeight:item.label===active?700:400, color:item.label===active?"#0E6655":"#A89880" }}>{item.label}</div>
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
-function SubjectContent({ pageId }: { pageId: string }) {
-  const router = useRouter();
-  const [ready, setReady] = useState(false);
-  const [subject, setSubject] = useState<any>(null);
-
-  useEffect(() => {
-    const c = localStorage.getItem("somi_course")  || "cma";
-    const l = localStorage.getItem("somi_level")   || "foundation";
-    const g = parseInt(localStorage.getItem("somi_group") || "0");
-    const subjects = getSubjects(c, l, g || 1);
-
-    // Find by exact id match first, then by index
-    const found = subjects.find((s: any) => s.id === pageId)
-                || subjects.find((s: any) => s.id === pageId.replace(/-/g,"_"))
-                || subjects[parseInt(pageId) - 1]
-                || subjects[0];
-    setSubject(found);
-    setReady(true);
-  }, [pageId]);
-
-  if (!ready || !subject) return (
-    <div className="app-shell" style={{ display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <div style={{ color:"#0A2E28", fontSize:16 }}>Loading...</div>
-    </div>
-  );
-
-  const subjectKey = (subject.id || pageId).replace(/-/g, "_");
-  const chapters   = Array.from({ length: subject.chapters || 8 }, (_, i) => ({
-    number:   i + 1,
-    title:    chapterNameMap[subjectKey]?.[i+1] || `Chapter ${i+1}`,
-    progress: 0,
-  }));
-
-  return (
-    <div className="app-shell">
-      {/* Header */}
-      <div style={{ background:"linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)", padding:"18px 24px 16px" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-          <button onClick={() => router.back()}
-            style={{ background:"rgba(255,255,255,0.1)", border:"none", borderRadius:8, padding:"6px 12px", fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.7)", cursor:"pointer" }}>
-            ← Back
-          </button>
-        </div>
-        <div style={{ fontSize:22, marginBottom:4 }}>{subject.icon}</div>
-        <div style={{ fontFamily:"Georgia,serif", fontSize:18, fontWeight:700, color:"#fff", marginBottom:2 }}>{subject.title}</div>
-        <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)" }}>{subject.code} · {subject.chapters} chapters</div>
-        <div style={{ marginTop:10, height:3, background:"rgba(255,255,255,0.15)", borderRadius:2 }}>
-          <div style={{ width:"0%", height:"100%", background:"#E67E22", borderRadius:2 }} />
-        </div>
-        <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)", marginTop:4 }}>0% complete</div>
-      </div>
-
-      {/* Chapter list */}
-      <div style={{ flex:1, padding:"16px 20px 100px", display:"flex", flexDirection:"column", gap:10 }}>
-        <div style={{ fontSize:12, fontWeight:600, color:"#6B6560" }}>All Chapters</div>
-
-        {chapters.map((ch, i) => (
-          <motion.div key={ch.number}
-            initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }}
-            transition={{ delay:i*0.04 }}
-            whileTap={{ scale:0.98 }}
-            onClick={() => router.push(
-              `/chapter/${subject.id}?chapter=${ch.number}&subject=${encodeURIComponent(subject.title)}&subjectId=${subject.id}`
-            )}
-            style={{ background:"#fff", borderRadius:16, padding:"14px 16px", border:"0.5px solid rgba(0,0,0,0.06)", display:"flex", alignItems:"center", gap:14, cursor:"pointer" }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: 10,
-              background: chapterColors[i % chapterColors.length].bg,
-              display: "flex", alignItems: "center",
-              justifyContent: "center", flexShrink: 0,
-              borderLeft: `3px solid ${chapterColors[i % chapterColors.length].text}`,
-            }}>
-              <span style={{
-                fontSize: 14, fontWeight: 700,
-                color: chapterColors[i % chapterColors.length].text
-              }}>
-                {ch.number}
-              </span>
-            </div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:13, fontWeight:600, color:"#1A1208", marginBottom:2 }}>
-                Ch {ch.number} — {ch.title}
-              </div>
-              <div style={{ fontSize:11, color:"#A89880" }}>
-                {ch.progress > 0 ? `${ch.progress}% complete` : "Not started"}
-              </div>
-              {ch.progress > 0 && (
-                <div style={{ height:2, background:"#E5E0D8", borderRadius:1, marginTop:4, overflow:"hidden" }}>
-                  <div style={{ width:`${ch.progress}%`, height:"100%", background:"#0E6655", borderRadius:1 }} />
-                </div>
-              )}
-              {i === chapters.findIndex(c => c.progress < 100) && (
-                <div style={{
-                  fontSize: 9, fontWeight: 700,
-                  background: "#E67E22", color: "#fff",
-                  padding: "2px 8px", borderRadius: 20,
-                  marginTop: 4, display: "inline-block"
-                }}>
-                  Start Here →
-                </div>
-              )}
-            </div>
-            <div style={{ fontSize:12, color: i === chapters.findIndex(c => c.progress < 100) ? "#E67E22" : "#A89880" }}>→</div>
-          </motion.div>
+function BottomNav({router,active}:{router:any;active:string}){
+  return(
+    <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(250,250,248,0.92)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderTop:`1px solid ${C.navy}0A`,padding:"10px 0",paddingBottom:"max(10px,env(safe-area-inset-bottom,8px))",zIndex:100}}>
+      <div style={{maxWidth:520,margin:"0 auto",display:"flex",justifyContent:"space-around"}}>
+        {[{label:"Home",path:"/home"},{label:"Study",path:"#"},{label:"Exams",path:"/exams"},{label:"Profile",path:"/profile"}].map(item=>(
+          <motion.button key={item.label} whileTap={{scale:0.9}} onClick={()=>item.path!=="#"&&router.push(item.path)}
+            style={{background:"none",border:"none",padding:"6px 16px",display:"flex",flexDirection:"column",alignItems:"center",gap:3,cursor:"pointer",position:"relative"}}>
+            {item.label===active&&<div style={{position:"absolute",top:-10,left:"50%",transform:"translateX(-50%)",width:20,height:3,borderRadius:2,background:C.gold}}/>}
+            <span style={{fontSize:10,color:C.navy,opacity:item.label===active?1:0.3,fontWeight:item.label===active?600:400}}>{item.label}</span>
+          </motion.button>
         ))}
       </div>
+    </nav>
+  );
+}
 
-      <BottomNav active="Study" />
+// Page Jumper component
+function PageJumper({show,onClose}:{show:boolean;onClose:()=>void}){
+  const [val,setVal]=useState("");
+  const [feedback,setFeedback]=useState("");
+  const [fbColor,setFbColor]=useState(C.gold);
+  return(
+    <AnimatePresence>
+      {show&&(
+        <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
+          onClick={onClose}
+          style={{position:"fixed",inset:0,zIndex:200,background:"rgba(7,23,57,0.35)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <motion.div initial={{scale:0.9,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.9,opacity:0}}
+            onClick={e=>e.stopPropagation()}
+            style={{background:C.bg,borderRadius:20,padding:"28px 24px",width:"calc(100% - 48px)",maxWidth:320,boxShadow:"0 16px 48px rgba(7,23,57,0.2)",textAlign:"center",position:"relative"}}>
+            <button onClick={onClose} style={{position:"absolute",top:12,right:12,width:28,height:28,borderRadius:8,background:"rgba(7,23,57,0.04)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#071739" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+            <div style={{fontSize:32,marginBottom:12}}>📖</div>
+            <div style={{fontFamily:"'DM Serif Display',serif",fontSize:18,marginBottom:4}}>Go to Page</div>
+            <div style={{fontSize:12,opacity:0.4,marginBottom:20}}>Enter your ICMAI textbook page number</div>
+            <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:16}}>
+              <span style={{fontSize:14,fontWeight:600,color:C.navy,opacity:0.35,flexShrink:0}}>Page</span>
+              <input value={val} onChange={e=>{setVal(e.target.value);setFeedback("")}}
+                onKeyDown={e=>{if(e.key==="Enter"){/* jump logic */}}}
+                type="number" inputMode="numeric" placeholder="189" autoFocus
+                style={{flex:1,height:48,borderRadius:12,border:"2px solid rgba(7,23,57,0.1)",background:"#fff",fontFamily:"'DM Serif Display',serif",fontSize:24,color:C.navy,textAlign:"center",outline:"none",WebkitAppearance:"none"}}/>
+            </div>
+            <button disabled={!val} onClick={()=>{setFeedback("→ Navigating to page "+val+"...");setFbColor(C.gold);setTimeout(onClose,800)}}
+              style={{width:"100%",height:44,borderRadius:10,background:C.navy,color:C.gold,border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:14,fontWeight:600,opacity:val?1:0.3}}>Jump to Page</button>
+            <div style={{fontSize:11,opacity:0.3,marginTop:10}}>Paper 1 · Pages 1 — 420</div>
+            {feedback&&<div style={{marginTop:10,fontSize:12,color:fbColor}}>{feedback}</div>}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function SubjectContent({pageId}:{pageId:string}){
+  const router=useRouter();
+  const [subject,setSubject]=useState<any>(null);
+  const [ready,setReady]=useState(false);
+  const [showJumper,setShowJumper]=useState(false);
+
+  useEffect(()=>{
+    const c=localStorage.getItem("somi_course")||"cma";
+    const l=localStorage.getItem("somi_level")||"foundation";
+    const g=parseInt(localStorage.getItem("somi_group")||"0");
+    const subjects=getSubjects(c,l,g||1);
+    const found=subjects.find((s:any)=>s.id===pageId)||subjects.find((s:any)=>s.id===pageId.replace(/-/g,"_"))||subjects[0];
+    setSubject(found);setReady(true);
+  },[pageId]);
+
+  if(!ready||!subject) return(<div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{color:C.navy,fontSize:14}}>Loading...</span></div>);
+
+  const subjectKey=(subject.id||pageId).replace(/-/g,"_");
+  const chapters=Array.from({length:subject.chapters||5},(_,i)=>({
+    number:i+1,title:chapterNameMap[subjectKey]?.[i+1]||`Chapter ${i+1}`,
+    progress:i===0?100:i===1?40:0,concepts:[4,10,6,5,6,8,7,8][i]||5,
+  }));
+  const totalConcepts=chapters.reduce((a,c)=>a+c.concepts,0);
+  const overallProgress=Math.round(chapters.reduce((a,c)=>a+c.progress,0)/chapters.length);
+  const currentChIdx=chapters.findIndex(c=>c.progress>0&&c.progress<100);
+
+  return(
+    <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'DM Sans',sans-serif"}}>
+      <PageJumper show={showJumper} onClose={()=>setShowJumper(false)}/>
+
+      {/* NAVY HEADER */}
+      <div style={{background:C.navy,paddingTop:"max(env(safe-area-inset-top,20px),20px)",paddingBottom:0,position:"relative",overflow:"hidden"}}>
+        <span style={{position:"absolute",top:-20,right:-10,fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:"clamp(120px,20vw,200px)",color:"#fff",opacity:0.03,lineHeight:1,userSelect:"none",pointerEvents:"none"}}>01</span>
+        <div style={{maxWidth:520,margin:"0 auto",padding:"0 20px",position:"relative",zIndex:1}}>
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
+            <motion.button whileTap={{scale:0.9}} onClick={()=>router.back()}
+              style={{width:36,height:36,borderRadius:10,background:"rgba(255,255,255,0.06)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </motion.button>
+            <span style={{fontSize:11,color:C.gold,opacity:0.6,letterSpacing:"0.12em",fontWeight:600}}>{subject.code} · CMA FOUNDATION</span>
+          </motion.div>
+          <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:0.08}}
+            style={{display:"flex",alignItems:"flex-start",gap:16,paddingBottom:24}}>
+            <div style={{flex:1}}>
+              <h1 style={{fontFamily:"'DM Serif Display',serif",fontSize:"clamp(22px,5vw,28px)",fontWeight:400,color:"#fff",lineHeight:1.2,marginBottom:8}}>{subject.title}</h1>
+              <div style={{fontSize:12,color:C.silver,opacity:0.6}}>{chapters.length} chapters · {totalConcepts} concepts</div>
+            </div>
+            <div style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+              <svg width="56" height="56" style={{transform:"rotate(-90deg)"}}><circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3"/><circle cx="28" cy="28" r="24" fill="none" stroke={C.gold} strokeWidth="3" strokeDasharray="150.8" strokeDashoffset={150.8-(150.8*overallProgress/100)} strokeLinecap="round" style={{transition:"stroke-dashoffset 1s ease"}}/></svg>
+              <span style={{fontSize:11,color:C.gold,opacity:0.6}}>{overallProgress}%</span>
+            </div>
+          </motion.div>
+        </div>
+        <div style={{maxWidth:520,margin:"0 auto",padding:"0 20px"}}>
+          <div style={{height:3,background:"rgba(255,255,255,0.06)",borderRadius:2,overflow:"hidden",marginBottom:12}}>
+            <div style={{width:`${overallProgress}%`,height:"100%",background:C.gold,borderRadius:2}}/>
+          </div>
+        </div>
+        {/* Page jump button */}
+        <div style={{maxWidth:520,margin:"0 auto",padding:"0 20px 16px"}}>
+          <button onClick={()=>setShowJumper(true)} style={{background:"rgba(255,255,255,0.06)",border:"none",borderRadius:8,padding:"7px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
+            <span style={{fontSize:11,color:C.gold,opacity:0.5}}>📖 Jump to textbook page →</span>
+          </button>
+        </div>
+      </div>
+
+      {/* CONTENT */}
+      <div style={{maxWidth:520,margin:"0 auto",padding:"20px 20px 100px"}}>
+        <motion.div initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:0.16}}
+          style={{display:"flex",borderRadius:12,border:`1px solid ${C.navy}0D`,overflow:"hidden",marginBottom:24}}>
+          {[{v:String(chapters.filter(c=>c.progress===100).length),l:"Complete"},{v:String(chapters.filter(c=>c.progress>0&&c.progress<100).length),l:"In Progress"},{v:String(chapters.filter(c=>c.progress===0).length),l:"Not Started"}].map((s,i)=>(
+            <div key={i} style={{flex:1,padding:"14px 0",textAlign:"center",borderRight:i<2?`1px solid ${C.navy}0A`:"none"}}>
+              <div style={{fontFamily:"'DM Serif Display',serif",fontSize:20,color:C.navy,lineHeight:1}}>{s.v}</div>
+              <div style={{fontSize:10,color:C.navy,opacity:0.35,marginTop:3,letterSpacing:"0.08em",textTransform:"uppercase" as const}}>{s.l}</div>
+            </div>
+          ))}
+        </motion.div>
+
+        <div style={{fontSize:11,fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase" as const,color:C.navy,opacity:0.4,marginBottom:14}}>Chapters</div>
+
+        {chapters.map((ch,i)=>{
+          const isCurrent=i===currentChIdx;
+          const isDone=ch.progress===100;
+          const isLocked=ch.progress===0&&i>0&&chapters[i-1].progress<100;
+          return(
+            <motion.div key={ch.number} initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:0.24+i*0.04}}
+              whileTap={!isLocked?{scale:0.98}:{}}
+              onClick={()=>!isLocked&&router.push(`/chapter/${subject.id}?chapter=${ch.number}&subject=${encodeURIComponent(subject.title)}&subjectId=${subject.id}`)}
+              style={{display:"flex",gap:16,alignItems:"flex-start",padding:18,background:"#fff",borderRadius:14,border:isCurrent?`1.5px solid ${C.gold}`:`1px solid ${C.navy}0A`,boxShadow:isCurrent?`0 0 16px ${C.gold}1A`:"none",marginBottom:12,cursor:isLocked?"default":"pointer",opacity:isLocked?0.4:1}}>
+              <span style={{fontFamily:"'DM Serif Display',serif",fontSize:28,color:isCurrent?C.gold:C.navy,opacity:isCurrent?0.5:0.12,lineHeight:1,minWidth:32,paddingTop:2}}>{ch.number}</span>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:14,fontWeight:600,lineHeight:1.35,color:C.navy,marginBottom:4}}>{ch.title}</div>
+                <div style={{fontSize:12,color:C.navy,opacity:0.4,marginBottom:10}}>{ch.concepts} concepts</div>
+                {ch.progress>0&&(<><div style={{height:3,background:`${C.navy}0D`,borderRadius:2,overflow:"hidden",marginBottom:4}}><div style={{width:`${ch.progress}%`,height:"100%",background:C.gold,borderRadius:2}}/></div><div style={{fontSize:11,color:C.navy,opacity:0.35,fontWeight:500}}>{isDone?"100% complete":`${Math.round(ch.progress*ch.concepts/100)} of ${ch.concepts} done`}</div></>)}
+                {isDone&&<span style={{display:"inline-block",fontSize:10,fontWeight:600,padding:"3px 10px",borderRadius:20,background:`${C.navy}0A`,color:C.navy,opacity:0.5,marginTop:8}}>✓ Complete</span>}
+                {isCurrent&&<span style={{display:"inline-block",fontSize:10,fontWeight:600,padding:"3px 10px",borderRadius:20,background:C.gold,color:C.navy,marginTop:8}}>Continue →</span>}
+                {isLocked&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:10,fontWeight:600,padding:"3px 10px",borderRadius:20,background:`${C.navy}06`,color:C.navy,opacity:0.5,marginTop:8}}>Complete Ch {i} first</span>}
+              </div>
+              <span style={{fontSize:14,color:isCurrent?C.gold:C.navy,opacity:isCurrent?0.5:0.15,alignSelf:"center"}}>›</span>
+            </motion.div>
+          );
+        })}
+      </div>
+      <BottomNav router={router} active="Study"/>
     </div>
   );
 }
 
-export default function SubjectPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
-  return (
-    <Suspense fallback={
-      <div className="app-shell" style={{ display:"flex", alignItems:"center", justifyContent:"center" }}>
-        <div style={{ color:"#0A2E28", fontSize:16 }}>Loading...</div>
-      </div>
-    }>
-      <SubjectContent key={id} pageId={id} />
-    </Suspense>
-  );
+export default function SubjectPage({params}:{params:Promise<{id:string}>}){
+  const {id}=use(params);
+  return(<Suspense fallback={<div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{color:C.navy}}>Loading...</span></div>}><SubjectContent key={id} pageId={id}/></Suspense>);
 }

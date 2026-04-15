@@ -11,7 +11,7 @@ const API = process.env.NEXT_PUBLIC_API_URL || "https://studybuddy-production-77
 const PDFViewer = dynamic(() => import('./PDFViewer'), {
   ssr: false,
   loading: () => (
-    <div style={{ display: "flex", justifyContent: "center", padding: 40, color: "#0A2E28" }}>
+    <div style={{ display: "flex", justifyContent: "center", padding: 40, color: "#071739" }}>
       Loading PDF...
     </div>
   )
@@ -258,7 +258,7 @@ function LessonContent() {
       <div className="app-shell" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ textAlign: "center", padding: 24 }}>
           <div style={{ fontSize: 40, marginBottom: 16 }}>📖</div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#0A2E28", marginBottom: 8 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#071739", marginBottom: 8 }}>
             Mama is preparing your lesson...
           </div>
           <div style={{ display: "flex", justifyContent: "center", gap: 6 }}>
@@ -266,7 +266,7 @@ function LessonContent() {
               <motion.div key={i}
                 animate={{ y: [0, -6, 0] }}
                 transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.15 }}
-                style={{ width: 8, height: 8, borderRadius: "50%", background: "#0A2E28" }} />
+                style={{ width: 8, height: 8, borderRadius: "50%", background: "#071739" }} />
             ))}
           </div>
         </div>
@@ -280,20 +280,20 @@ function LessonContent() {
   if (!loading && pages.length === 0) {
     return (
       <div className="app-shell">
-        <div style={{ background: "linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)", padding: "14px 20px" }}>
+        <div style={{ background: "linear-gradient(135deg, #071739 0%, #0D2248 100%)", padding: "14px 20px" }}>
           <button onClick={() => router.back()} style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>← Back</button>
           <div style={{ fontFamily: "Georgia,serif", fontSize: 17, fontWeight: 700, color: "#fff", marginTop: 10 }}>{concept}</div>
         </div>
         <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🙏</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#0A2E28", marginBottom: 8 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#071739", marginBottom: 8 }}>
               Mama inkaa prepare chestundi {studentName}!
             </div>
-            <div style={{ fontSize: 12, color: "#A89880", lineHeight: 1.6 }}>
+            <div style={{ fontSize: 12, color: "#A4B5C4", lineHeight: 1.6 }}>
               This chapter's content is being verified.<br />Check back soon!
             </div>
-            <button onClick={() => router.back()} style={{ marginTop: 20, padding: "10px 24px", borderRadius: 20, background: "#0A2E28", color: "#fff", border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            <button onClick={() => router.back()} style={{ marginTop: 20, padding: "10px 24px", borderRadius: 20, background: "#071739", color: "#fff", border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
               ← Go Back
             </button>
           </div>
@@ -323,9 +323,9 @@ function LessonContent() {
                 position: "fixed", top: 0, left: 0, bottom: 0, width: "80%", maxWidth: 300,
                 background: "#fff", zIndex: 101, overflowY: "auto", padding: "20px 0"
               }}>
-              <div style={{ padding: "0 20px 16px", borderBottom: "1px solid #E5E0D8" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#0A2E28" }}>📍 Chapter Map</div>
-                <div style={{ fontSize: 10, color: "#A89880", marginTop: 2 }}>{subject} · {chapter}</div>
+              <div style={{ padding: "0 20px 16px", borderBottom: "1px solid rgba(7,23,57,0.08)" }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#071739" }}>📍 Chapter Map</div>
+                <div style={{ fontSize: 10, color: "#A4B5C4", marginTop: 2 }}>{subject} · {chapter}</div>
               </div>
               {pages.map((page, pi) =>
                 page.mama_lines.map((line, li) => {
@@ -340,14 +340,14 @@ function LessonContent() {
                       }}
                       style={{
                         width: "100%", padding: "10px 20px", textAlign: "left",
-                        background: isActive ? "#E1F5EE" : "transparent",
+                        background: isActive ? "rgba(7,23,57,0.05)" : "transparent",
                         border: "none", cursor: "pointer",
-                        borderLeft: isActive ? "3px solid #0A2E28" : "3px solid transparent"
+                        borderLeft: isActive ? "3px solid #071739" : "3px solid transparent"
                       }}>
-                      <div style={{ fontSize: 11, fontWeight: isActive ? 700 : 500, color: isActive ? "#0A2E28" : "#1A1208" }}>
+                      <div style={{ fontSize: 11, fontWeight: isActive ? 700 : 500, color: isActive ? "#071739" : "#071739" }}>
                         {line.concept_title || line.text?.slice(0, 40) || `Concept ${li + 1}`}
                       </div>
-                      <div style={{ fontSize: 9, color: "#A89880", marginTop: 2 }}>
+                      <div style={{ fontSize: 9, color: "#A4B5C4", marginTop: 2 }}>
                         Page {page.book_page} · {line.is_key_concept ? "🔑 Key Concept" : "Reading"}
                       </div>
                     </button>
@@ -360,7 +360,7 @@ function LessonContent() {
       </AnimatePresence>
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      <div style={{ background: "linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)", padding: "14px 20px 10px", flexShrink: 0 }}>
+      <div style={{ background: "linear-gradient(135deg, #071739 0%, #0D2248 100%)", padding: "14px 20px 10px", flexShrink: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           {/* Left — hamburger + back */}
           <div style={{ display: "flex", gap: 8 }}>
@@ -387,7 +387,7 @@ function LessonContent() {
         <div style={{ height: 3, background: "rgba(255,255,255,0.15)", borderRadius: 2, overflow: "hidden", marginBottom: 6 }}>
           <motion.div
             animate={{ width: `${paragraphs.length > 0 ? ((currentParaIdx + 1) / paragraphs.length) * 100 : 0}%` }}
-            style={{ height: "100%", background: "#E67E22", borderRadius: 2 }} />
+            style={{ height: "100%", background: "#E3C39D", borderRadius: 2 }} />
         </div>
 
         {/* Title + progress label */}
@@ -433,8 +433,8 @@ function LessonContent() {
                 {/* ── BLOCK 1: ICMAI Sticky Accordion ── */}
                 <motion.div
                   style={{
-                    background: "#E1F5EE", borderRadius: 16,
-                    border: "1px solid rgba(14,102,85,0.15)", overflow: "hidden"
+                    background: "rgba(7,23,57,0.05)", borderRadius: 16,
+                    border: "1px solid rgba(7,23,57,0.08)", overflow: "hidden"
                   }}>
                   <button
                     onClick={() => setIcmaiExpanded(e => !e)}
@@ -444,16 +444,16 @@ function LessonContent() {
                       alignItems: "center", justifyContent: "space-between", gap: 8
                     }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: 9, fontWeight: 700, color: "#0E6655", flexShrink: 0 }}>📖 ICMAI</span>
+                      <span style={{ fontSize: 9, fontWeight: 700, color: "#071739", flexShrink: 0 }}>📖 ICMAI</span>
                       <span style={{
-                        fontSize: 11, color: "#085041", fontFamily: "Georgia,serif",
+                        fontSize: 11, color: "#071739", fontFamily: "Georgia,serif",
                         fontStyle: "italic", overflow: "hidden", textOverflow: "ellipsis",
                         whiteSpace: icmaiExpanded ? "normal" : "nowrap", flex: 1
                       }}>
                         {currentPara?.text}
                       </span>
                     </div>
-                    <span style={{ fontSize: 12, color: "#0E6655", flexShrink: 0, transform: icmaiExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
+                    <span style={{ fontSize: 12, color: "#071739", flexShrink: 0, transform: icmaiExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
                       ▾
                     </span>
                   </button>
@@ -462,7 +462,7 @@ function LessonContent() {
                       <motion.div
                         initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }}
                         style={{ overflow: "hidden" }}>
-                        <div style={{ padding: "0 16px 14px", fontSize: 13, color: "#085041", lineHeight: 1.8, fontFamily: "Georgia,serif", fontStyle: "italic" }}>
+                        <div style={{ padding: "0 16px 14px", fontSize: 13, color: "#071739", lineHeight: 1.8, fontFamily: "Georgia,serif", fontStyle: "italic" }}>
                           {currentPara?.text}
                         </div>
                       </motion.div>
@@ -483,8 +483,8 @@ function LessonContent() {
                         onClick={() => setActiveTab(tab.id as ExplanationTab)}
                         style={{
                           flex: 1, padding: "10px 4px", fontSize: 10, fontWeight: activeTab === tab.id ? 700 : 500,
-                          background: activeTab === tab.id ? "#0A2E28" : "transparent",
-                          color: activeTab === tab.id ? "#fff" : tab.available ? "#6B6560" : "#C8C4BE",
+                          background: activeTab === tab.id ? "#071739" : "transparent",
+                          color: activeTab === tab.id ? "#fff" : tab.available ? "#4B6382" : "#A4B5C4",
                           border: "none", cursor: tab.available ? "pointer" : "default"
                         }}>
                         {tab.label}
@@ -495,18 +495,18 @@ function LessonContent() {
                   {/* Tab content */}
                   <div style={{ padding: 16 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <div style={{ width: 28, height: 28, borderRadius: 8, background: "#0A2E28", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <span style={{ fontSize: 7, fontWeight: 800, color: "#fff" }}>MAMA</span>
+                      <div style={{ width: 28, height: 28, borderRadius: 8, background: "#071739", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <span style={{ fontSize: 7, fontWeight: 800, color: "#E3C39D" }}>MAMA</span>
                       </div>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#0A2E28" }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#071739" }}>
                         {activeTab === "quick"    ? `Mama explains, ${studentName}...` :
                          activeTab === "example"  ? `Revise with Mama, ${studentName}...` :
                                                     `Master the depth, ${studentName}...`}
                       </span>
                       {currentPage?.is_verified ? (
-                        <span style={{ fontSize: 8, background: "#E1F5EE", color: "#0E6655", padding: "2px 6px", borderRadius: 20, fontWeight: 600, marginLeft: "auto" }}>✓ Verified</span>
+                        <span style={{ fontSize: 8, background: "rgba(7,23,57,0.05)", color: "#071739", padding: "2px 6px", borderRadius: 20, fontWeight: 600, marginLeft: "auto" }}>✓ Verified</span>
                       ) : (
-                        <span style={{ fontSize: 8, background: "#FFF7ED", color: "#E67E22", padding: "2px 6px", borderRadius: 20, fontWeight: 600, marginLeft: "auto" }}>AI Draft</span>
+                        <span style={{ fontSize: 8, background: "rgba(227,195,157,0.08)", color: "#E3C39D", padding: "2px 6px", borderRadius: 20, fontWeight: 600, marginLeft: "auto" }}>AI Draft</span>
                       )}
                     </div>
 
@@ -524,12 +524,12 @@ function LessonContent() {
                           }
                         />
                         {activeTab === "deepdive" && !hasDeepDive && (
-                          <div style={{ fontSize: 12, color: "#A89880", fontStyle: "italic" }}>
+                          <div style={{ fontSize: 12, color: "#A4B5C4", fontStyle: "italic" }}>
                             Master tab inkaa generate kaaledhu. Quick tab chuddu!
                           </div>
                         )}
                         {activeTab === "example" && !hasExample && (
-                          <div style={{ fontSize: 12, color: "#A89880", fontStyle: "italic" }}>
+                          <div style={{ fontSize: 12, color: "#A4B5C4", fontStyle: "italic" }}>
                             Revise tab inkaa ready kaaledhu.
                           </div>
                         )}
@@ -538,9 +538,9 @@ function LessonContent() {
 
                     {/* Mama's Exam Tip — Master tab */}
                     {activeTab === "deepdive" && currentPara?.mamas_tip && (
-                      <div style={{ marginTop: 12, padding: "10px 12px", background: "#FFF7ED", borderRadius: 10, border: "1px solid rgba(230,126,34,0.2)" }}>
-                        <div style={{ fontSize: 9, fontWeight: 700, color: "#E67E22", marginBottom: 4 }}>💡 MAMA'S EXAM TIP</div>
-                        <div style={{ fontSize: 12, color: "#1A1208", lineHeight: 1.6 }}>{currentPara.mamas_tip}</div>
+                      <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(227,195,157,0.08)", borderRadius: 10, border: "1px solid rgba(227,195,157,0.15)" }}>
+                        <div style={{ fontSize: 9, fontWeight: 700, color: "#E3C39D", marginBottom: 4 }}>💡 MAMA'S EXAM TIP</div>
+                        <div style={{ fontSize: 12, color: "#071739", lineHeight: 1.6 }}>{currentPara.mamas_tip}</div>
                       </div>
                     )}
                   </div>
@@ -551,17 +551,17 @@ function LessonContent() {
                   <div style={{ display: "flex", gap: 8 }}>
                     <motion.button whileTap={{ scale: 0.97 }}
                       onClick={goNextPara}
-                      style={{ flex: 2, padding: "9px 14px", borderRadius: 10, background: "#E1F5EE", color: "#085041", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
+                      style={{ flex: 2, padding: "9px 14px", borderRadius: 10, background: "rgba(7,23,57,0.05)", color: "#071739", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
                       ✅ Got it, Next
                     </motion.button>
                     <motion.button whileTap={{ scale: 0.97 }}
                       onClick={() => { setShowMCQ(true); haptic(); }}
-                      style={{ flex: 2, padding: "9px 14px", borderRadius: 10, background: "#FFF0E0", color: "#9a4e00", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
+                      style={{ flex: 2, padding: "9px 14px", borderRadius: 10, background: "rgba(227,195,157,0.1)", color: "#A68868", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
                       🎯 Test Me
                     </motion.button>
                     <motion.button whileTap={{ scale: 0.97 }}
                       onClick={toggleBookmark}
-                      style={{ flex: 1, padding: "9px", borderRadius: 10, background: isBookmarked ? "#FEF9C3" : "#F5F0E8", color: isBookmarked ? "#92400E" : "#6B6560", border: "none", cursor: "pointer", fontSize: 14 }}>
+                      style={{ flex: 1, padding: "9px", borderRadius: 10, background: isBookmarked ? "rgba(227,195,157,0.15)" : "rgba(7,23,57,0.04)", color: isBookmarked ? "#A68868" : "#4B6382", border: "none", cursor: "pointer", fontSize: 14 }}>
                       {isBookmarked ? "🔖" : "📌"}
                     </motion.button>
                   </div>
@@ -572,12 +572,12 @@ function LessonContent() {
                   {showMCQ && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                      style={{ background: "#fff", borderRadius: 16, padding: 16, border: "1.5px solid rgba(10,46,40,0.1)" }}>
+                      style={{ background: "#fff", borderRadius: 16, padding: 16, border: "1.5px solid rgba(7,23,57,0.06)" }}>
 
                       <div style={{ fontSize: 10, fontWeight: 700, color: "#185FA5", letterSpacing: "0.08em", marginBottom: 10 }}>
                         🎯 QUICK CHECK — {studentName.toUpperCase()}!
                       </div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1208", lineHeight: 1.6, marginBottom: 14 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "#071739", lineHeight: 1.6, marginBottom: 14 }}>
                         {currentPara?.check_question}
                       </div>
 
@@ -585,8 +585,8 @@ function LessonContent() {
                         const isAnswered   = selectedAnswer !== null;
                         const isThisRight  = idx === currentPara.check_answer;
                         const isSelected   = selectedAnswer === idx;
-                        let bg = "#FAFAF8", border = "1px solid #E5E0D8", color = "#1A1208";
-                        if (isAnswered && isThisRight)              { bg = "#F0FDF4"; border = "1.5px solid #16a34a"; color = "#14532d"; }
+                        let bg = "#FAFAF8", border = "1px solid rgba(7,23,57,0.08)", color = "#071739";
+                        if (isAnswered && isThisRight)              { bg = "#F0FDF4"; border = "1.5px solid #16a34a"; color = "#071739"; }
                         else if (isAnswered && isSelected && !isThisRight) { bg = "#FEF2F2"; border = "1.5px solid #ef4444"; color = "#991b1b"; }
                         return (
                           <motion.button key={idx}
@@ -617,22 +617,22 @@ function LessonContent() {
                         {selectedAnswer !== null && (
                           <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
                             {/* Explanation */}
-                            <div style={{ background: "#F5F0E8", borderRadius: 10, padding: "10px 14px", marginTop: 8, marginBottom: 10 }}>
-                              <div style={{ fontSize: 9, fontWeight: 700, color: "#6B6560", letterSpacing: "0.06em", marginBottom: 4 }}>EXPLANATION</div>
-                              <div style={{ fontSize: 12, color: "#1A1208", lineHeight: 1.6 }}>{currentPara?.check_explanation}</div>
+                            <div style={{ background: "rgba(7,23,57,0.04)", borderRadius: 10, padding: "10px 14px", marginTop: 8, marginBottom: 10 }}>
+                              <div style={{ fontSize: 9, fontWeight: 700, color: "#4B6382", letterSpacing: "0.06em", marginBottom: 4 }}>EXPLANATION</div>
+                              <div style={{ fontSize: 12, color: "#071739", lineHeight: 1.6 }}>{currentPara?.check_explanation}</div>
                             </div>
 
                             {/* Mama response */}
-                            <div style={{ background: isCorrect ? "#F0FDF4" : gaveUp ? "#FEF2F2" : "#FFF7ED", borderRadius: 12, padding: "12px 14px", border: `1px solid ${isCorrect ? "#16a34a33" : gaveUp ? "#ef444433" : "#E67E2233"}`, marginBottom: 10 }}>
+                            <div style={{ background: isCorrect ? "#F0FDF4" : gaveUp ? "#FEF2F2" : "rgba(227,195,157,0.08)", borderRadius: 12, padding: "12px 14px", border: `1px solid ${isCorrect ? "#16a34a33" : gaveUp ? "#ef444433" : "#E3C39D33"}`, marginBottom: 10 }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                                <div style={{ width: 22, height: 22, borderRadius: 6, background: isCorrect ? "#0A2E28" : "#E67E22", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                  <span style={{ fontSize: 5, fontWeight: 800, color: "#fff" }}>MAMA</span>
+                                <div style={{ width: 22, height: 22, borderRadius: 6, background: isCorrect ? "#071739" : "#E3C39D", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                  <span style={{ fontSize: 5, fontWeight: 800, color: "#E3C39D" }}>MAMA</span>
                                 </div>
-                                <span style={{ fontSize: 10, fontWeight: 700, color: isCorrect ? "#0A2E28" : "#9a3412" }}>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: isCorrect ? "#071739" : "#A68868" }}>
                                   {isCorrect ? `🎉 Correct ${studentName}!` : gaveUp ? "Parledu! Next time pakka!" : `Try again ${studentName}!`}
                                 </span>
                               </div>
-                              <div style={{ fontSize: 12, lineHeight: 1.6, color: "#1A1208" }}>
+                              <div style={{ fontSize: 12, lineHeight: 1.6, color: "#071739" }}>
                                 {isCorrect ? currentPara?.mama_response_correct : gaveUp ? `Parledu ${studentName} — next time pakka chestav! 💪` : currentPara?.mama_response_wrong}
                               </div>
                             </div>
@@ -641,8 +641,8 @@ function LessonContent() {
                             <AnimatePresence>
                               {showFailureReason && !isCorrect && (
                                 <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                                  style={{ background: "#fff", borderRadius: 12, padding: "12px 14px", border: "1px solid #E5E0D8", marginBottom: 10 }}>
-                                  <div style={{ fontSize: 10, fontWeight: 700, color: "#6B6560", marginBottom: 10 }}>
+                                  style={{ background: "#fff", borderRadius: 12, padding: "12px 14px", border: "1px solid rgba(7,23,57,0.08)", marginBottom: 10 }}>
+                                  <div style={{ fontSize: 10, fontWeight: 700, color: "#4B6382", marginBottom: 10 }}>
                                     {studentName}, enduku wrong ayyindi?
                                   </div>
                                   {[
@@ -658,9 +658,9 @@ function LessonContent() {
                                       style={{
                                         display: "block", width: "100%", padding: "8px 12px",
                                         marginBottom: 6, borderRadius: 10, textAlign: "left",
-                                        background: failureReason === r.id ? "#E1F5EE" : "#FAFAF8",
-                                        border: failureReason === r.id ? "1.5px solid #0E6655" : "1px solid #E5E0D8",
-                                        cursor: "pointer", fontSize: 12, color: "#1A1208"
+                                        background: failureReason === r.id ? "rgba(7,23,57,0.05)" : "#FAFAF8",
+                                        border: failureReason === r.id ? "1.5px solid #071739" : "1px solid rgba(7,23,57,0.08)",
+                                        cursor: "pointer", fontSize: 12, color: "#071739"
                                       }}>
                                       {r.emoji} {r.label}
                                     </button>
@@ -668,7 +668,7 @@ function LessonContent() {
                                   {failureReason && (
                                     <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                                       onClick={goNextPara}
-                                      style={{ width: "100%", marginTop: 6, padding: "10px", borderRadius: 10, background: "#0A2E28", color: "#fff", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
+                                      style={{ width: "100%", marginTop: 6, padding: "10px", borderRadius: 10, background: "#071739", color: "#fff", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
                                       Next Concept →
                                     </motion.button>
                                   )}
@@ -680,19 +680,19 @@ function LessonContent() {
                             <AnimatePresence>
                               {showConfidence && isCorrect && (
                                 <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                                  style={{ background: "#fff", borderRadius: 12, padding: "12px 14px", border: "1px solid #E5E0D8", marginBottom: 10 }}>
-                                  <div style={{ fontSize: 11, fontWeight: 700, color: "#0A2E28", marginBottom: 10 }}>
+                                  style={{ background: "#fff", borderRadius: 12, padding: "12px 14px", border: "1px solid rgba(7,23,57,0.08)", marginBottom: 10 }}>
+                                  <div style={{ fontSize: 11, fontWeight: 700, color: "#071739", marginBottom: 10 }}>
                                     {studentName}, idi ela feel ayyindi?
                                   </div>
                                   <div style={{ display: "flex", gap: 8 }}>
                                     {[
                                       { id: "low",    label: "😅 Not sure",   bg: "#FEF2F2", color: "#991b1b" },
-                                      { id: "medium", label: "🙂 Okay okay",  bg: "#FFF7ED", color: "#92400E" },
-                                      { id: "high",   label: "💪 Crystal!",   bg: "#F0FDF4", color: "#14532d" },
+                                      { id: "medium", label: "🙂 Okay okay",  bg: "rgba(227,195,157,0.08)", color: "#A68868" },
+                                      { id: "high",   label: "💪 Crystal!",   bg: "#F0FDF4", color: "#071739" },
                                     ].map(c => (
                                       <button key={c.id}
                                         onClick={() => handleConfidence(c.id as ConfidenceLevel)}
-                                        style={{ flex: 1, padding: "10px 6px", borderRadius: 10, background: confidence === c.id ? c.bg : "#FAFAF8", border: confidence === c.id ? `1.5px solid ${c.color}` : "1px solid #E5E0D8", cursor: "pointer", fontSize: 11, fontWeight: 600, color: c.color }}>
+                                        style={{ flex: 1, padding: "10px 6px", borderRadius: 10, background: confidence === c.id ? c.bg : "#FAFAF8", border: confidence === c.id ? `1.5px solid ${c.color}` : "1px solid rgba(7,23,57,0.08)", cursor: "pointer", fontSize: 11, fontWeight: 600, color: c.color }}>
                                         {c.label}
                                       </button>
                                     ))}
@@ -705,7 +705,7 @@ function LessonContent() {
                             {isCorrect && !showConfidence && (
                               <motion.button whileTap={{ scale: 0.97 }}
                                 onClick={goNextPara}
-                                style={{ width: "100%", padding: "12px", borderRadius: 12, background: "#0A2E28", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+                                style={{ width: "100%", padding: "12px", borderRadius: 12, background: "#071739", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
                                 Next Concept →
                               </motion.button>
                             )}
@@ -713,7 +713,7 @@ function LessonContent() {
                             {gaveUp && !showFailureReason && (
                               <motion.button whileTap={{ scale: 0.97 }}
                                 onClick={goNextPara}
-                                style={{ width: "100%", padding: "12px", borderRadius: 12, background: "#0A2E28", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+                                style={{ width: "100%", padding: "12px", borderRadius: 12, background: "#071739", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
                                 Next Concept →
                               </motion.button>
                             )}
@@ -743,12 +743,12 @@ function LessonContent() {
                         <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
                           <motion.button whileTap={{ scale: 0.97 }}
                             onClick={() => { setShowTestYourself(true); setTestIdx(0); }}
-                            style={{ width: "100%", padding: "12px", borderRadius: 12, background: "#0A2E28", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                            style={{ width: "100%", padding: "12px", borderRadius: 12, background: "#071739", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
                             📝 Test Yourself ({allQuestions.length} questions)
                           </motion.button>
                           <motion.button whileTap={{ scale: 0.97 }}
                             onClick={() => router.back()}
-                            style={{ width: "100%", padding: "12px", borderRadius: 12, background: "#F5F0E8", color: "#6B6560", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                            style={{ width: "100%", padding: "12px", borderRadius: 12, background: "rgba(7,23,57,0.04)", color: "#4B6382", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
                             → Back to Chapters
                           </motion.button>
                         </div>
@@ -757,21 +757,21 @@ function LessonContent() {
 
                     {showTestYourself && !testComplete && allQuestions[testIdx] && (
                       <div style={{ padding: 16 }}>
-                        <div style={{ fontSize: 10, fontWeight: 700, color: "#A89880", marginBottom: 4 }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: "#A4B5C4", marginBottom: 4 }}>
                           Question {testIdx + 1} of {allQuestions.length}
                         </div>
-                        <div style={{ height: 3, background: "#E5E0D8", borderRadius: 2, marginBottom: 14 }}>
-                          <div style={{ width: `${((testIdx + 1) / allQuestions.length) * 100}%`, height: "100%", background: "#0A2E28", borderRadius: 2, transition: "width 0.3s" }} />
+                        <div style={{ height: 3, background: "rgba(7,23,57,0.08)", borderRadius: 2, marginBottom: 14 }}>
+                          <div style={{ width: `${((testIdx + 1) / allQuestions.length) * 100}%`, height: "100%", background: "#071739", borderRadius: 2, transition: "width 0.3s" }} />
                         </div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1208", lineHeight: 1.6, marginBottom: 14 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "#071739", lineHeight: 1.6, marginBottom: 14 }}>
                           {allQuestions[testIdx].check_question}
                         </div>
                         {allQuestions[testIdx].check_options?.map((opt: string, idx: number) => {
                           const answered = testAnswers[testIdx] !== undefined;
                           const isRight = idx === allQuestions[testIdx].check_answer;
                           const isSelected = testAnswers[testIdx] === idx;
-                          let bg = "#FAFAF8", border = "1px solid #E5E0D8", color = "#1A1208";
-                          if (answered && isRight) { bg = "#F0FDF4"; border = "1.5px solid #16a34a"; color = "#14532d"; }
+                          let bg = "#FAFAF8", border = "1px solid rgba(7,23,57,0.08)", color = "#071739";
+                          if (answered && isRight) { bg = "#F0FDF4"; border = "1.5px solid #16a34a"; color = "#071739"; }
                           else if (answered && isSelected && !isRight) { bg = "#FEF2F2"; border = "1.5px solid #ef4444"; color = "#991b1b"; }
                           return (
                             <motion.button key={idx}
@@ -791,7 +791,7 @@ function LessonContent() {
                         })}
                         {testAnswers[testIdx] !== undefined && (
                           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                            <div style={{ background: "#F5F0E8", borderRadius: 10, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: "#1A1208", lineHeight: 1.6 }}>
+                            <div style={{ background: "rgba(7,23,57,0.04)", borderRadius: 10, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: "#071739", lineHeight: 1.6 }}>
                               {allQuestions[testIdx].check_explanation}
                             </div>
                             <motion.button whileTap={{ scale: 0.97 }}
@@ -802,7 +802,7 @@ function LessonContent() {
                                   setTestComplete(true);
                                 }
                               }}
-                              style={{ width: "100%", padding: "11px", borderRadius: 12, background: "#0A2E28", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                              style={{ width: "100%", padding: "11px", borderRadius: 12, background: "#071739", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
                               {testIdx < allQuestions.length - 1 ? "Next Question →" : "See Results 🎯"}
                             </motion.button>
                           </motion.div>
@@ -815,7 +815,7 @@ function LessonContent() {
                         <div style={{ fontSize: 32, marginBottom: 12 }}>
                           {testCorrectTotal === allQuestions.length ? "🏆" : "💪"}
                         </div>
-                        <div style={{ fontSize: 16, fontWeight: 700, color: "#0A2E28", marginBottom: 6 }}>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: "#071739", marginBottom: 6 }}>
                           {testCorrectTotal} / {allQuestions.length} Correct!
                         </div>
                         <div style={{ fontSize: 12, color: "#8E8E93", marginBottom: 16 }}>
@@ -826,12 +826,12 @@ function LessonContent() {
                         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                           <motion.button whileTap={{ scale: 0.97 }}
                             onClick={() => { setTestIdx(0); setTestAnswers({}); setTestComplete(false); setShowTestYourself(true); }}
-                            style={{ width: "100%", padding: "11px", borderRadius: 12, background: "#E1F5EE", color: "#085041", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                            style={{ width: "100%", padding: "11px", borderRadius: 12, background: "rgba(7,23,57,0.05)", color: "#071739", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
                             🔄 Retry Test
                           </motion.button>
                           <motion.button whileTap={{ scale: 0.97 }}
                             onClick={() => router.back()}
-                            style={{ width: "100%", padding: "11px", borderRadius: 12, background: "#F5F0E8", color: "#6B6560", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                            style={{ width: "100%", padding: "11px", borderRadius: 12, background: "rgba(7,23,57,0.04)", color: "#4B6382", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
                             → Back to Chapters
                           </motion.button>
                         </div>
@@ -898,7 +898,7 @@ export default function LessonPage() {
   return (
     <Suspense fallback={
       <div className="app-shell" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ color: "#0A2E28" }}>Loading lesson...</div>
+        <div style={{ color: "#071739" }}>Loading lesson...</div>
       </div>
     }>
       <LessonContent />
