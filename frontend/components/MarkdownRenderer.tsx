@@ -1,7 +1,108 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { SomiIcons } from "@/components/SomiIcons";
+
+declare global {
+  interface Window {
+    mermaid?: {
+      initialize: (config: Record<string, unknown>) => void;
+      render: (id: string, code: string) => Promise<{ svg: string }>;
+    };
+  }
+}
+
+let mermaidScriptPromise: Promise<void> | null = null;
+let mermaidThemeInitialized = false;
+
+function ensureMermaidScript(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  if (window.mermaid?.render) return Promise.resolve();
+  if (!mermaidScriptPromise) {
+    mermaidScriptPromise = new Promise((resolve, reject) => {
+      const existing = document.querySelector<HTMLScriptElement>('script[data-somi-mermaid]');
+      if (existing) {
+        existing.addEventListener("load", () => resolve(), { once: true });
+        existing.addEventListener("error", () => reject(new Error("Mermaid script error")), { once: true });
+        return;
+      }
+      const script = document.createElement("script");
+      script.dataset.somiMermaid = "1";
+      script.src = "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js";
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Failed to load Mermaid"));
+      document.head.appendChild(script);
+    });
+  }
+  return mermaidScriptPromise;
+}
+
+function initMermaidTheme() {
+  if (typeof window === "undefined" || !window.mermaid || mermaidThemeInitialized) return;
+  window.mermaid.initialize({
+    startOnLoad: false,
+    theme: "base",
+    themeVariables: {
+      primaryColor: "#071739",
+      primaryTextColor: "#E3C39D",
+      primaryBorderColor: "#E3C39D",
+      lineColor: "#4B6382",
+      secondaryColor: "rgba(7,23,57,0.05)",
+      tertiaryColor: "#FAFAF8",
+      fontFamily: "'DM Sans', sans-serif",
+      fontSize: "13px",
+      nodeBorder: "#E3C39D",
+      mainBkg: "#071739",
+      nodeTextColor: "#E3C39D",
+      edgeLabelBackground: "#FAFAF8",
+    },
+  });
+  mermaidThemeInitialized = true;
+}
+
+function MermaidDiagram({ code }: { code: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [svg, setSvg] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    async function render() {
+      try {
+        await ensureMermaidScript();
+        if (cancelled || typeof window === "undefined") return;
+        initMermaidTheme();
+        if (!window.mermaid?.render) throw new Error("Mermaid not available");
+        const id = "mermaid-" + Math.random().toString(36).slice(2);
+        const { svg: rendered } = await window.mermaid.render(id, code);
+        if (!cancelled) setSvg(rendered);
+      } catch (e) {
+        console.error("Mermaid render failed:", e);
+        if (!cancelled) {
+          setSvg('<pre style="color:#ef4444;font-size:12px">Diagram render failed</pre>');
+        }
+      }
+    }
+    void render();
+    return () => {
+      cancelled = true;
+    };
+  }, [code]);
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        margin: "16px 0",
+        padding: "20px",
+        background: "#071739",
+        borderRadius: "14px",
+        overflow: "auto",
+        border: "1px solid rgba(227,195,157,0.1)",
+      }}
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
+}
 
 /**
  * SOMI MarkdownRenderer v2 — Navy + Gold Editorial (Refined)
@@ -246,7 +347,7 @@ function renderBlockquote(lines: string[], index: number) {
   );
 }
 
-export default function MarkdownRenderer({ content, className }: Props) {
+function LegacyEditorialMarkdown({ content, className }: Props) {
   if (!content) return null;
 
   const elements: React.ReactNode[] = [];
@@ -362,4 +463,24 @@ export default function MarkdownRenderer({ content, className }: Props) {
   }
 
   return <div className={className}>{elements}</div>;
+}
+
+export default function MarkdownRenderer({ content, className }: Props) {
+  if (!content) return null;
+
+  const parts = content.split(/(```mermaid[\s\S]*?```)/gi);
+
+  return (
+    <div className={className}>
+      {parts.map((part, i) => {
+        if (!part) return null;
+        const trimmed = part.trim();
+        if (trimmed.startsWith("```mermaid")) {
+          const code = part.replace(/^```mermaid\s*/i, "").replace(/\s*```\s*$/i, "").trim();
+          return <MermaidDiagram key={`m-${i}`} code={code} />;
+        }
+        return <LegacyEditorialMarkdown key={`e-${i}`} content={part} />;
+      })}
+    </div>
+  );
 }

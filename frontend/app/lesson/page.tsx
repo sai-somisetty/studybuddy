@@ -27,6 +27,8 @@ type ConfidenceLevel = "low" | "medium" | "high";
 
 interface MamaLine {
   text: string;
+  /** Replacement image when textbook figure was not describable as text */
+  image_url?: string | null;
   heading?: string;
   is_key_concept: boolean;
   tenglish: string;
@@ -501,6 +503,20 @@ function LessonContent() {
               <motion.div key={paraKey}
                 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                 style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+
+                {currentPara.image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={currentPara.image_url}
+                    alt={currentPara.concept_title || "Concept image"}
+                    style={{
+                      width: "100%",
+                      borderRadius: 12,
+                      marginBottom: 12,
+                      border: "1px solid rgba(7,23,57,0.06)",
+                    }}
+                  />
+                ) : null}
 
                 {/* ── BLOCK 1: ICMAI Sticky Accordion ── */}
                 <motion.div
