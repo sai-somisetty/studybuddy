@@ -149,6 +149,30 @@ export default function Home(){
           <span style={{fontSize:14,color:"#071739",opacity:0.2}}>›</span>
         </motion.button>
 
+        <motion.button
+          initial={{opacity:0,y:12}} animate={{opacity:1,y:0}}
+          transition={{delay:0.38}}
+          whileTap={{scale:0.97}}
+          onClick={()=>router.push("/audio")}
+          style={{
+            width:"100%",padding:"14px 18px",borderRadius:12,
+            background:"#fff",border:"1.5px solid rgba(7,23,57,0.08)",
+            cursor:"pointer",display:"flex",alignItems:"center",gap:12,
+            marginBottom:20,textAlign:"left",
+            fontFamily:"'DM Sans',sans-serif",
+          }}>
+          <span style={{fontSize:20}}>🎧</span>
+          <div style={{flex:1}}>
+            <div style={{fontSize:14,fontWeight:600,color:"#071739"}}>
+              Audio Library
+            </div>
+            <div style={{fontSize:11,color:"#4B6382",marginTop:2}}>
+              Listen to MAMA explain concepts on the go
+            </div>
+          </div>
+          <span style={{fontSize:14,color:"#071739",opacity:0.2}}>›</span>
+        </motion.button>
+
         {/* SUBJECTS */}
         <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",marginBottom:18}}>
           <h2 style={{fontFamily:"'DM Serif Display',serif",fontSize:18,fontWeight:400,color:C.navy}}>Your Subjects</h2>
