@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import Link from "next/link";
 import FloatingNav from "@/components/FloatingNav";
 
 const C = {
@@ -13,84 +14,12 @@ const C = {
   bg: "#FAFAF8",
 };
 
-function MenuItem({
-  icon,
-  label,
-  sub,
-  arrow = true,
-  danger = false,
-  onTap,
-}: {
-  icon: string;
-  label: string;
-  sub?: string;
-  arrow?: boolean;
-  danger?: boolean;
-  onTap?: () => void;
-}) {
-  return (
-    <motion.button
-      type="button"
-      whileTap={{ scale: 0.98 }}
-      onClick={onTap}
-      disabled={!onTap}
-      style={{
-        width: "100%",
-        display: "flex",
-        alignItems: "center",
-        gap: 14,
-        padding: "14px 16px",
-        marginBottom: 8,
-        cursor: onTap ? "pointer" : "default",
-        textAlign: "left",
-        background: "#fff",
-        borderRadius: 12,
-        border: "1px solid rgba(7,23,57,0.06)",
-        fontFamily: "'DM Sans', sans-serif",
-      }}
-    >
-      <div
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: 10,
-          background: danger ? "#FEF2F2" : "rgba(7,23,57,0.04)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 18,
-          flexShrink: 0,
-        }}
-      >
-        {icon}
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontSize: 14,
-            fontWeight: 600,
-            color: danger ? "#DC2626" : C.navy,
-          }}
-        >
-          {label}
-        </div>
-        {sub && (
-          <div style={{ fontSize: 12, color: C.steel, marginTop: 2, lineHeight: 1.35 }}>
-            {sub}
-          </div>
-        )}
-      </div>
-      {arrow && (
-        <span style={{ fontSize: 14, color: C.navy, opacity: 0.2, flexShrink: 0 }} aria-hidden>
-          ›
-        </span>
-      )}
-    </motion.button>
-  );
-}
+const sans = "'DM Sans', sans-serif";
+const serif = "'DM Serif Display', serif";
 
-function Section({ label }: { label: string }) {
-  if (!label) return null;
+const EXAM_ATTEMPTS = ["Jun 2026", "Nov 2026", "Jun 2027"] as const;
+
+function SectionHeading({ children }: { children: string }) {
   return (
     <div
       style={{
@@ -99,60 +28,139 @@ function Section({ label }: { label: string }) {
         letterSpacing: "0.1em",
         textTransform: "uppercase" as const,
         color: C.navy,
-        opacity: 0.4,
-        fontFamily: "'DM Sans', sans-serif",
-        marginTop: 24,
+        opacity: 0.45,
+        fontFamily: sans,
+        marginTop: 22,
         marginBottom: 10,
       }}
     >
-      {label}
+      {children}
+    </div>
+  );
+}
+
+function Card({ children }: { children: ReactNode }) {
+  return (
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 14,
+        border: "1px solid rgba(7,23,57,0.1)",
+        padding: "16px 16px 14px",
+        fontFamily: sans,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function ComingSoonPill() {
+  return (
+    <span
+      style={{
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: "0.06em",
+        color: C.steel,
+        background: "rgba(7,23,57,0.06)",
+        padding: "4px 8px",
+        borderRadius: 999,
+        border: "1px solid rgba(7,23,57,0.08)",
+      }}
+    >
+      Coming Soon
+    </span>
+  );
+}
+
+function FieldLabel({ children }: { children: string }) {
+  return (
+    <div
+      style={{
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: "0.08em",
+        color: C.steel,
+        marginBottom: 6,
+      }}
+    >
+      {children}
     </div>
   );
 }
 
 export default function Profile() {
   const router = useRouter();
-  const [name, setName] = useState("Sai");
+  const [name, setName] = useState("");
+  const [nameDraft, setNameDraft] = useState("");
+  const [email, setEmail] = useState("");
   const [course, setCourse] = useState("");
   const [level, setLevel] = useState("");
   const [group, setGroup] = useState("");
   const [attempt, setAttempt] = useState("");
-  const [plan, setPlan] = useState("Beta Free");
+  const [starCount, setStarCount] = useState(0);
 
-  useEffect(() => {
-    setName(
+  const loadFromStorage = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const n =
+      localStorage.getItem("somi_name") ||
       localStorage.getItem("somi_student_name") ||
-        localStorage.getItem("somi_name") ||
-        "Sai"
-    );
+      "";
+    setName(n || "Student");
+    setNameDraft(n || "Student");
+    setEmail(localStorage.getItem("somi_email") || "");
     setCourse(localStorage.getItem("somi_course") || "ca");
     setLevel(localStorage.getItem("somi_level") || "foundation");
     setGroup(localStorage.getItem("somi_group") || "0");
     setAttempt(localStorage.getItem("somi_attempt") || "Nov 2026");
+    try {
+      const raw = JSON.parse(localStorage.getItem("somi_starred") || "[]");
+      setStarCount(Array.isArray(raw) ? raw.length : 0);
+    } catch {
+      setStarCount(0);
+    }
   }, []);
 
+  useEffect(() => {
+    loadFromStorage();
+  }, [loadFromStorage]);
+
+  const nameDirty = useMemo(() => nameDraft.trim() !== name.trim(), [nameDraft, name]);
+
+  const saveProfile = () => {
+    const next = nameDraft.trim() || "Student";
+    localStorage.setItem("somi_name", next);
+    localStorage.setItem("somi_student_name", next);
+    setName(next);
+    setNameDraft(next);
+  };
+
+  const cycleAttempt = () => {
+    const i = EXAM_ATTEMPTS.indexOf(attempt as (typeof EXAM_ATTEMPTS)[number]);
+    const next = EXAM_ATTEMPTS[(i >= 0 ? i + 1 : 1) % EXAM_ATTEMPTS.length];
+    localStorage.setItem("somi_attempt", next);
+    setAttempt(next);
+  };
+
   const handleChangeCourse = () => {
-    localStorage.removeItem("somi_course");
-    localStorage.removeItem("somi_level");
-    localStorage.removeItem("somi_group");
-    localStorage.removeItem("somi_attempt");
     router.push("/onboarding");
   };
 
-  const handleLogout = () => {
+  const handleLogoutReset = () => {
     localStorage.clear();
-    router.push("/");
+    router.push("/auth");
   };
 
   const groupDisplay = group && group !== "0" ? ` · Group ${group}` : "";
-  const levelDisplay = level.charAt(0).toUpperCase() + level.slice(1);
+  const levelDisplay = level ? level.charAt(0).toUpperCase() + level.slice(1) : "";
 
   return (
     <div
       style={{
         minHeight: "100vh",
         background: C.bg,
-        fontFamily: "'DM Sans', sans-serif",
+        fontFamily: sans,
       }}
     >
       <div
@@ -167,7 +175,6 @@ export default function Profile() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 32 }}
         >
-          {/* Navy hero */}
           <div
             style={{
               background: C.navy,
@@ -187,7 +194,7 @@ export default function Profile() {
                 position: "absolute",
                 top: -16,
                 right: -8,
-                fontFamily: "'Playfair Display', serif",
+                fontFamily: serif,
                 fontWeight: 900,
                 fontSize: "clamp(100px, 22vw, 160px)",
                 color: "#fff",
@@ -222,7 +229,7 @@ export default function Profile() {
                   fontWeight: 600,
                   color: "rgba(255,255,255,0.75)",
                   cursor: "pointer",
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: sans,
                 }}
               >
                 ← Back
@@ -268,16 +275,16 @@ export default function Profile() {
                     fontSize: 22,
                     fontWeight: 700,
                     color: C.navy,
-                    fontFamily: "'DM Serif Display', serif",
+                    fontFamily: serif,
                   }}
                 >
-                  {name.charAt(0).toUpperCase()}
+                  {(name || "S").charAt(0).toUpperCase()}
                 </span>
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <h1
                   style={{
-                    fontFamily: "'DM Serif Display', serif",
+                    fontFamily: serif,
                     fontSize: "clamp(26px, 6vw, 32px)",
                     fontWeight: 400,
                     color: "#fff",
@@ -285,7 +292,7 @@ export default function Profile() {
                     margin: 0,
                   }}
                 >
-                  Hi {name}
+                  Hi {name || "there"}
                 </h1>
                 <p
                   style={{
@@ -303,145 +310,225 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Subscription */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.06 }}
-            style={{
-              marginTop: 20,
-              background: C.navy,
-              borderRadius: 16,
-              padding: "18px 18px 16px",
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              boxShadow: "0 8px 24px rgba(7,23,57,0.12)",
-            }}
-          >
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: "0.12em",
-                  color: C.gold,
-                  opacity: 0.55,
-                  marginBottom: 4,
-                }}
-              >
-                SUBSCRIPTION
-              </div>
-              <div
-                style={{
-                  fontFamily: "'DM Serif Display', serif",
-                  fontSize: 20,
-                  fontWeight: 400,
-                  color: "#fff",
-                }}
-              >
-                {plan}
-              </div>
-              <div style={{ fontSize: 12, color: C.silver, opacity: 0.65, marginTop: 4 }}>
-                Unlock full MAMA + exam tools
-              </div>
+          <SectionHeading>Your info</SectionHeading>
+          <Card>
+            <FieldLabel>Name</FieldLabel>
+            <input
+              type="text"
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              placeholder="Your name"
+              style={{
+                width: "100%",
+                boxSizing: "border-box",
+                padding: "12px 14px",
+                borderRadius: 10,
+                border: "1px solid rgba(7,23,57,0.12)",
+                fontSize: 15,
+                color: C.navy,
+                marginBottom: 14,
+                fontFamily: sans,
+                background: "#FAFAF8",
+              }}
+            />
+            <FieldLabel>Email</FieldLabel>
+            <div style={{ fontSize: 14, color: C.navy, marginBottom: 14, lineHeight: 1.45 }}>
+              {email || <span style={{ color: C.silver }}>Not set — sign in to add</span>}
             </div>
+            <FieldLabel>Exam attempt</FieldLabel>
             <motion.button
               type="button"
-              whileTap={{ scale: 0.96 }}
-              onClick={() => {}}
+              whileTap={{ scale: 0.98 }}
+              onClick={cycleAttempt}
               style={{
-                flexShrink: 0,
-                padding: "10px 18px",
+                width: "100%",
+                padding: "12px 14px",
                 borderRadius: 10,
-                background: C.gold,
+                border: `1.5px solid ${C.navy}`,
+                background: "#fff",
+                fontSize: 14,
+                fontWeight: 600,
                 color: C.navy,
-                border: "none",
-                fontSize: 13,
-                fontWeight: 700,
                 cursor: "pointer",
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: sans,
+                marginBottom: 14,
+                textAlign: "left",
               }}
             >
-              Upgrade
+              {attempt}
+              <span style={{ float: "right", opacity: 0.45, fontWeight: 500 }}>Tap to change →</span>
             </motion.button>
-          </motion.div>
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.98 }}
+              onClick={saveProfile}
+              disabled={!nameDirty}
+              style={{
+                width: "100%",
+                padding: "12px 14px",
+                borderRadius: 10,
+                border: "none",
+                background: nameDirty ? C.navy : "rgba(7,23,57,0.08)",
+                color: nameDirty ? C.gold : C.silver,
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: nameDirty ? "pointer" : "default",
+                fontFamily: sans,
+              }}
+            >
+              Save
+            </motion.button>
+          </Card>
 
-          {/* Settings */}
-          <div style={{ paddingTop: 8 }}>
-            <Section label="Account" />
-            <MenuItem icon="👤" label="My Profile" sub="Name, email, phone" onTap={() => {}} />
-            <MenuItem icon="📅" label="Study Plan" sub="Your personalised schedule" onTap={() => {}} />
-            <MenuItem icon="🔔" label="Notifications" sub="Reminders and alerts" onTap={() => {}} />
-
-            <Section label="Course" />
-            <MenuItem
-              icon="🎓"
-              label="Course & Level"
-              sub={`${course.toUpperCase()} · ${levelDisplay}${groupDisplay}`}
-              onTap={handleChangeCourse}
-            />
-            <MenuItem icon="📆" label="Exam Attempt" sub={attempt} onTap={handleChangeCourse} />
+          <SectionHeading>Course</SectionHeading>
+          <Card>
+            <FieldLabel>Current course & level</FieldLabel>
+            <div style={{ fontSize: 15, fontWeight: 600, color: C.navy, marginBottom: 14 }}>
+              {course.toUpperCase()} · {levelDisplay}
+              {groupDisplay}
+            </div>
             <motion.button
               type="button"
               whileTap={{ scale: 0.98 }}
               onClick={handleChangeCourse}
               style={{
                 width: "100%",
+                padding: "12px 14px",
+                borderRadius: 10,
+                border: `1.5px solid ${C.navy}`,
+                background: "#fff",
+                fontSize: 14,
+                fontWeight: 600,
+                color: C.navy,
+                cursor: "pointer",
+                fontFamily: sans,
+              }}
+            >
+              Change course / level / group
+            </motion.button>
+          </Card>
+
+          <SectionHeading>Subscription</SectionHeading>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.04 }}
+            style={{
+              background: C.navy,
+              borderRadius: 16,
+              padding: "18px 18px 16px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              boxShadow: "0 8px 24px rgba(7,23,57,0.12)",
+              border: "1px solid rgba(7,23,57,0.2)",
+              fontFamily: sans,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: "0.12em",
+                color: C.gold,
+                opacity: 0.55,
+              }}
+            >
+              PLAN
+            </div>
+            <div style={{ fontFamily: serif, fontSize: 22, fontWeight: 400, color: "#fff" }}>Beta Free</div>
+            <div style={{ fontSize: 13, color: C.silver, opacity: 0.85, lineHeight: 1.45 }}>
+              Upgrade coming soon — full MAMA + exam tools will unlock here.
+            </div>
+          </motion.div>
+
+          <SectionHeading>App</SectionHeading>
+          <Card>
+            <Link
+              href="/revision"
+              style={{ textDecoration: "none", color: "inherit", display: "block", marginBottom: 14 }}
+            >
+              <motion.div whileTap={{ scale: 0.99 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                  <div>
+                    <FieldLabel>Starred concepts</FieldLabel>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: C.navy }}>
+                      {starCount} saved → Revision
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 18, color: C.navy, opacity: 0.25 }} aria-hidden>
+                    ›
+                  </span>
+                </div>
+              </motion.div>
+            </Link>
+
+            <div
+              style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
                 gap: 12,
-                padding: "14px 16px",
-                marginBottom: 8,
-                background: "#fff",
-                borderRadius: 12,
-                border: "1px solid rgba(7,23,57,0.06)",
-                cursor: "pointer",
-                textAlign: "left",
-                fontFamily: "'DM Sans', sans-serif",
+                padding: "12px 0",
+                borderTop: "1px solid rgba(7,23,57,0.08)",
+                borderBottom: "1px solid rgba(7,23,57,0.08)",
+                marginBottom: 12,
+                opacity: 0.55,
               }}
             >
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: C.navy }}>Change Course / Level / Group</div>
-                <div style={{ fontSize: 12, color: C.steel, marginTop: 2 }}>
-                  Switch CA / CMA / CS, level or group
-                </div>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.navy }}>Study plan</div>
+                <div style={{ fontSize: 12, color: C.steel, marginTop: 2 }}>Personalised schedule</div>
               </div>
-              <span style={{ fontSize: 14, color: C.navy, opacity: 0.2 }}>›</span>
+              <ComingSoonPill />
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+                marginBottom: 16,
+                opacity: 0.55,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.navy }}>Notifications</div>
+                <div style={{ fontSize: 12, color: C.steel, marginTop: 2 }}>Reminders and alerts</div>
+              </div>
+              <ComingSoonPill />
+            </div>
+
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.98 }}
+              onClick={handleLogoutReset}
+              style={{
+                width: "100%",
+                padding: "12px 14px",
+                borderRadius: 10,
+                border: "1px solid rgba(220,38,38,0.35)",
+                background: "#FEF2F2",
+                fontSize: 14,
+                fontWeight: 600,
+                color: "#B91C1C",
+                cursor: "pointer",
+                fontFamily: sans,
+                marginBottom: 14,
+              }}
+            >
+              Log out & clear all data
             </motion.button>
 
-            <Section label="Billing" />
-            <MenuItem icon="💳" label="Plan & Billing" sub={`${plan} · payment methods`} onTap={() => {}} />
-            <MenuItem icon="⚡" label="AI Usage" sub="Questions asked this month" onTap={() => {}} />
-            <MenuItem icon="🧾" label="Invoices" sub="Download past bills" onTap={() => {}} />
-
-            <Section label="Feedback" />
-            <MenuItem icon="🚩" label="Report a Bug" sub="Help us fix issues fast" onTap={() => router.push("/bug-report")} />
-            <MenuItem icon="⭐" label="Rate SOMI" sub="Help us improve" onTap={() => {}} />
-            <MenuItem icon="💬" label="Send Feedback" sub="Tell us what to build next" onTap={() => {}} />
-
-            <Section label="App" />
-            <MenuItem icon="ℹ️" label="App Version" sub="Beta 0.1.0 · Built by Somisetty" arrow={false} onTap={() => {}} />
-
-            <div style={{ height: 8 }} />
-            <MenuItem icon="🚪" label="Log Out" danger arrow={false} onTap={handleLogout} />
-
-            <div style={{ textAlign: "center", marginTop: 28, paddingBottom: 8 }}>
-              <div
-                style={{
-                  fontSize: 13,
-                  fontFamily: "'DM Serif Display', serif",
-                  color: C.navy,
-                  opacity: 0.35,
-                }}
-              >
-                SOMI
-              </div>
-              <div style={{ fontSize: 11, color: C.steel, marginTop: 4, opacity: 0.7 }}>
-                Mama explains. You pass.
-              </div>
+            <div style={{ fontSize: 12, color: C.steel, textAlign: "center", paddingTop: 4 }}>
+              SOMi Commerce v1.0
             </div>
+          </Card>
+
+          <div style={{ textAlign: "center", marginTop: 24, paddingBottom: 8 }}>
+            <div style={{ fontSize: 13, fontFamily: serif, color: C.navy, opacity: 0.35 }}>SOMI</div>
+            <div style={{ fontSize: 11, color: C.steel, marginTop: 4, opacity: 0.7 }}>Mama explains. You pass.</div>
           </div>
         </motion.div>
       </div>
