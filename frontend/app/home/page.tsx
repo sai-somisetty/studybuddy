@@ -27,6 +27,17 @@ export default function Home(){
   const [group,setGroup]=useState(0);
   const [attempt,setAttempt]=useState("Nov 2026");
   const [subjects,setSubjects]=useState<any[]>([]);
+  const [starredCount,setStarredCount]=useState(0);
+
+  const readStarredCount=()=>{
+    if(typeof window==="undefined")return;
+    try{
+      const a=JSON.parse(localStorage.getItem("somi_starred")||"[]");
+      setStarredCount(Array.isArray(a)?a.length:0);
+    }catch{
+      setStarredCount(0);
+    }
+  };
 
   useEffect(()=>{
     const c=localStorage.getItem("somi_course")||"cma";
@@ -36,6 +47,13 @@ export default function Home(){
     const n=localStorage.getItem("somi_student_name")||localStorage.getItem("somi_name")||"Student";
     setCourse(c);setLevel(l);setGroup(g);setAttempt(a);setName(n);
     setSubjects(getSubjects(c,l,g||1));
+    readStarredCount();
+  },[]);
+
+  useEffect(()=>{
+    const onFocus=()=>readStarredCount();
+    window.addEventListener("focus",onFocus);
+    return()=>window.removeEventListener("focus",onFocus);
   },[]);
 
   const h=new Date().getHours();
@@ -103,6 +121,33 @@ export default function Home(){
             </motion.button>
           </div>
         </motion.div>
+
+        {/* Revision Mode CTA */}
+        {starredCount>0&&(
+          <motion.button
+            initial={{opacity:0,y:12}} animate={{opacity:1,y:0}}
+            transition={{delay:0.35}}
+            whileTap={{scale:0.97}}
+            onClick={()=>router.push("/revision")}
+            style={{
+              width:"100%",padding:"14px 18px",borderRadius:12,
+              background:"#fff",border:"1.5px solid rgba(7,23,57,0.08)",
+              cursor:"pointer",display:"flex",alignItems:"center",gap:12,
+              marginBottom:20,textAlign:"left",
+              fontFamily:"'DM Sans',sans-serif",
+            }}>
+            <span style={{fontSize:20}}>⭐</span>
+            <div style={{flex:1}}>
+              <div style={{fontSize:14,fontWeight:600,color:"#071739"}}>
+                Revision Mode
+              </div>
+              <div style={{fontSize:11,color:"#4B6382",marginTop:2}}>
+                {starredCount} starred concepts ready
+              </div>
+            </div>
+            <span style={{fontSize:14,color:"#071739",opacity:0.2}}>›</span>
+          </motion.button>
+        )}
 
         {/* SUBJECTS */}
         <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",marginBottom:18}}>
