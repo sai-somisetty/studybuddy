@@ -3,6 +3,7 @@ import React, { use, useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "next/navigation";
+import FloatingNav from "@/components/FloatingNav";
 
 const C = { navy:"#071739",gold:"#E3C39D",goldLight:"#F0DCC4",steel:"#4B6382",silver:"#A4B5C4",sand:"#A68868",bg:"#FAFAF8" };
 
@@ -164,7 +165,7 @@ function ChapterContent({pageId}:{pageId:string}){
       </div>
 
       {/* CONCEPTS */}
-      <div style={{maxWidth:520,margin:"0 auto",padding:"16px 20px 120px"}}>
+      <div style={{maxWidth:520,margin:"0 auto",padding:"16px 20px max(120px, calc(88px + env(safe-area-inset-bottom, 0px)))"}}>
         <div style={{fontSize:11,fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase" as const,color:C.navy,opacity:0.4,marginBottom:14}}>{concepts.length} Concepts</div>
 
         {concepts.map((concept,i)=>{
@@ -221,6 +222,7 @@ function ChapterContent({pageId}:{pageId:string}){
           ))}
         </motion.div>
       </div>
+      <FloatingNav active="Study" subjectPath={`/subject/${pageId}`} />
     </div>
   );
 }

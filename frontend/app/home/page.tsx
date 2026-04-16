@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { getSubjects } from "@/lib/syllabus";
 import MamaAgent from "@/components/MamaAgent";
+import FloatingNav from "@/components/FloatingNav";
 
 const C = { navy:"#071739",gold:"#E3C39D",goldLight:"#F0DCC4",steel:"#4B6382",silver:"#A4B5C4",sand:"#A68868",bg:"#FAFAF8" };
 
@@ -70,7 +71,7 @@ export default function Home(){
 
   return(
     <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'DM Sans',sans-serif"}}>
-      <div style={{maxWidth:520,margin:"0 auto",padding:"0 20px"}}>
+      <div style={{maxWidth:520,margin:"0 auto",padding:"0 20px max(100px, calc(88px + env(safe-area-inset-bottom, 0px)))"}}>
         {/* HEADER */}
         <header style={{paddingTop:"max(52px,env(safe-area-inset-top,52px))",paddingBottom:8,display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
           <motion.div initial={{opacity:0}} animate={{opacity:1}}
@@ -203,20 +204,9 @@ export default function Home(){
             );
           })}
         </div>
-        <div style={{height:80}}/>
       </div>
       <MamaAgent mode="global" studentName={name} course={course} level={level}/>
-      <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(250,250,248,0.92)",backdropFilter:"blur(20px) saturate(180%)",WebkitBackdropFilter:"blur(20px) saturate(180%)",borderTop:`1px solid ${C.navy}0A`,padding:"10px 0",paddingBottom:"max(10px,env(safe-area-inset-bottom,8px))",zIndex:100}}>
-        <div style={{maxWidth:520,margin:"0 auto",display:"flex",justifyContent:"space-around",alignItems:"center"}}>
-          {[{label:"Home",active:true,path:"/home"},{label:"Study",active:false,path:subjects[0]?`/subject/${subjects[0].id}`:"/home"},{label:"Exams",active:false,path:"/exams"},{label:"Profile",active:false,path:"/profile"}].map(item=>(
-            <motion.button key={item.label} whileTap={{scale:0.9}} onClick={()=>router.push(item.path)}
-              style={{background:"none",border:"none",padding:"6px 16px",display:"flex",flexDirection:"column",alignItems:"center",gap:3,cursor:"pointer",position:"relative"}}>
-              {item.active&&<div style={{position:"absolute",top:-10,left:"50%",transform:"translateX(-50%)",width:20,height:3,borderRadius:2,background:C.gold}}/>}
-              <span style={{fontSize:10,color:C.navy,opacity:item.active?1:0.3,fontWeight:item.active?600:400,letterSpacing:"0.04em"}}>{item.label}</span>
-            </motion.button>
-          ))}
-        </div>
-      </nav>
+      <FloatingNav active="Home" subjectPath={subjects[0] ? `/subject/${subjects[0].id}` : undefined} />
     </div>
   );
 }

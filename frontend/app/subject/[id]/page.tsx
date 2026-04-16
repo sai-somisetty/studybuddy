@@ -3,6 +3,7 @@ import React, { use, useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { getSubjects } from "@/lib/syllabus";
+import FloatingNav from "@/components/FloatingNav";
 
 const C = { navy:"#071739",gold:"#E3C39D",goldLight:"#F0DCC4",steel:"#4B6382",silver:"#A4B5C4",sand:"#A68868",bg:"#FAFAF8" };
 
@@ -16,22 +17,6 @@ const chapterNameMap: Record<string,Record<number,string>> = {
   ca_f_maths:{1:"Ratio & Proportion",2:"Indices & Logarithms",3:"Interest",4:"Permutations",5:"Sets & Functions",6:"Limits",7:"Calculus"},
   ca_f_eco:{1:"Introduction",2:"Demand & Supply",3:"Production & Cost",4:"Market Structures",5:"National Income"},
 };
-
-function BottomNav({router,active}:{router:any;active:string}){
-  return(
-    <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(250,250,248,0.92)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderTop:`1px solid ${C.navy}0A`,padding:"10px 0",paddingBottom:"max(10px,env(safe-area-inset-bottom,8px))",zIndex:100}}>
-      <div style={{maxWidth:520,margin:"0 auto",display:"flex",justifyContent:"space-around"}}>
-        {[{label:"Home",path:"/home"},{label:"Study",path:"#"},{label:"Exams",path:"/exams"},{label:"Profile",path:"/profile"}].map(item=>(
-          <motion.button key={item.label} whileTap={{scale:0.9}} onClick={()=>item.path!=="#"&&router.push(item.path)}
-            style={{background:"none",border:"none",padding:"6px 16px",display:"flex",flexDirection:"column",alignItems:"center",gap:3,cursor:"pointer",position:"relative"}}>
-            {item.label===active&&<div style={{position:"absolute",top:-10,left:"50%",transform:"translateX(-50%)",width:20,height:3,borderRadius:2,background:C.gold}}/>}
-            <span style={{fontSize:10,color:C.navy,opacity:item.label===active?1:0.3,fontWeight:item.label===active?600:400}}>{item.label}</span>
-          </motion.button>
-        ))}
-      </div>
-    </nav>
-  );
-}
 
 // Page Jumper component
 function PageJumper({show,onClose}:{show:boolean;onClose:()=>void}){
@@ -165,7 +150,7 @@ function SubjectContent({pageId}:{pageId:string}){
       </div>
 
       {/* CONTENT */}
-      <div style={{maxWidth:520,margin:"0 auto",padding:"20px 20px 100px"}}>
+      <div style={{maxWidth:520,margin:"0 auto",padding:"20px 20px max(110px, calc(88px + env(safe-area-inset-bottom, 0px)))"}}>
         <motion.div initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:0.16}}
           style={{display:"flex",borderRadius:12,border:`1px solid ${C.navy}0D`,overflow:"hidden",marginBottom:24}}>
           {[{v:String(chapters.filter(c=>c.progress===100).length),l:"Complete"},{v:String(chapters.filter(c=>c.progress>0&&c.progress<100).length),l:"In Progress"},{v:String(chapters.filter(c=>c.progress===0).length),l:"Not Started"}].map((s,i)=>(
@@ -201,7 +186,7 @@ function SubjectContent({pageId}:{pageId:string}){
           );
         })}
       </div>
-      <BottomNav router={router} active="Study"/>
+      <FloatingNav active="Study" subjectPath={`/subject/${subject.id}`} />
     </div>
   );
 }
