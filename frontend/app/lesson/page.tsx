@@ -568,13 +568,7 @@ function LessonContent() {
                             whileTap={{ scale: 0.85 }}
                             onClick={() => {
                               const key = `${currentPage?.id}_${currentParaIdx}`;
-                              let stored: { key: string }[] = [];
-                              try {
-                                const raw = JSON.parse(localStorage.getItem("somi_starred") || "[]");
-                                stored = Array.isArray(raw) ? raw : [];
-                              } catch {
-                                stored = [];
-                              }
+                              const stored: any[] = JSON.parse(localStorage.getItem("somi_starred") || "[]");
                               const exists = stored.findIndex((s) => s.key === key);
 
                               if (exists >= 0) {
