@@ -413,8 +413,26 @@ function LessonContent() {
       </AnimatePresence>
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      <div style={{ background: "#071739", padding: "14px 20px 10px", flexShrink: 0 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+      <div style={{ background: "#071739", padding: "14px 20px 10px", flexShrink: 0, position: "relative", overflow: "hidden" }}>
+        <span
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: -28,
+            right: -8,
+            fontFamily: "'DM Serif Display', serif",
+            fontWeight: 900,
+            fontSize: "clamp(72px, 16vw, 140px)",
+            color: "#fff",
+            opacity: 0.04,
+            lineHeight: 1,
+            userSelect: "none",
+            pointerEvents: "none",
+          }}
+        >
+          {String(currentPage?.book_page ?? "")}
+        </span>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, position: "relative", zIndex: 1 }}>
           {/* Left — hamburger + back */}
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={() => setShowDrawer(true)}
@@ -437,14 +455,14 @@ function LessonContent() {
         </div>
 
         {/* Progress bar */}
-        <div style={{ height: 3, background: "rgba(255,255,255,0.15)", borderRadius: 2, overflow: "hidden", marginBottom: 6 }}>
+        <div style={{ height: 3, background: "rgba(255,255,255,0.15)", borderRadius: 2, overflow: "hidden", marginBottom: 6, position: "relative", zIndex: 1 }}>
           <motion.div
             animate={{ width: `${paragraphs.length > 0 ? ((currentParaIdx + 1) / paragraphs.length) * 100 : 0}%` }}
             style={{ height: "100%", background: "#E3C39D", borderRadius: 2 }} />
         </div>
 
         {/* Title + progress label */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", position: "relative", zIndex: 1 }}>
           <div>
             <div style={{ fontFamily: "Georgia,serif", fontSize: 15, fontWeight: 700, color: "#fff" }}>{concept}</div>
             <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{subject} · {chapter}</div>

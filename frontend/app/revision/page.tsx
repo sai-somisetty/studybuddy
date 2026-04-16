@@ -311,7 +311,26 @@ export default function RevisionPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'DM Sans', sans-serif" }}>
-      <div style={{ maxWidth: 520, margin: "0 auto", padding: "0 20px", paddingBottom: 100 }}>
+      <div style={{ maxWidth: 520, margin: "0 auto", padding: "0 20px", paddingBottom: 100, position: "relative" }}>
+        <span
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: "max(8px, env(safe-area-inset-top, 8px))",
+            right: 0,
+            fontFamily: "'DM Serif Display', serif",
+            fontWeight: 900,
+            fontSize: "clamp(80px, 22vw, 140px)",
+            color: C.navy,
+            opacity: 0.06,
+            lineHeight: 1,
+            userSelect: "none",
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        >
+          {String(items.length).padStart(2, "0")}
+        </span>
         <header
           style={{
             paddingTop: "max(48px, env(safe-area-inset-top, 48px))",
@@ -319,6 +338,8 @@ export default function RevisionPage() {
             display: "flex",
             alignItems: "center",
             gap: 12,
+            position: "relative",
+            zIndex: 1,
           }}
         >
           <motion.button

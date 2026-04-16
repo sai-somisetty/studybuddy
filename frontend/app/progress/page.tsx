@@ -89,10 +89,12 @@ export default function Progress() {
 
   const levelDisplay = level.charAt(0).toUpperCase() + level.slice(1);
   const subtitle = `${course.toUpperCase()} ${levelDisplay} · ${attempt}`;
+  // TODO: Replace with mastery % from API / persisted stats when backend is wired.
   const overallPct = Math.min(
     100,
     Math.max(0, parseInt(stats[0].val.replace("%", ""), 10) || 0)
   );
+  const ghostMastery = String(overallPct).padStart(2, "0");
 
   const serif = "'DM Serif Display', serif";
   const sans = "'DM Sans', sans-serif";
@@ -121,7 +123,7 @@ export default function Progress() {
               position: "absolute",
               top: -8,
               right: -16,
-              fontFamily: "'Playfair Display', serif",
+              fontFamily: "'DM Serif Display', serif",
               fontSize: "clamp(100px, 28vw, 160px)",
               fontWeight: 900,
               color: "#fff",
@@ -132,7 +134,7 @@ export default function Progress() {
             }}
             aria-hidden
           >
-            07
+            {ghostMastery}
           </span>
           <div
             style={{

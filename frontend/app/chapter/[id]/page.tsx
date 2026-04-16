@@ -131,7 +131,8 @@ function ChapterContent({pageId}:{pageId:string}){
 
       {/* NAVY HEADER */}
       <div style={{background:C.navy,paddingTop:"max(env(safe-area-inset-top,16px),16px)",paddingBottom:0,position:"relative",overflow:"hidden"}}>
-        <span style={{position:"absolute",top:-20,right:-10,fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:"clamp(100px,18vw,180px)",color:"#fff",opacity:0.03,lineHeight:1,userSelect:"none",pointerEvents:"none"}}>{String(chapterNum).padStart(2,"0")}</span>
+        {/* Ghost num = chapter index (two digits) */}
+        <span style={{position:"absolute",top:-20,right:-10,fontFamily:"'DM Serif Display',serif",fontWeight:900,fontSize:"clamp(100px,18vw,180px)",color:"#fff",opacity:0.03,lineHeight:1,userSelect:"none",pointerEvents:"none"}}>{String(chapterNum).padStart(2,"0")}</span>
         <div style={{maxWidth:520,margin:"0 auto",padding:"0 20px",position:"relative",zIndex:1}}>
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
             <motion.button whileTap={{scale:0.9}} onClick={()=>router.back()}

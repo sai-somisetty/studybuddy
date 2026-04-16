@@ -8,6 +8,25 @@ import FloatingNav from "@/components/FloatingNav";
 
 const C = { navy:"#071739",gold:"#E3C39D",goldLight:"#F0DCC4",steel:"#4B6382",silver:"#A4B5C4",sand:"#A68868",bg:"#FAFAF8" };
 
+/** Exam window end date for countdown (placeholder until official calendar is wired). */
+function daysUntilExamFromAttempt(attempt: string): number {
+  const examDateStr = attempt.includes("Nov")
+    ? attempt.includes("2027")
+      ? "2027-12-15"
+      : "2026-12-15"
+    : attempt.includes("2027")
+      ? "2027-06-15"
+      : "2026-06-15";
+  return Math.max(
+    0,
+    Math.ceil((new Date(examDateStr).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+  );
+}
+
+function paperGhostFromCode(code: string | undefined): string {
+  return String(code?.match(/\d+/)?.[0] || "01").padStart(2, "0");
+}
+
 function OrbitalRing({percent,size=48,stroke=2.5,delay=0}:{percent:number;size?:number;stroke?:number;delay?:number}){
   const r=(size-stroke)/2, circ=2*Math.PI*r;
   const [m,setM]=useState(false);
@@ -63,11 +82,12 @@ export default function Home(){
   const stats={streak:12,weekHours:"4.2h",concepts:70,accuracy:"81%"};
   const todayTopic=subjects[0]?.title||"Select a subject";
   const subjectMeta=[
-    {ghost:"05",progress:72,mastered:35,total:48,chapters:6},
-    {ghost:"06",progress:41,mastered:25,total:62,chapters:8},
-    {ghost:"08",progress:18,mastered:10,total:55,chapters:7},
-    {ghost:"09",progress:0,mastered:0,total:40,chapters:5},
+    {progress:72,mastered:35,total:48,chapters:6},
+    {progress:41,mastered:25,total:62,chapters:8},
+    {progress:18,mastered:10,total:55,chapters:7},
+    {progress:0,mastered:0,total:40,chapters:5},
   ];
+  const daysUntilExam = daysUntilExamFromAttempt(attempt);
 
   return(
     <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'DM Sans',sans-serif"}}>
@@ -89,7 +109,7 @@ export default function Home(){
         {/* GREETING */}
         <motion.section initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:0.1}}
           style={{padding:"36px 0 32px",position:"relative"}}>
-          <span style={{position:"absolute",top:-40,left:-30,fontFamily:"'Playfair Display',serif",fontSize:"clamp(120px,18vw,220px)",fontWeight:900,color:C.navy,opacity:0.025,lineHeight:1,userSelect:"none",pointerEvents:"none"}}>04</span>
+          <span style={{position:"absolute",top:-40,left:-30,fontFamily:"'DM Serif Display',serif",fontSize:"clamp(120px,18vw,220px)",fontWeight:900,color:C.navy,opacity:0.025,lineHeight:1,userSelect:"none",pointerEvents:"none"}}>{String(daysUntilExam)}</span>
           <h1 style={{fontFamily:"'DM Serif Display',serif",fontSize:"clamp(32px,7vw,42px)",fontWeight:400,color:C.navy,lineHeight:1.15,whiteSpace:"pre-line",letterSpacing:"-0.01em",position:"relative",zIndex:1}}>{greeting}</h1>
           <p style={{fontSize:14,color:C.navy,opacity:0.35,marginTop:12}}>{course.toUpperCase()} {levelDisplay} · {attempt}</p>
         </motion.section>
@@ -108,7 +128,7 @@ export default function Home(){
         {/* TODAY CARD */}
         <motion.div initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:0.3}}
           style={{background:C.navy,borderRadius:16,padding:28,position:"relative",overflow:"hidden",marginBottom:28}}>
-          <span style={{position:"absolute",top:-30,right:-10,fontFamily:"'Playfair Display',serif",fontSize:180,fontWeight:900,color:"#fff",opacity:0.04,lineHeight:1}}>15</span>
+          <span style={{position:"absolute",top:-30,right:-10,fontFamily:"'DM Serif Display',serif",fontSize:180,fontWeight:900,color:"#fff",opacity:0.04,lineHeight:1,userSelect:"none",pointerEvents:"none"}}>{String(starredCount).padStart(2,"0")}</span>
           <div style={{position:"relative",zIndex:1}}>
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
               <span style={{color:C.gold,fontSize:11,fontWeight:600,letterSpacing:"0.15em",textTransform:"uppercase" as const,opacity:0.7}}>Today&apos;s Focus</span>
@@ -169,13 +189,14 @@ export default function Home(){
         </div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:40}}>
           {subjects.map((s:any,i:number)=>{
-            const meta=subjectMeta[i]||{ghost:"00",progress:0,mastered:0,total:30,chapters:5};
+            const meta=subjectMeta[i]||{progress:0,mastered:0,total:30,chapters:5};
             const isLocked=meta.progress===0&&i>0;
+            const cardGhost=paperGhostFromCode(s.code);
             return(
               <motion.div key={s.id} initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.4+i*0.06}}
                 whileTap={!isLocked?{scale:0.98}:{}} onClick={()=>!isLocked&&router.push(`/subject/${s.id}`)}
                 style={{position:"relative",borderRadius:14,background:"#fff",border:`1px solid ${C.navy}0A`,padding:"22px",gridColumn:"span 1",overflow:"hidden",cursor:isLocked?"default":"pointer",filter:isLocked?"grayscale(0.3)":"none"}}>
-                <span style={{position:"absolute",top:-15,right:-5,fontFamily:"'Playfair Display',serif",fontSize:"clamp(80px,12vw,140px)",fontWeight:900,color:C.navy,opacity:0.025,lineHeight:1,userSelect:"none",pointerEvents:"none"}}>{meta.ghost}</span>
+                <span style={{position:"absolute",top:-15,right:-5,fontFamily:"'DM Serif Display',serif",fontSize:"clamp(80px,12vw,140px)",fontWeight:900,color:C.navy,opacity:0.025,lineHeight:1,userSelect:"none",pointerEvents:"none"}}>{cardGhost}</span>
                 <div style={{position:"relative",zIndex:1}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
                     <span style={{fontSize:10,fontWeight:600,letterSpacing:"0.18em",textTransform:"uppercase" as const,color:C.navy}}>{s.code}</span>

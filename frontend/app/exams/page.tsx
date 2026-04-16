@@ -73,6 +73,7 @@ export default function ExamsPage() {
   const [examCount, setExamCount] = useState(0);
 
   useEffect(() => {
+    // TODO: Merge with server-side completed exams when accounts sync.
     const raw = localStorage.getItem("somi_exam_count");
     const n = raw != null ? parseInt(raw, 10) : NaN;
     setExamCount(Number.isFinite(n) ? n : 0);
@@ -178,7 +179,7 @@ export default function ExamsPage() {
               position: "absolute",
               top: -8,
               right: -12,
-              fontFamily: "'Playfair Display', serif",
+              fontFamily: "'DM Serif Display', serif",
               fontSize: "clamp(96px, 26vw, 140px)",
               fontWeight: 900,
               color: "#fff",
@@ -189,7 +190,7 @@ export default function ExamsPage() {
             }}
             aria-hidden
           >
-            02
+            {String(examCount).padStart(2, "0")}
           </span>
           {screen !== "home" && (
             <button

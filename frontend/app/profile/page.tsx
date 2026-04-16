@@ -100,6 +100,8 @@ export default function Profile() {
   const [group, setGroup] = useState("");
   const [attempt, setAttempt] = useState("");
   const [starCount, setStarCount] = useState(0);
+  /** Hero ghost: streak or days studied (TODO: sync from progress API). */
+  const [streakGhost, setStreakGhost] = useState("01");
 
   const loadFromStorage = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -120,6 +122,10 @@ export default function Profile() {
     } catch {
       setStarCount(0);
     }
+    const streakRaw =
+      localStorage.getItem("somi_streak") || localStorage.getItem("somi_days_studied") || "1";
+    const streakNum = Math.max(0, parseInt(streakRaw, 10) || 1);
+    setStreakGhost(String(streakNum).padStart(2, "0"));
   }, []);
 
   useEffect(() => {
@@ -204,7 +210,7 @@ export default function Profile() {
                 pointerEvents: "none",
               }}
             >
-              03
+              {streakGhost}
             </span>
 
             <div
