@@ -1,9 +1,34 @@
 "use client";
-import { useState } from "react";
+
+import { useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "https://studybuddy-production-7776.up.railway.app";
+const API =
+  process.env.NEXT_PUBLIC_API_URL || "https://studybuddy-production-7776.up.railway.app";
+
+const C = {
+  navy: "#071739",
+  gold: "#E3C39D",
+  silver: "#A4B5C4",
+};
+
+const sans = "'DM Sans', sans-serif";
+const serif = "'DM Serif Display', serif";
+
+const inputBase: CSSProperties = {
+  width: "100%",
+  padding: "14px 16px",
+  borderRadius: 14,
+  fontSize: 16,
+  color: C.navy,
+  background: "#fff",
+  outline: "none",
+  boxSizing: "border-box",
+  fontFamily: sans,
+  border: "1px solid rgba(7,23,57,0.12)",
+  transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+};
 
 export default function AuthPage() {
   const router = useRouter();
@@ -12,6 +37,8 @@ export default function AuthPage() {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emailFocus, setEmailFocus] = useState(false);
+  const [otpFocus, setOtpFocus] = useState(false);
 
   const sendOTP = async () => {
     if (!email.trim()) return;
@@ -21,7 +48,7 @@ export default function AuthPage() {
       const res = await fetch(`${API}/auth/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase() })
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
       });
       const data = await res.json();
       if (data.success) {
@@ -44,20 +71,20 @@ export default function AuthPage() {
       const res = await fetch(`${API}/auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), token: otp.trim() })
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          token: otp.trim(),
+        }),
       });
       const data = await res.json();
       if (data.success) {
-        // Save to localStorage
         localStorage.setItem("somi_auth_token", data.access_token);
         localStorage.setItem("somi_user_id", data.user_id);
         localStorage.setItem("somi_email", data.email);
-        
+
         if (data.is_new) {
-          // New student → profile setup
           router.push("/profile-setup");
         } else {
-          // Existing student → save name and go home
           localStorage.setItem("somi_student_name", data.student?.name || "Student");
           localStorage.setItem("somi_student_state", data.student?.state || "");
           router.push("/home");
@@ -72,164 +99,264 @@ export default function AuthPage() {
     }
   };
 
+  const inputFocusStyle = (focused: boolean): CSSProperties =>
+    focused
+      ? {
+          border: `2px solid ${C.navy}`,
+          boxShadow: `0 0 0 3px rgba(7,23,57,0.12)`,
+        }
+      : {};
+
+  const ctaEnabled = (ok: boolean) =>
+    ok && !loading
+      ? { background: C.gold, color: C.navy, cursor: "pointer" as const }
+      : {
+          background: "rgba(227,195,157,0.25)",
+          color: "rgba(7,23,57,0.45)",
+          cursor: "default" as const,
+        };
+
   return (
-    <div className="app-shell" style={{ 
-      display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center",
-      padding: 24, background: "#f9f6f1"
-    }}>
-      {/* Logo */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }} 
-        animate={{ opacity: 1, y: 0 }}
-        style={{ marginBottom: 32, textAlign: "center" }}>
-        <div style={{ 
-          width: 64, height: 64, borderRadius: 20,
-          background: "#071739", display: "flex",
-          alignItems: "center", justifyContent: "center",
-          margin: "0 auto 12px"
-        }}>
-          <span style={{ fontSize: 28 }}>📖</span>
-        </div>
-        <div style={{ fontSize: 22, fontWeight: 700, color: "#071739", fontFamily: "Georgia,serif" }}>
-          SOMI
-        </div>
-        <div style={{ fontSize: 12, color: "#A4B5C4", marginTop: 4 }}>
-          CMA Exam Prep — Mama Style
-        </div>
-      </motion.div>
+    <div
+      className="app-shell"
+      style={{
+        minHeight: "100vh",
+        width: "100%",
+        background: C.navy,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: `max(24px, env(safe-area-inset-top, 24px)) 24px max(32px, env(safe-area-inset-bottom, 32px))`,
+        fontFamily: sans,
+        boxSizing: "border-box",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: 400 }}>
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ textAlign: "center", marginBottom: 28 }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: C.gold,
+              color: C.navy,
+              fontFamily: serif,
+              fontSize: 22,
+              fontWeight: 400,
+              padding: "8px 20px",
+              borderRadius: 6,
+              transform: "rotate(-3deg)",
+              boxShadow: "0 6px 24px rgba(0,0,0,0.2)",
+              marginBottom: 16,
+            }}
+          >
+            SOM
+            <i style={{ fontStyle: "italic", fontSize: 24 }}>i</i>
+          </motion.div>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 500,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: C.silver,
+              lineHeight: 1.65,
+              maxWidth: 320,
+              margin: "0 auto",
+            }}
+          >
+            Student Oriented Mentor Intelligence
+          </div>
+        </motion.div>
 
-      {/* Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        style={{
-          width: "100%", maxWidth: 380,
-          background: "#fff", borderRadius: 20,
-          padding: 24, border: "0.5px solid rgba(0,0,0,0.08)"
-        }}>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08 }}
+        >
+          <AnimatePresence mode="wait">
+            {step === "email" && (
+              <motion.div
+                key="email"
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -16 }}
+              >
+                <h1
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 600,
+                    color: "#fff",
+                    margin: "0 0 8px",
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  Welcome
+                </h1>
+                <p style={{ fontSize: 14, color: C.silver, margin: "0 0 20px", lineHeight: 1.5 }}>
+                  Enter your email to get started
+                </p>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && sendOTP()}
+                  onFocus={() => setEmailFocus(true)}
+                  onBlur={() => setEmailFocus(false)}
+                  placeholder="your@email.com"
+                  autoComplete="email"
+                  style={{ ...inputBase, ...inputFocusStyle(emailFocus), marginBottom: 12 }}
+                />
+                {error && (
+                  <div style={{ fontSize: 13, color: "#FCA5A5", marginBottom: 12 }}>{error}</div>
+                )}
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: email.trim() && !loading ? 0.98 : 1 }}
+                  onClick={sendOTP}
+                  disabled={!email.trim() || loading}
+                  style={{
+                    width: "100%",
+                    padding: "14px 16px",
+                    borderRadius: 14,
+                    border: "none",
+                    fontSize: 15,
+                    fontWeight: 700,
+                    fontFamily: sans,
+                    ...ctaEnabled(!!email.trim()),
+                  }}
+                >
+                  {loading ? "Sending…" : "Send OTP →"}
+                </motion.button>
+              </motion.div>
+            )}
 
-        <AnimatePresence mode="wait">
-          {step === "email" && (
-            <motion.div key="email"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}>
-              <div style={{ fontSize: 17, fontWeight: 700, color: "#071739", marginBottom: 6 }}>
-                Welcome! 👋
-              </div>
-              <div style={{ fontSize: 13, color: "#A4B5C4", marginBottom: 20 }}>
-                Enter your email to get started
-              </div>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && sendOTP()}
-                placeholder="your@email.com"
-                style={{
-                  width: "100%", padding: "12px 14px",
-                  borderRadius: 12, border: "1.5px solid rgba(7,23,57,0.08)",
-                  fontSize: 14, color: "#071739",
-                  background: "#FAFAF8", outline: "none",
-                  boxSizing: "border-box", marginBottom: 12
-                }}
-              />
-              {error && (
-                <div style={{ fontSize: 12, color: "#ef4444", marginBottom: 10 }}>
-                  {error}
-                </div>
-              )}
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={sendOTP}
-                disabled={!email.trim() || loading}
-                style={{
-                  width: "100%", padding: "13px",
-                  borderRadius: 12, border: "none",
-                  background: email.trim() && !loading ? "#071739" : "rgba(7,23,57,0.08)",
-                  color: "#fff", fontSize: 14, fontWeight: 600,
-                  cursor: email.trim() && !loading ? "pointer" : "default"
-                }}>
-                {loading ? "Sending..." : "Send OTP →"}
-              </motion.button>
-            </motion.div>
-          )}
-
-          {step === "otp" && (
-            <motion.div key="otp"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}>
-              <div style={{ fontSize: 17, fontWeight: 700, color: "#071739", marginBottom: 6 }}>
-                Check your email 📧
-              </div>
-              <div style={{ fontSize: 13, color: "#A4B5C4", marginBottom: 4 }}>
-                We sent a 6-digit code to
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "#071739", marginBottom: 20 }}>
-                {email}
-              </div>
-              <input
-                type="number"
-                value={otp}
-                onChange={e => setOtp(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && verifyOTP()}
-                placeholder="Enter 6-digit code"
-                maxLength={6}
-                style={{
-                  width: "100%", padding: "12px 14px",
-                  borderRadius: 12, border: "1.5px solid rgba(7,23,57,0.08)",
-                  fontSize: 20, color: "#071739", letterSpacing: "0.2em",
-                  background: "#FAFAF8", outline: "none",
-                  boxSizing: "border-box", marginBottom: 12,
-                  textAlign: "center"
-                }}
-              />
-              {error && (
-                <div style={{ fontSize: 12, color: "#ef4444", marginBottom: 10 }}>
-                  {error}
-                </div>
-              )}
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={verifyOTP}
-                disabled={otp.length < 6 || loading}
-                style={{
-                  width: "100%", padding: "13px",
-                  borderRadius: 12, border: "none",
-                  background: otp.length >= 6 && !loading ? "#071739" : "rgba(7,23,57,0.08)",
-                  color: "#fff", fontSize: 14, fontWeight: 600,
-                  cursor: otp.length >= 6 && !loading ? "pointer" : "default",
-                  marginBottom: 12
-                }}>
-                {loading ? "Verifying..." : "Verify OTP →"}
-              </motion.button>
-              <button
-                onClick={() => { setStep("email"); setOtp(""); setError(""); }}
-                style={{
-                  width: "100%", padding: "10px",
-                  borderRadius: 12, border: "none",
-                  background: "transparent", color: "#A4B5C4",
-                  fontSize: 12, cursor: "pointer"
-                }}>
-                ← Change email
-              </button>
-              <button
-                onClick={sendOTP}
-                disabled={loading}
-                style={{
-                  width: "100%", padding: "10px",
-                  borderRadius: 12, border: "none",
-                  background: "transparent", color: "#071739",
-                  fontSize: 12, cursor: "pointer", fontWeight: 600
-                }}>
-                Resend OTP
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+            {step === "otp" && (
+              <motion.div
+                key="otp"
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -16 }}
+              >
+                <h1
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 600,
+                    color: "#fff",
+                    margin: "0 0 8px",
+                  }}
+                >
+                  Check your email
+                </h1>
+                <p style={{ fontSize: 14, color: C.silver, margin: "0 0 6px" }}>
+                  We sent a 6-digit code to
+                </p>
+                <p
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "#fff",
+                    margin: "0 0 20px",
+                    wordBreak: "break-all",
+                  }}
+                >
+                  {email}
+                </p>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  onKeyDown={(e) => e.key === "Enter" && verifyOTP()}
+                  onFocus={() => setOtpFocus(true)}
+                  onBlur={() => setOtpFocus(false)}
+                  placeholder="••••••"
+                  maxLength={6}
+                  style={{
+                    ...inputBase,
+                    ...inputFocusStyle(otpFocus),
+                    marginBottom: 12,
+                    fontSize: 22,
+                    letterSpacing: "0.35em",
+                    textAlign: "center",
+                  }}
+                />
+                {error && (
+                  <div style={{ fontSize: 13, color: "#FCA5A5", marginBottom: 12 }}>{error}</div>
+                )}
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: otp.length >= 6 && !loading ? 0.98 : 1 }}
+                  onClick={verifyOTP}
+                  disabled={otp.length < 6 || loading}
+                  style={{
+                    width: "100%",
+                    padding: "14px 16px",
+                    borderRadius: 14,
+                    border: "none",
+                    fontSize: 15,
+                    fontWeight: 700,
+                    fontFamily: sans,
+                    marginBottom: 12,
+                    ...ctaEnabled(otp.length >= 6),
+                  }}
+                >
+                  {loading ? "Verifying…" : "Verify OTP →"}
+                </motion.button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep("email");
+                    setOtp("");
+                    setError("");
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    borderRadius: 12,
+                    border: "none",
+                    background: "transparent",
+                    color: C.silver,
+                    fontSize: 13,
+                    cursor: "pointer",
+                    fontFamily: sans,
+                  }}
+                >
+                  ← Change email
+                </button>
+                <button
+                  type="button"
+                  onClick={sendOTP}
+                  disabled={loading}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    borderRadius: 12,
+                    border: "none",
+                    background: "transparent",
+                    color: C.gold,
+                    fontSize: 13,
+                    cursor: loading ? "default" : "pointer",
+                    fontWeight: 600,
+                    fontFamily: sans,
+                    opacity: loading ? 0.5 : 1,
+                  }}
+                >
+                  Resend OTP
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
     </div>
   );
 }
