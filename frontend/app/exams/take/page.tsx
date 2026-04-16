@@ -180,7 +180,7 @@ function ExamContent() {
       className="app-shell"
       style={{ minHeight: "100vh", background: C.bg, fontFamily: sans }}
     >
-      <div style={{ maxWidth: 640, margin: "0 auto" }}>
+      <div style={{ maxWidth: 720, margin: "0 auto" }}>
         <div style={{ background: C.navy, padding: "14px 20px" }}>
           <div
             style={{
@@ -435,7 +435,7 @@ function ExamContent() {
             left: "50%",
             transform: "translateX(-50%)",
             width: "100%",
-            maxWidth: 640,
+            maxWidth: 720,
             background: "#fff",
             borderTop: `1px solid rgba(7,23,57,0.06)`,
             padding: "12px 20px max(20px, env(safe-area-inset-bottom, 20px))",

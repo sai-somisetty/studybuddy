@@ -227,6 +227,7 @@ export default function MamaAgent({
       <AnimatePresence>
         {!isOpen && (
           <motion.div
+            data-mama-bubble="true"
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}

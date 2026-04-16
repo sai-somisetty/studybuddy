@@ -25,7 +25,7 @@ export default function HalfExam() {
       className="app-shell"
       style={{ minHeight: "100vh", background: C.bg, fontFamily: sans }}
     >
-      <div style={{ maxWidth: 640, margin: "0 auto" }}>
+      <div style={{ maxWidth: 720, margin: "0 auto" }}>
         <div
           style={{
             background: C.navy,

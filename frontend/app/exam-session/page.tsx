@@ -197,7 +197,7 @@ function ExamSessionContent() {
           fontFamily: sans,
         }}
       >
-        <div style={{ textAlign: "center", padding: 24, maxWidth: 640 }}>
+        <div style={{ textAlign: "center", padding: 24, maxWidth: 720 }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}><SomiIcons.Book size={40} /></div>
           <div
             style={{
@@ -257,7 +257,7 @@ function ExamSessionContent() {
         className="app-shell"
         style={{ minHeight: "100vh", background: C.bg, fontFamily: sans }}
       >
-        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+        <div style={{ maxWidth: 720, margin: "0 auto" }}>
           <div
             style={{
               background: C.navy,
@@ -636,7 +636,7 @@ function ExamSessionContent() {
       className="app-shell"
       style={{ minHeight: "100vh", background: C.bg, fontFamily: sans }}
     >
-      <div style={{ maxWidth: 640, margin: "0 auto", width: "100%" }}>
+      <div style={{ maxWidth: 720, margin: "0 auto", width: "100%" }}>
       <div
         style={{
           background: C.navy,
@@ -876,7 +876,7 @@ function ExamSessionContent() {
           left: "50%",
           transform: "translateX(-50%)",
           width: "100%",
-          maxWidth: 640,
+          maxWidth: 720,
           background: "#fff",
           borderTop: "1px solid rgba(7,23,57,0.06)",
           padding: "12px 20px max(28px, env(safe-area-inset-bottom, 28px))",

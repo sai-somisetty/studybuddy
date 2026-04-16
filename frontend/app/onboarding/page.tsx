@@ -167,7 +167,7 @@ export default function Onboarding() {
       <div
         style={{
           padding: `max(20px, env(safe-area-inset-top, 20px)) 20px 16px`,
-          maxWidth: 640,
+          maxWidth: 720,
           margin: "0 auto",
           width: "100%",
           boxSizing: "border-box",
@@ -226,7 +226,7 @@ export default function Onboarding() {
         style={{
           flex: 1,
           padding: "8px 20px max(40px, env(safe-area-inset-bottom, 40px))",
-          maxWidth: 640,
+          maxWidth: 720,
           margin: "0 auto",
           width: "100%",
           boxSizing: "border-box",

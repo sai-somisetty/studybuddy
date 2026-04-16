@@ -161,7 +161,7 @@ export default function ExamsPage() {
     >
       <div
         style={{
-          maxWidth: 640,
+          maxWidth: 720,
           margin: "0 auto",
           padding: "0 20px",
         }}

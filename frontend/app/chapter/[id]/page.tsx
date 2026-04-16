@@ -134,7 +134,7 @@ function ChapterContent({pageId}:{pageId:string}){
       <div style={{background:C.navy,paddingTop:"max(env(safe-area-inset-top,16px),16px)",paddingBottom:0,position:"relative",overflow:"hidden"}}>
         {/* Ghost num = chapter index (two digits) */}
         <span style={{position:"absolute",top:-20,right:-10,fontFamily:"'DM Serif Display',serif",fontWeight:900,fontSize:"clamp(100px,18vw,180px)",color:"#fff",opacity:0.03,lineHeight:1,userSelect:"none",pointerEvents:"none"}}>{String(chapterNum).padStart(2,"0")}</span>
-        <div style={{maxWidth:640,margin:"0 auto",padding:"0 20px",position:"relative",zIndex:1}}>
+        <div style={{maxWidth:720,margin:"0 auto",padding:"0 20px",position:"relative",zIndex:1}}>
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
             <motion.button whileTap={{scale:0.9}} onClick={()=>router.back()}
               style={{width:36,height:36,borderRadius:10,background:"rgba(255,255,255,0.06)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -154,12 +154,12 @@ function ChapterContent({pageId}:{pageId:string}){
             </div>
           </motion.div>
         </div>
-        <div style={{maxWidth:640,margin:"0 auto",padding:"0 20px"}}>
+        <div style={{maxWidth:720,margin:"0 auto",padding:"0 20px"}}>
           <div style={{height:3,background:"rgba(255,255,255,0.06)",borderRadius:2,overflow:"hidden",marginBottom:12}}>
             <div style={{width:`${progress}%`,height:"100%",background:C.gold,borderRadius:2}}/>
           </div>
         </div>
-        <div style={{maxWidth:640,margin:"0 auto",padding:"0 20px 16px"}}>
+        <div style={{maxWidth:720,margin:"0 auto",padding:"0 20px 16px"}}>
           <button onClick={()=>setShowJumper(true)} style={{background:"rgba(255,255,255,0.06)",border:"none",borderRadius:8,padding:"7px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
             <span style={{fontSize:11,color:C.gold,opacity:0.5,display:"inline-flex",alignItems:"center",gap:4}}><SomiIcons.BookOpen size={14} color="rgba(227,195,157,0.9)" />Jump to textbook page →</span>
           </button>
@@ -167,7 +167,7 @@ function ChapterContent({pageId}:{pageId:string}){
       </div>
 
       {/* CONCEPTS */}
-      <div style={{maxWidth:640,margin:"0 auto",padding:"16px 20px max(120px, calc(88px + env(safe-area-inset-bottom, 0px)))"}}>
+      <div style={{maxWidth:720,margin:"0 auto",padding:"16px 20px max(120px, calc(88px + env(safe-area-inset-bottom, 0px)))"}}>
         <div style={{fontSize:11,fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase" as const,color:C.navy,opacity:0.4,marginBottom:14}}>{concepts.length} Concepts</div>
 
         {concepts.map((concept,i)=>{

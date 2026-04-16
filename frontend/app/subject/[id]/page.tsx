@@ -117,7 +117,7 @@ function SubjectContent({pageId}:{pageId:string}){
       {/* NAVY HEADER */}
       <div style={{background:C.navy,paddingTop:"max(env(safe-area-inset-top,20px),20px)",paddingBottom:0,position:"relative",overflow:"hidden"}}>
         <span style={{position:"absolute",top:-20,right:-10,fontFamily:"'DM Serif Display',serif",fontWeight:900,fontSize:"clamp(120px,20vw,200px)",color:"#fff",opacity:0.03,lineHeight:1,userSelect:"none",pointerEvents:"none"}}>{String((subject.code?.match(/\d+/)?.[0] || "01")).padStart(2,"0")}</span>
-        <div style={{maxWidth:640,margin:"0 auto",padding:"0 20px",position:"relative",zIndex:1}}>
+        <div style={{maxWidth:720,margin:"0 auto",padding:"0 20px",position:"relative",zIndex:1}}>
           <motion.div initial={{opacity:0}} animate={{opacity:1}} style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
             <motion.button whileTap={{scale:0.9}} onClick={()=>router.back()}
               style={{width:36,height:36,borderRadius:10,background:"rgba(255,255,255,0.06)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -137,13 +137,13 @@ function SubjectContent({pageId}:{pageId:string}){
             </div>
           </motion.div>
         </div>
-        <div style={{maxWidth:640,margin:"0 auto",padding:"0 20px"}}>
+        <div style={{maxWidth:720,margin:"0 auto",padding:"0 20px"}}>
           <div style={{height:3,background:"rgba(255,255,255,0.06)",borderRadius:2,overflow:"hidden",marginBottom:12}}>
             <div style={{width:`${overallProgress}%`,height:"100%",background:C.gold,borderRadius:2}}/>
           </div>
         </div>
         {/* Page jump button */}
-        <div style={{maxWidth:640,margin:"0 auto",padding:"0 20px 16px"}}>
+        <div style={{maxWidth:720,margin:"0 auto",padding:"0 20px 16px"}}>
           <button onClick={()=>setShowJumper(true)} style={{background:"rgba(255,255,255,0.06)",border:"none",borderRadius:8,padding:"7px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
             <span style={{fontSize:11,color:C.gold,opacity:0.5,display:"inline-flex",alignItems:"center",gap:4}}><SomiIcons.BookOpen size={14} color="rgba(227,195,157,0.9)" />Jump to textbook page →</span>
           </button>
@@ -151,7 +151,7 @@ function SubjectContent({pageId}:{pageId:string}){
       </div>
 
       {/* CONTENT */}
-      <div style={{maxWidth:640,margin:"0 auto",padding:"20px 20px max(110px, calc(88px + env(safe-area-inset-bottom, 0px)))"}}>
+      <div style={{maxWidth:720,margin:"0 auto",padding:"20px 20px max(110px, calc(88px + env(safe-area-inset-bottom, 0px)))"}}>
         <motion.div initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:0.16}}
           style={{display:"flex",borderRadius:12,border:`1px solid ${C.navy}0D`,overflow:"hidden",marginBottom:24}}>
           {[{v:String(chapters.filter(c=>c.progress===100).length),l:"Complete"},{v:String(chapters.filter(c=>c.progress>0&&c.progress<100).length),l:"In Progress"},{v:String(chapters.filter(c=>c.progress===0).length),l:"Not Started"}].map((s,i)=>(

@@ -44,7 +44,7 @@ export default function DesktopShell({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     setMounted(true);
-    const check = () => { setIsDesktop(window.innerWidth >= 1024); setShowRight(window.innerWidth >= 1440); };
+    const check = () => { setIsDesktop(window.innerWidth >= 1024); setShowRight(window.innerWidth >= 1380); };
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
@@ -92,7 +92,7 @@ export default function DesktopShell({ children }: { children: React.ReactNode }
 
       {/* ═══ LEFT SIDEBAR ═══ */}
       <aside style={{
-        width: 260, flexShrink: 0, background: C.navy,
+        width: 240, flexShrink: 0, background: C.navy,
         display: "flex", flexDirection: "column",
         borderRight: "1px solid rgba(255,255,255,0.04)",
         position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 50,
@@ -190,13 +190,13 @@ export default function DesktopShell({ children }: { children: React.ReactNode }
 
       {/* ═══ CENTER — MOBILE APP ═══ */}
       <main style={{
-        flex: 1, marginLeft: 260,
+        flex: 1, marginLeft: 240,
         display: "flex", justifyContent: "center",
         background: "#0D1B2A",
         minHeight: "100vh",
       }}>
         <div style={{
-          width: "100%", maxWidth: 680,
+          width: "100%", maxWidth: 760,
           background: C.bg,
           minHeight: "100vh",
           position: "relative",
@@ -209,7 +209,7 @@ export default function DesktopShell({ children }: { children: React.ReactNode }
 
       {/* ═══ RIGHT PANEL — CONTEXT ═══ */}
       {showRight && <aside style={{
-        width: 300, flexShrink: 0,
+        width: 320, flexShrink: 0,
         background: C.navy,
         borderLeft: "1px solid rgba(255,255,255,0.04)",
         position: "fixed", top: 0, right: 0, bottom: 0,

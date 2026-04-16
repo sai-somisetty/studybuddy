@@ -434,8 +434,8 @@ function LessonContent() {
           {String(currentPage?.book_page ?? "")}
         </span>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, position: "relative", zIndex: 1 }}>
-          {/* Left — hamburger + back */}
-          <div style={{ display: "flex", gap: 8 }}>
+          {/* Left — hamburger + back (hidden on desktop — sidebar nav) */}
+          <div data-mobile-nav="true" style={{ display: "flex", gap: 8 }}>
             <button type="button" onClick={() => setShowDrawer(true)}
               style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: 14, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <SomiIcons.Menu size={16} color="#fff" />

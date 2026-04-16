@@ -60,6 +60,14 @@ html, body { height: 100%; }
     display: none !important;
   }
 
+  [data-mama-bubble] {
+    display: none !important;
+  }
+
+  [data-mobile-nav] {
+    display: none !important;
+  }
+
   body {
     background: #0D1B2A;
   }
