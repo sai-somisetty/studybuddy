@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, type ReactNode } from "react";
+import { SomiIcons } from "@/components/SomiIcons";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "https://studybuddy-production-7776.up.railway.app";
 
@@ -191,7 +192,7 @@ function PDFPane({
       gap: 12,
       padding: 24,
     }}>
-      <div style={{ fontSize: 40 }}>📄</div>
+      <div style={{ display: "flex", justifyContent: "center" }}><SomiIcons.FileText size={40} /></div>
       <div style={{ fontSize: 13, fontWeight: 700, color: "#071739", textAlign: "center" }}>
         PDF Viewer
       </div>
@@ -274,8 +275,9 @@ function SelectPageModal({
           borderBottom: "1px solid #e5e7eb",
           flexShrink: 0,
         }}>
-          <span style={{ fontSize: 15, fontWeight: 700, color: "#071739" }}>
-            📂 Select Page
+          <span style={{ fontSize: 15, fontWeight: 700, color: "#071739", display: "flex", alignItems: "center", gap: 6 }}>
+            <SomiIcons.Folder size={16} />
+            Select Page
           </span>
           <button
             onClick={onClose}
@@ -290,7 +292,7 @@ function SelectPageModal({
               borderRadius: 6,
             }}
           >
-            ✕
+            <SomiIcons.X size={16} color="#9ca3af" />
           </button>
         </div>
 
@@ -413,7 +415,7 @@ function SelectPageModal({
                                         {concept.label}
                                       </span>
                                       {isSelected && (
-                                        <span style={{ fontSize: 10, color: "#071739", marginLeft: "auto" }}>✓</span>
+                                        <span style={{ marginLeft: "auto", display: "flex" }}><SomiIcons.Check size={10} color="#071739" /></span>
                                       )}
                                     </button>
                                   );
@@ -527,7 +529,8 @@ function BreadcrumbBar({
           whiteSpace: "nowrap",
         }}
       >
-        📂 Change Page
+        <SomiIcons.Folder size={14} />
+        Change Page
       </button>
     </div>
   );
@@ -570,7 +573,7 @@ function ConceptForm({
     collapsible = true,
   }: {
     sectionKey?: keyof typeof sectionOpen;
-    icon: string;
+    icon: ReactNode;
     label: string;
     collapsible?: boolean;
   }) {
@@ -596,8 +599,11 @@ function ConceptForm({
           letterSpacing: "0.07em",
           textTransform: "uppercase",
           color: ACCENT,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
         }}>
-          {icon} {label}
+          {icon}{label}
         </p>
         {collapsible && (
           <span style={{ fontSize: 10, color: "#9ca3af" }}>{isOpen ? "▼" : "▶"}</span>
@@ -610,7 +616,7 @@ function ConceptForm({
     <div style={{ flex: 1, overflowY: "auto" }}>
 
       {/* ── 📖 Content — always open ── */}
-      <SectionHeader icon="📖" label="Content" collapsible={false} />
+      <SectionHeader icon={<SomiIcons.BookOpen size={14} />} label="Content" collapsible={false} />
       <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6" }}>
         <label style={{ fontSize: 10, fontWeight: 600, color: "#4B6382", display: "block", marginBottom: 4 }}>
           ICMAI Official Text
@@ -637,7 +643,7 @@ function ConceptForm({
       </div>
 
       {/* ── 🧠 Mama's Explanation ── */}
-      <SectionHeader sectionKey="tenglish" icon="🧠" label="Mama's Explanation" />
+      <SectionHeader sectionKey="tenglish" icon={<SomiIcons.Brain size={14} />} label="Mama's Explanation" />
       {sectionOpen.tenglish && (
         <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6" }}>
           <label style={{ fontSize: 10, fontWeight: 600, color: "#4B6382", display: "block", marginBottom: 4 }}>
@@ -654,7 +660,7 @@ function ConceptForm({
       )}
 
       {/* ── 😺 Kitty Interaction ── */}
-      <SectionHeader sectionKey="kitty" icon="😺" label="Kitty Interaction" />
+      <SectionHeader sectionKey="kitty" icon={<SomiIcons.Wave size={14} />} label="Kitty Interaction" />
       {sectionOpen.kitty && (
         <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6", display: "flex", flexDirection: "column", gap: 10 }}>
           <div>
@@ -685,7 +691,7 @@ function ConceptForm({
       )}
 
       {/* ── ❓ Check Question ── */}
-      <SectionHeader sectionKey="check" icon="❓" label="Check Question" />
+      <SectionHeader sectionKey="check" icon={<SomiIcons.Info size={14} />} label="Check Question" />
       {sectionOpen.check && (
         <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6", display: "flex", flexDirection: "column", gap: 10 }}>
           <div>
@@ -756,12 +762,13 @@ function ConceptForm({
       )}
 
       {/* ── 💬 Mama Responses ── */}
-      <SectionHeader sectionKey="responses" icon="💬" label="Mama Responses" />
+      <SectionHeader sectionKey="responses" icon={<SomiIcons.Chat size={14} />} label="Mama Responses" />
       {sectionOpen.responses && (
         <div style={{ padding: "12px 16px 24px", display: "flex", flexDirection: "column", gap: 10 }}>
           <div>
-            <label style={{ fontSize: 10, fontWeight: 600, color: "#16a34a", display: "block", marginBottom: 4 }}>
-              ✓ When Correct
+            <label style={{ fontSize: 10, fontWeight: 600, color: "#16a34a", display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <SomiIcons.Check size={12} color="#16a34a" />
+              When Correct
             </label>
             <textarea
               rows={2}
@@ -772,8 +779,9 @@ function ConceptForm({
             />
           </div>
           <div>
-            <label style={{ fontSize: 10, fontWeight: 600, color: "#ef4444", display: "block", marginBottom: 4 }}>
-              ✗ When Wrong
+            <label style={{ fontSize: 10, fontWeight: 600, color: "#ef4444", display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <SomiIcons.X size={12} color="#ef4444" />
+              When Wrong
             </label>
             <textarea
               rows={2}
@@ -864,10 +872,10 @@ export default function ContentDashboardPage() {
         next[selectedPageIdx] = page;
         return next;
       });
-      setSaveMsg("✓ Saved locally — push to DB from backend");
+      setSaveMsg("Saved locally — push to DB from backend");
       setTimeout(() => setSaveMsg(""), 3000);
     } catch {
-      setSaveMsg("✗ Save failed");
+      setSaveMsg("Save failed");
     } finally {
       setSaving(false);
     }
@@ -890,7 +898,7 @@ export default function ContentDashboardPage() {
         flexShrink: 0,
       }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
-          📚 StudyBuddy — Content Dashboard
+          StudyBuddy — Content Dashboard
         </span>
       </div>
 
@@ -968,7 +976,7 @@ export default function ContentDashboardPage() {
               {saveMsg && (
                 <span style={{
                   fontSize: 11,
-                  color: saveMsg.startsWith("✓") ? "#16a34a" : "#ef4444",
+                  color: saveMsg.startsWith("Saved") ? "#16a34a" : "#ef4444",
                   fontWeight: 600,
                 }}>
                   {saveMsg}
@@ -997,14 +1005,14 @@ export default function ContentDashboardPage() {
           {loading ? (
             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}><SomiIcons.Timer size={32} /></div>
                 <div style={{ fontSize: 13, color: "#071739", fontWeight: 700 }}>Loading content…</div>
               </div>
             </div>
           ) : !selectedConcept ? (
             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 32 }}>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>📂</div>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}><SomiIcons.Folder size={40} /></div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#071739", marginBottom: 8 }}>
                   No page selected
                 </div>
@@ -1024,7 +1032,7 @@ export default function ContentDashboardPage() {
                     cursor: "pointer",
                   }}
                 >
-                  📂 Change Page
+                  Change Page
                 </button>
               </div>
             </div>

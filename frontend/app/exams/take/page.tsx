@@ -1,5 +1,6 @@
 "use client";
 
+import { SomiIcons } from "@/components/SomiIcons";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef, Suspense } from "react";
@@ -306,9 +307,9 @@ function ExamContent() {
               <motion.div
                 whileTap={{ scale: 0.9 }}
                 onClick={handleFlag}
-                style={{ fontSize: 16, cursor: "pointer", opacity: flagged.has(question.id) ? 1 : 0.4 }}
+                style={{ cursor: "pointer", opacity: flagged.has(question.id) ? 1 : 0.4, display: "flex", alignItems: "center" }}
               >
-                🚩
+                <SomiIcons.Flag size={16} />
               </motion.div>
             </div>
             <div style={{ fontSize: 14, fontWeight: 600, color: C.navy, lineHeight: 1.5 }}>{question.question_text}</div>
@@ -387,9 +388,11 @@ function ExamContent() {
                         background: C.gold,
                         padding: "2px 8px",
                         borderRadius: 20,
+                        display: "inline-flex",
+                        alignItems: "center",
                       }}
                     >
-                      ✓
+                      <SomiIcons.Check size={12} color={C.navy} />
                     </span>
                   )}
                 </motion.button>

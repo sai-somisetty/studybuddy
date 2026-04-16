@@ -5,6 +5,7 @@ import { useState, useRef, useEffect, useCallback, useMemo, Suspense } from "rea
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import MamaAgent from "@/components/MamaAgent";
+import { SomiIcons } from "@/components/SomiIcons";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "https://studybuddy-production-7776.up.railway.app";
 
@@ -264,7 +265,7 @@ function LessonContent() {
     return (
       <div className="app-shell" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ textAlign: "center", padding: 24 }}>
-          <div style={{ fontSize: 40, marginBottom: 16 }}>📖</div>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}><SomiIcons.BookOpen size={40} /></div>
           <div style={{ fontSize: 15, fontWeight: 700, color: "#071739", marginBottom: 8 }}>
             Mama is preparing your lesson...
           </div>
@@ -293,7 +294,7 @@ function LessonContent() {
         </div>
         <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40 }}>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>🙏</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}><SomiIcons.Pray size={48} /></div>
             <div style={{ fontSize: 15, fontWeight: 700, color: "#071739", marginBottom: 8 }}>
               Mama inkaa prepare chestundi {studentName}!
             </div>
@@ -331,7 +332,7 @@ function LessonContent() {
                 background: "#fff", zIndex: 101, overflowY: "auto", padding: "20px 0"
               }}>
               <div style={{ padding: "0 20px 16px", borderBottom: "1px solid rgba(7,23,57,0.08)" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#071739" }}>📍 Chapter Map</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#071739", display: "flex", alignItems: "center", gap: 6 }}><SomiIcons.Pin size={14} />Chapter Map</div>
                 <div style={{ fontSize: 10, color: "#4B6382", marginTop: 2 }}>{subject} · {chapter}</div>
               </div>
               {pages.map((page, pi) => {
@@ -388,7 +389,7 @@ function LessonContent() {
                       <span>{paraCount} sections</span>
                       {keyCount > 0 && (
                         <span>
-                          · 🔑 {keyCount}
+                          · <span style={{ display: "inline-flex", alignItems: "center", gap: 2, verticalAlign: "middle" }}><SomiIcons.Key size={12} />{keyCount}</span>
                         </span>
                       )}
                     </div>
@@ -435,9 +436,9 @@ function LessonContent() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, position: "relative", zIndex: 1 }}>
           {/* Left — hamburger + back */}
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => setShowDrawer(true)}
-              style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: 14, color: "#fff", cursor: "pointer" }}>
-              ☰
+            <button type="button" onClick={() => setShowDrawer(true)}
+              style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: 14, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <SomiIcons.Menu size={16} color="#fff" />
             </button>
             <button onClick={() => router.back()}
               style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>
@@ -447,9 +448,9 @@ function LessonContent() {
 
           {/* Right — zone toggle */}
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <button onClick={() => setActiveZone(z => z === "mama" ? "icmai" : "mama")}
-              style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>
-              {activeZone === "mama" ? "📖" : "🧠"}
+            <button type="button" onClick={() => setActiveZone(z => z === "mama" ? "icmai" : "mama")}
+              style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {activeZone === "mama" ? <SomiIcons.BookOpen size={14} color="rgba(255,255,255,0.85)" /> : <SomiIcons.Brain size={14} color="rgba(255,255,255,0.85)" />}
             </button>
           </div>
         </div>
@@ -515,7 +516,7 @@ function LessonContent() {
                       alignItems: "center", justifyContent: "space-between", gap: 8
                     }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: 9, fontWeight: 700, color: "#071739", flexShrink: 0 }}>📖 ICMAI</span>
+                      <span style={{ fontSize: 9, fontWeight: 700, color: "#071739", flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4 }}><SomiIcons.BookOpen size={12} />ICMAI</span>
                       <span style={{
                         fontSize: 11, color: "#071739", fontFamily: "Georgia,serif",
                         fontStyle: "italic", overflow: "hidden", textOverflow: "ellipsis",
@@ -545,11 +546,11 @@ function LessonContent() {
                 <div style={{ background: "#fff", borderRadius: 16, border: "0.5px solid rgba(0,0,0,0.06)", overflow: "hidden" }}>
                   {/* Tab bar */}
                   <div style={{ display: "flex", borderBottom: "1px solid #F0EDE8" }}>
-                    {[
-                      { id: "quick",    label: "⚡ Quick",   available: true },
-                      { id: "example",  label: "📝 Revise",  available: hasExample },
-                      { id: "deepdive", label: "📖 Master",  available: hasDeepDive },
-                    ].map(tab => (
+                    {([
+                      { id: "quick" as const,    label: (<><span style={{ display: "inline-flex", marginRight: 4, verticalAlign: "middle" }}><SomiIcons.Bolt size={14} color={activeTab === "quick" ? "#fff" : "#4B6382"} /></span>Quick</>),   available: true },
+                      { id: "example" as const,  label: (<><span style={{ display: "inline-flex", marginRight: 4, verticalAlign: "middle" }}><SomiIcons.Pen size={14} color={activeTab === "example" ? "#fff" : "#4B6382"} /></span>Revise</>),  available: hasExample },
+                      { id: "deepdive" as const, label: (<><span style={{ display: "inline-flex", marginRight: 4, verticalAlign: "middle" }}><SomiIcons.BookOpen size={14} color={activeTab === "deepdive" ? "#fff" : "#4B6382"} /></span>Master</>),  available: hasDeepDive },
+                    ] as const).map(tab => (
                       <button key={tab.id}
                         onClick={() => setActiveTab(tab.id as ExplanationTab)}
                         style={{
@@ -632,7 +633,7 @@ function LessonContent() {
                               padding: 0,
                             }}
                           >
-                            {paraIsStarred ? "⭐" : "☆"}
+                            {paraIsStarred ? <SomiIcons.Star size={14} /> : <SomiIcons.StarOutline size={14} />}
                           </motion.button>
 
                           <motion.button
@@ -660,7 +661,7 @@ function LessonContent() {
                                     timestamp: new Date().toISOString(),
                                   }),
                                 }).catch(console.error);
-                                alert("Report sent! MAMA team will fix this. Thanks 🙏");
+                                alert("Report sent! MAMA team will fix this. Thanks!");
                                 haptic();
                               }
                             }}
@@ -680,7 +681,7 @@ function LessonContent() {
                               opacity: 0.35,
                             }}
                           >
-                            🚩
+                            <SomiIcons.Flag size={12} />
                           </motion.button>
                         </div>
                       </div>
@@ -715,7 +716,7 @@ function LessonContent() {
                     {/* Mama's Exam Tip — Master tab */}
                     {activeTab === "deepdive" && currentPara?.mamas_tip && (
                       <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(227,195,157,0.08)", borderRadius: 10, border: "1px solid rgba(227,195,157,0.15)" }}>
-                        <div style={{ fontSize: 9, fontWeight: 700, color: "#E3C39D", marginBottom: 4 }}>💡 MAMA'S EXAM TIP</div>
+                        <div style={{ fontSize: 9, fontWeight: 700, color: "#E3C39D", marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}><SomiIcons.Lightbulb size={14} />MAMA&apos;S EXAM TIP</div>
                         <div style={{ fontSize: 12, color: "#071739", lineHeight: 1.6 }}>{currentPara.mamas_tip}</div>
                       </div>
                     )}
@@ -745,8 +746,9 @@ function LessonContent() {
                       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                       style={{ background: "#fff", borderRadius: 14, padding: 16, border: "1px solid rgba(7,23,57,0.06)", boxShadow: "0 2px 8px rgba(7,23,57,0.04)" }}>
 
-                      <div style={{ fontSize: 10, fontWeight: 700, color: "#185FA5", letterSpacing: "0.08em", marginBottom: 10 }}>
-                        🎯 QUICK CHECK — {studentName.toUpperCase()}!
+                      <div style={{ fontSize: 10, fontWeight: 700, color: "#185FA5", letterSpacing: "0.08em", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+                        <SomiIcons.Target size={14} color="#185FA5" />
+                        QUICK CHECK — {studentName.toUpperCase()}!
                       </div>
                       <div style={{ fontSize: 13, fontWeight: 600, color: "#071739", lineHeight: 1.6, marginBottom: 14 }}>
                         {currentPara?.check_question}
@@ -766,8 +768,8 @@ function LessonContent() {
                             style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "12px 14px", marginBottom: 8, borderRadius: 12, background: bg, border, color, cursor: isAnswered ? "default" : "pointer", textAlign: "left" }}>
                             <span style={{ fontWeight: 700, flexShrink: 0 }}>{String.fromCharCode(65 + idx)}.</span>
                             <span style={{ fontSize: 13, flex: 1 }}>{opt}</span>
-                            {isAnswered && isThisRight  && <span style={{ color: "#16a34a", fontWeight: 700 }}>✓</span>}
-                            {isAnswered && isSelected && !isThisRight && <span style={{ color: "#ef4444", fontWeight: 700 }}>✗</span>}
+                            {isAnswered && isThisRight  && <SomiIcons.Check size={12} color="#16a34a" />}
+                            {isAnswered && isSelected && !isThisRight && <SomiIcons.X size={12} color="#ef4444" />}
                           </motion.button>
                         );
                       })}
@@ -778,7 +780,7 @@ function LessonContent() {
                           <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                             onClick={handleGiveUp}
                             style={{ width: "100%", marginTop: 4, padding: "10px", borderRadius: 12, background: "transparent", border: "1px solid #ef4444", color: "#ef4444", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
-                            Mama, chupinchu answer 🏳️
+                            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}><SomiIcons.Flag size={14} />Mama, chupinchu answer</span>
                           </motion.button>
                         )
                       ) : null}
@@ -799,12 +801,12 @@ function LessonContent() {
                                 <div style={{ width: 26, height: 26, borderRadius: 8, background: "#071739", display: "flex", alignItems: "center", justifyContent: "center" }}>
                                   <span style={{ fontSize: 7, fontWeight: 800, color: "#E3C39D" }}>MAMA</span>
                                 </div>
-                                <span style={{ fontSize: 10, fontWeight: 700, color: isCorrect ? "#071739" : "#A68868" }}>
-                                  {isCorrect ? `🎉 Correct ${studentName}!` : gaveUp ? "Parledu! Next time pakka!" : `Try again ${studentName}!`}
+                                <span style={{ fontSize: 10, fontWeight: 700, color: isCorrect ? "#071739" : "#A68868", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                  {isCorrect ? (<><SomiIcons.Celebration size={16} />Correct {studentName}!</>) : gaveUp ? "Parledu! Next time pakka!" : `Try again ${studentName}!`}
                                 </span>
                               </div>
                               <div style={{ fontSize: 12, lineHeight: 1.6, color: "#071739" }}>
-                                {isCorrect ? currentPara?.mama_response_correct : gaveUp ? `Parledu ${studentName} — next time pakka chestav! 💪` : currentPara?.mama_response_wrong}
+                                {isCorrect ? currentPara?.mama_response_correct : gaveUp ? (<><span>Parledu {studentName} — next time pakka chestav!</span> <SomiIcons.Strong size={16} /></>) : currentPara?.mama_response_wrong}
                               </div>
                             </div>
 
@@ -816,26 +818,30 @@ function LessonContent() {
                                   <div style={{ fontSize: 10, fontWeight: 700, color: "#4B6382", marginBottom: 10 }}>
                                     {studentName}, enduku wrong ayyindi?
                                   </div>
-                                  {[
-                                    { id: "concept", label: "Concept ne ardham kaaledu", emoji: "🧠" },
-                                    { id: "silly",   label: "Silly mistake chesa",       emoji: "🤦" },
-                                    { id: "misread", label: "Question misread chesanu",  emoji: "👀" },
-                                  ].map(r => (
+                                  {([
+                                    { id: "concept" as const, label: "Concept ne ardham kaaledu", Icon: SomiIcons.Brain },
+                                    { id: "silly" as const,   label: "Silly mistake chesa",       Icon: SomiIcons.Facepalm },
+                                    { id: "misread" as const, label: "Question misread chesanu",  Icon: SomiIcons.Eye },
+                                  ] as const).map((r) => {
+                                    const FailIcon = r.Icon;
+                                    return (
                                     <button key={r.id}
+                                      type="button"
                                       onClick={() => {
                                         setFailureReason(r.id as FailureReason);
                                         // Could save to DB here for analytics
                                       }}
                                       style={{
-                                        display: "block", width: "100%", padding: "8px 12px",
+                                        display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 12px",
                                         marginBottom: 6, borderRadius: 10, textAlign: "left",
                                         background: failureReason === r.id ? "rgba(7,23,57,0.06)" : "#FAFAF8",
                                         border: failureReason === r.id ? "1.5px solid #071739" : "1.5px solid rgba(7,23,57,0.06)",
                                         cursor: "pointer", fontSize: 12, color: "#071739"
                                       }}>
-                                      {r.emoji} {r.label}
+                                      <FailIcon size={16} />{r.label}
                                     </button>
-                                  ))}
+                                    );
+                                  })}
                                   {failureReason && (
                                     <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                                       onClick={goNextPara}
@@ -856,17 +862,20 @@ function LessonContent() {
                                     {studentName}, idi ela feel ayyindi?
                                   </div>
                                   <div style={{ display: "flex", gap: 8 }}>
-                                    {[
-                                      { id: "low",    label: "😅 Not sure" },
-                                      { id: "medium", label: "🙂 Okay okay" },
-                                      { id: "high",   label: "💪 Crystal!" },
-                                    ].map(c => (
-                                      <button key={c.id}
+                                    {([
+                                      { id: "low" as const,    label: "Not sure",    Icon: SomiIcons.Unsure },
+                                      { id: "medium" as const, label: "Okay okay", Icon: SomiIcons.Okay },
+                                      { id: "high" as const,   label: "Crystal!",   Icon: SomiIcons.Strong },
+                                    ] as const).map((c) => {
+                                      const ConfIcon = c.Icon;
+                                      return (
+                                      <button key={c.id} type="button"
                                         onClick={() => handleConfidence(c.id as ConfidenceLevel)}
-                                        style={{ flex: 1, padding: "10px 6px", borderRadius: 10, background: confidence === c.id ? "rgba(7,23,57,0.06)" : "#FAFAF8", border: confidence === c.id ? "1.5px solid #071739" : "1.5px solid rgba(7,23,57,0.06)", cursor: "pointer", fontSize: 11, fontWeight: 600, color: "#071739" }}>
-                                        {c.label}
+                                        style={{ flex: 1, padding: "10px 6px", borderRadius: 10, background: confidence === c.id ? "rgba(7,23,57,0.06)" : "#FAFAF8", border: confidence === c.id ? "1.5px solid #071739" : "1.5px solid rgba(7,23,57,0.06)", cursor: "pointer", fontSize: 11, fontWeight: 600, color: "#071739", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                                        <ConfIcon size={16} />{c.label}
                                       </button>
-                                    ))}
+                                      );
+                                    })}
                                   </div>
                                 </motion.div>
                               )}
@@ -903,7 +912,7 @@ function LessonContent() {
                     {!showTestYourself && !testComplete && (
                       <>
                         <div style={{ padding: "16px 16px 12px", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
-                          <div style={{ fontSize: 20, marginBottom: 4 }}>🎉</div>
+                          <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 4 }}><SomiIcons.Celebration size={20} /></div>
                           <div style={{ fontSize: 15, fontWeight: 600, color: "#1C1C1E", marginBottom: 2 }}>
                             Section Complete, {studentName}!
                           </div>
@@ -915,7 +924,7 @@ function LessonContent() {
                           <motion.button whileTap={{ scale: 0.97 }}
                             onClick={() => { setShowTestYourself(true); setTestIdx(0); }}
                             style={{ width: "100%", padding: "12px", borderRadius: 12, background: "#071739", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
-                            📝 Test Yourself ({allQuestions.length} questions)
+                            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}><SomiIcons.Pen size={14} color="#fff" />Test Yourself ({allQuestions.length} questions)</span>
                           </motion.button>
                           <motion.button whileTap={{ scale: 0.97 }}
                             onClick={() => router.back()}
@@ -955,8 +964,8 @@ function LessonContent() {
                               style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "10px 14px", marginBottom: 8, borderRadius: 12, background: bg, border, color, cursor: answered ? "default" : "pointer", textAlign: "left" }}>
                               <span style={{ fontWeight: 700, flexShrink: 0 }}>{String.fromCharCode(65 + idx)}.</span>
                               <span style={{ fontSize: 12, flex: 1 }}>{opt}</span>
-                              {answered && isRight && <span style={{ color: "#16a34a" }}>✓</span>}
-                              {answered && isSelected && !isRight && <span style={{ color: "#ef4444" }}>✗</span>}
+                              {answered && isRight && <SomiIcons.Check size={12} color="#16a34a" />}
+                              {answered && isSelected && !isRight && <SomiIcons.X size={12} color="#ef4444" />}
                             </motion.button>
                           );
                         })}
@@ -974,7 +983,7 @@ function LessonContent() {
                                 }
                               }}
                               style={{ width: "100%", padding: "11px", borderRadius: 12, background: "#071739", color: "#fff", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
-                              {testIdx < allQuestions.length - 1 ? "Next Question →" : "See Results 🎯"}
+                              {testIdx < allQuestions.length - 1 ? "Next Question →" : (<span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}>See Results <SomiIcons.Target size={14} color="#fff" /></span>)}
                             </motion.button>
                           </motion.div>
                         )}
@@ -983,22 +992,22 @@ function LessonContent() {
 
                     {testComplete && (
                       <div style={{ padding: 20, textAlign: "center" }}>
-                        <div style={{ fontSize: 32, marginBottom: 12 }}>
-                          {testCorrectTotal === allQuestions.length ? "🏆" : "💪"}
+                        <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+                          {testCorrectTotal === allQuestions.length ? <SomiIcons.Trophy size={32} /> : <SomiIcons.Strong size={32} />}
                         </div>
                         <div style={{ fontSize: 16, fontWeight: 700, color: "#071739", marginBottom: 6 }}>
                           {testCorrectTotal} / {allQuestions.length} Correct!
                         </div>
                         <div style={{ fontSize: 12, color: "#8E8E93", marginBottom: 16 }}>
                           {testCorrectTotal === allQuestions.length
-                            ? `Perfect score ${studentName}! Section mastered! 🎉`
+                            ? (<><span>Perfect score {studentName}! Section mastered!</span> <SomiIcons.Celebration size={16} /></>)
                             : `Good effort ${studentName}! Review the Master tab for weak concepts.`}
                         </div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                           <motion.button whileTap={{ scale: 0.97 }}
                             onClick={() => { setTestIdx(0); setTestAnswers({}); setTestComplete(false); setShowTestYourself(true); }}
                             style={{ width: "100%", padding: "11px", borderRadius: 12, background: "rgba(7,23,57,0.05)", color: "#071739", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
-                            🔄 Retry Test
+                            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}><SomiIcons.Refresh size={14} />Retry Test</span>
                           </motion.button>
                           <motion.button whileTap={{ scale: 0.97 }}
                             onClick={() => router.back()}

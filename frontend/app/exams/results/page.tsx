@@ -1,5 +1,6 @@
 "use client";
 
+import { SomiIcons } from "@/components/SomiIcons";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Suspense } from "react";
@@ -27,7 +28,7 @@ function ResultsContent() {
 
   const mamaMessage =
     pct >= 80
-      ? "Outstanding! You are exam ready. Mama is proud! 🎉"
+      ? "Outstanding! You are exam ready. Mama is proud!"
       : pct >= 60
         ? "Good attempt! Review the questions you got wrong. Try again tomorrow."
         : pct >= 40
@@ -275,7 +276,10 @@ function ResultsContent() {
               role="link"
               tabIndex={0}
             >
-              🚩 Report an issue with this exam
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <SomiIcons.Flag size={14} />
+                Report an issue with this exam
+              </span>
             </span>
           </div>
         </div>

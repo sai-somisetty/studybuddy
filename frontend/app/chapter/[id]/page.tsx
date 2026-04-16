@@ -1,5 +1,6 @@
 "use client";
 import React, { use, useEffect, useState, Suspense } from "react";
+import { SomiIcons } from "@/components/SomiIcons";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "next/navigation";
@@ -34,7 +35,7 @@ const conceptMap:Record<string,Record<number,string[]>>={
   },
 };
 
-function MasteryRing({filled,icon}:{filled:number;icon:string}){
+function MasteryRing({filled,icon}:{filled:number;icon:React.ReactNode}){
   const circ=50.27,offset=circ-(circ*filled);
   const isComplete=filled>=1,isEmpty=filled<=0;
   return(
@@ -67,10 +68,10 @@ function PageJumper({show,onClose}:{show:boolean;onClose:()=>void}){
           window.location.href = `/lesson?namespace=${encodeURIComponent(data.namespace)}&concept=${encodeURIComponent(data.concept)}&subject=&chapter=Chapter%20${data.chapter_num}&page=${data.book_page}`;
         }, 600);
       } else {
-        setFeedback("📖 Page " + val + " — concept not loaded yet. Coming soon!");
+        setFeedback("Page " + val + " — concept not loaded yet. Coming soon!");
       }
     } catch {
-      setFeedback("📖 Page " + val + " — concept not loaded yet. Coming soon!");
+      setFeedback("Page " + val + " — concept not loaded yet. Coming soon!");
     }
   };
 
@@ -85,7 +86,7 @@ function PageJumper({show,onClose}:{show:boolean;onClose:()=>void}){
             <button onClick={onClose} style={{position:"absolute",top:12,right:12,width:28,height:28,borderRadius:8,background:"rgba(7,23,57,0.04)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#071739" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </button>
-            <div style={{fontSize:32,marginBottom:12}}>📖</div>
+            <div style={{display:"flex",justifyContent:"center",marginBottom:12}}><SomiIcons.BookOpen size={32} /></div>
             <div style={{fontFamily:"'DM Serif Display',serif",fontSize:18,marginBottom:4}}>Go to Page</div>
             <div style={{fontSize:12,opacity:0.4,marginBottom:20}}>Enter your ICMAI textbook page number</div>
             <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:16}}>
@@ -160,7 +161,7 @@ function ChapterContent({pageId}:{pageId:string}){
         </div>
         <div style={{maxWidth:520,margin:"0 auto",padding:"0 20px 16px"}}>
           <button onClick={()=>setShowJumper(true)} style={{background:"rgba(255,255,255,0.06)",border:"none",borderRadius:8,padding:"7px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
-            <span style={{fontSize:11,color:C.gold,opacity:0.5}}>📖 Jump to textbook page →</span>
+            <span style={{fontSize:11,color:C.gold,opacity:0.5,display:"inline-flex",alignItems:"center",gap:4}}><SomiIcons.BookOpen size={14} color="rgba(227,195,157,0.9)" />Jump to textbook page →</span>
           </button>
         </div>
       </div>
@@ -184,8 +185,8 @@ function ChapterContent({pageId}:{pageId:string}){
                 <span style={{fontFamily:"'Playfair Display',serif",fontSize:32,fontWeight:900,color:C.navy,opacity:0.12,lineHeight:1,minWidth:28}}>{i+1}</span>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontSize:14,fontWeight:600,lineHeight:1.35,color:C.navy,marginBottom:6}}>{concept}</div>
-                  {!isNotStarted&&(<div style={{display:"flex",gap:6,alignItems:"center",marginBottom:4}}><MasteryRing filled={m[0]} icon="⚡"/><MasteryRing filled={m[1]} icon="📝"/><MasteryRing filled={m[2]} icon="📖"/></div>)}
-                  {isMastered&&<span style={{display:"inline-block",fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:20,background:`${C.navy}0A`,color:C.navy,opacity:0.6,marginTop:4}}>✓ Mastered</span>}
+                  {!isNotStarted&&(<div style={{display:"flex",gap:6,alignItems:"center",marginBottom:4}}><MasteryRing filled={m[0]} icon={<SomiIcons.Bolt size={10} color={C.navy} />} /><MasteryRing filled={m[1]} icon={<SomiIcons.Pen size={10} color={C.navy} />} /><MasteryRing filled={m[2]} icon={<SomiIcons.BookOpen size={10} color={C.navy} />} /></div>)}
+                  {isMastered&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:20,background:`${C.navy}0A`,color:C.navy,opacity:0.6,marginTop:4}}><SomiIcons.Check size={10} />Mastered</span>}
                   {isInProgress&&<span style={{display:"inline-block",fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:20,background:`${C.navy}06`,color:C.steel,marginTop:4}}>In progress</span>}
                   {isNotStarted&&!isCurrent&&<span style={{fontSize:10,color:C.navy,opacity:0.25,marginTop:2,display:"block"}}>Not started</span>}
                 </div>
@@ -194,11 +195,11 @@ function ChapterContent({pageId}:{pageId:string}){
                 <div style={{display:"flex",gap:8}}>
                   <motion.button whileTap={{scale:0.96}} onClick={()=>router.push(`/lesson?namespace=${encodeURIComponent(namespace)}&concept=${encodeURIComponent(concept)}&subject=${encodeURIComponent(subjectTitle)}&chapter=${encodeURIComponent(`Chapter ${chapterNum} — ${chapterTitle}`)}&page=1`)}
                     style={{padding:"7px 16px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:600,background:isMastered?`${C.navy}0A`:C.navy,color:isMastered?C.navy:"#fff",opacity:isMastered?0.5:1,boxShadow:!isMastered&&isCurrent?`0 2px 12px ${C.navy}20`:"none"}}>
-                    {isMastered?"📖 Revise":isInProgress?"📖 Continue":"📖 Study Now"}
+                    {isMastered?(<><span style={{display:"inline-flex",marginRight:4,verticalAlign:"middle"}}><SomiIcons.BookOpen size={14} /></span>Revise</>):isInProgress?(<><span style={{display:"inline-flex",marginRight:4,verticalAlign:"middle"}}><SomiIcons.BookOpen size={14} /></span>Continue</>):(<><span style={{display:"inline-flex",marginRight:4,verticalAlign:"middle"}}><SomiIcons.BookOpen size={14} /></span>Study Now</>)}
                   </motion.button>
                   <motion.button whileTap={{scale:0.96}} onClick={()=>router.push(`/quiz?namespace=${encodeURIComponent(namespace)}&concept=${encodeURIComponent(concept)}&mode=concept_check&subject=${encodeURIComponent(subjectTitle)}&chapter=${chapterNum}&course=cma&paper=1`)}
                     style={{padding:"7px 16px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:600,background:`${C.navy}06`,color:C.navy,opacity:0.6}}>
-                    ✏️ Quiz
+                    <span style={{display:"inline-flex",alignItems:"center",gap:4}}><SomiIcons.Pen size={14} />Quiz</span>
                   </motion.button>
                 </div>
               )}
@@ -210,7 +211,7 @@ function ChapterContent({pageId}:{pageId:string}){
         <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:0.5}}
           style={{marginTop:20,background:C.navy,borderRadius:14,overflow:"hidden"}}>
           <div style={{padding:"16px 18px 10px",fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase" as const,color:C.gold,opacity:0.5}}>Chapter Actions</div>
-          {[{title:`Chapter ${chapterNum} Quiz`,sub:`All concepts · ${concepts.length} questions`,icon:"✏️"},{title:"Timed Mock Test",sub:"30 min · exam conditions",icon:"⏱️"}].map((item,i)=>(
+          {[{title:`Chapter ${chapterNum} Quiz`,sub:`All concepts · ${concepts.length} questions`,icon:<SomiIcons.Pen size={18} /> as React.ReactNode},{title:"Timed Mock Test",sub:"30 min · exam conditions",icon:<SomiIcons.Timer size={18} /> as React.ReactNode}].map((item,i)=>(
             <motion.button key={i} whileTap={{scale:0.98}} onClick={()=>router.push(`/quiz?namespace=${encodeURIComponent(namespace)}&mode=textbook&subject=${encodeURIComponent(subjectTitle)}&chapter=${chapterNum}&course=cma&paper=1`)}
               style={{display:"flex",alignItems:"center",gap:14,padding:"14px 18px",borderTop:"1px solid rgba(255,255,255,0.06)",cursor:"pointer",background:"none",border:"none",borderTopStyle:"solid" as const,borderTopWidth:1,borderTopColor:"rgba(255,255,255,0.06)",width:"100%",textAlign:"left",fontFamily:"'DM Sans',sans-serif"}}>
               <div style={{width:36,height:36,borderRadius:10,background:"rgba(255,255,255,0.06)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{item.icon}</div>

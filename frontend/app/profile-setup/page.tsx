@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
+import { SomiIcons } from "@/components/SomiIcons";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -227,9 +228,9 @@ export default function ProfileSetupPage() {
               style={{ display: "flex", flexDirection: "column", gap: 10 }}
             >
               {[
-                { id: "female", label: "Female", emoji: "👩" },
-                { id: "male", label: "Male", emoji: "👨" },
-                { id: "other", label: "Prefer not to say", emoji: "🙂" },
+                { id: "female", label: "Female", lead: <SomiIcons.User size={22} /> },
+                { id: "male", label: "Male", lead: <SomiIcons.User size={22} /> },
+                { id: "other", label: "Prefer not to say", lead: <SomiIcons.Okay size={22} /> },
               ].map((g) => (
                 <motion.button
                   key={g.id}
@@ -238,7 +239,7 @@ export default function ProfileSetupPage() {
                   onClick={() => setGender(g.id)}
                   style={selectCard(gender === g.id)}
                 >
-                  <span style={{ fontSize: 24 }}>{g.emoji}</span>
+                  <span style={{ display: "flex", flexShrink: 0 }}>{g.lead}</span>
                   <span
                     style={{
                       fontSize: 15,
@@ -249,7 +250,7 @@ export default function ProfileSetupPage() {
                   >
                     {g.label}
                   </span>
-                  {gender === g.id && <span style={{ color: C.gold, fontWeight: 700 }}>✓</span>}
+                  {gender === g.id && <SomiIcons.Check size={14} color={C.gold} />}
                 </motion.button>
               ))}
             </motion.div>
@@ -278,8 +279,10 @@ export default function ProfileSetupPage() {
                     justifyContent: "center",
                   }}
                 >
-                  {s}
-                  {state === s ? " ✓" : ""}
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    {s}
+                    {state === s ? <SomiIcons.Check size={12} color={C.gold} /> : null}
+                  </span>
                 </motion.button>
               ))}
             </motion.div>
@@ -298,15 +301,15 @@ export default function ProfileSetupPage() {
                   id: "tenglish",
                   label: "Tenglish",
                   sublabel: "Telugu + English mix (Default)",
-                  emoji: "🗣️",
+                  lead: <SomiIcons.Chat size={22} />,
                 },
                 {
                   id: "english",
                   label: "Full English",
                   sublabel: "Pure English explanations",
-                  emoji: "🇬🇧",
+                  lead: <SomiIcons.BookOpen size={22} />,
                 },
-                { id: "hindi", label: "Hinglish", sublabel: "Hindi + English mix", emoji: "🇮🇳" },
+                { id: "hindi", label: "Hinglish", sublabel: "Hindi + English mix", lead: <SomiIcons.Chat size={22} /> },
               ].map((l) => (
                 <motion.button
                   key={l.id}
@@ -315,7 +318,7 @@ export default function ProfileSetupPage() {
                   onClick={() => setLanguage(l.id)}
                   style={selectCard(language === l.id)}
                 >
-                  <span style={{ fontSize: 24 }}>{l.emoji}</span>
+                  <span style={{ display: "flex", flexShrink: 0 }}>{l.lead}</span>
                   <div style={{ flex: 1 }}>
                     <div
                       style={{
@@ -328,7 +331,7 @@ export default function ProfileSetupPage() {
                     </div>
                     <div style={{ fontSize: 11, color: C.steel, marginTop: 2 }}>{l.sublabel}</div>
                   </div>
-                  {language === l.id && <span style={{ color: C.gold, fontWeight: 700 }}>✓</span>}
+                  {language === l.id && <SomiIcons.Check size={14} color={C.gold} />}
                 </motion.button>
               ))}
             </motion.div>

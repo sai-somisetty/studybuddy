@@ -3,7 +3,7 @@ import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState, useEffect, Suspense } from "react";
-import { BookOpen, FileText, Shuffle, Sparkle } from "@phosphor-icons/react";
+import { SomiIcons } from "@/components/SomiIcons";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "https://studybuddy-production-7776.up.railway.app";
 
@@ -21,7 +21,6 @@ const serif = "'DM Serif Display', serif";
 const MODES = [
   {
     id:    "textbook",
-    icon:  "📚",
     label: "Textbook Questions",
     color: "#071739",
     bg:    "rgba(7,23,57,0.05)",
@@ -29,7 +28,6 @@ const MODES = [
   },
   {
     id:    "previous",
-    icon:  "📄",
     label: "Previous Papers",
     color: "#E3C39D",
     bg:    "rgba(227,195,157,0.08)",
@@ -37,7 +35,6 @@ const MODES = [
   },
   {
     id:    "tweaked",
-    icon:  "🔄",
     label: "Tweaked",
     color: "#071739",
     bg:    "rgba(227,195,157,0.12)",
@@ -45,7 +42,6 @@ const MODES = [
   },
   {
     id:    "ai",
-    icon:  "🤖",
     label: "AI Generated",
     color: "#071739",
     bg:    "rgba(7,23,57,0.06)",
@@ -310,7 +306,7 @@ function QuizContent() {
   const selectedMode = MODES.find(m => m.id === mode);
 
   const modeLabel: Record<string, string> = {
-    concept_check: "Concept Check ✓",
+    concept_check: "Concept Check",
     textbook:      "Textbook Quiz",
     previous:      "Previous Papers",
     tweaked:       "Tweaked Quiz",
@@ -319,10 +315,11 @@ function QuizContent() {
   const modeTitle = modeLabel[mode] || selectedMode?.label || mode;
 
   const modeIcons: Record<string, React.ReactNode> = {
-    textbook: <BookOpen size={16} weight="duotone" color={C.navy} />,
-    previous: <FileText size={16} weight="duotone" color={C.navy} />,
-    tweaked:  <Shuffle   size={16} weight="duotone" color={C.navy} />,
-    ai:       <Sparkle   size={16} weight="duotone" color={C.navy} />,
+    concept_check: <SomiIcons.Check size={16} color={C.gold} />,
+    textbook: <SomiIcons.BookOpen size={16} color={C.navy} />,
+    previous: <SomiIcons.FileText size={16} color={C.navy} />,
+    tweaked:  <SomiIcons.Refresh size={16} color={C.navy} />,
+    ai:       <SomiIcons.Rocket size={16} color={C.navy} />,
   };
 
   // ── MODE SELECTION ── (skipped for concept_check)
@@ -388,7 +385,7 @@ function QuizContent() {
                   <div style={{ fontSize: 11, color: C.steel }}>{item.sub}</div>
                 </div>
                 {mode === item.mode && (
-                  <span style={{ color: C.gold, fontSize: 14 }}>✓</span>
+                  <SomiIcons.Check size={14} color={C.gold} />
                 )}
               </button>
             ))}
@@ -409,8 +406,8 @@ function QuizContent() {
     return (
       <div className="app-shell" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: C.bg, fontFamily: sans }}>
         <div style={{ textAlign: "center", padding: 24 }}>
-          <div style={{ fontSize: 40, marginBottom: 16 }}>
-            {mode === "concept_check" ? "✅" : mode === "tweaked" ? "🔄" : mode === "ai" ? "🤖" : mode === "previous" ? "📄" : "📖"}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+            {mode === "concept_check" ? <SomiIcons.Check size={40} color={C.navy} /> : mode === "tweaked" ? <SomiIcons.Refresh size={40} /> : mode === "ai" ? <SomiIcons.Rocket size={40} /> : mode === "previous" ? <SomiIcons.FileText size={40} /> : <SomiIcons.BookOpen size={40} />}
           </div>
           <div style={{ fontSize: 15, fontWeight: 700, color: C.navy, marginBottom: 8, fontFamily: serif }}>
             {mode === "concept_check"
@@ -458,7 +455,7 @@ function QuizContent() {
         </div>
         <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>📭</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}><SomiIcons.StarOutline size={40} /></div>
             <div style={{ fontSize: 15, fontWeight: 700, color: C.navy, marginBottom: 8, fontFamily: serif }}>No questions yet</div>
             <div style={{ fontSize: 12, color: C.steel, lineHeight: 1.6, marginBottom: 20 }}>
               {longTabDisabled && subType === "long"
@@ -514,7 +511,7 @@ function QuizContent() {
             <div style={{ fontSize: 10, color: C.gold, marginBottom: 6, fontWeight: 700, letterSpacing: "0.1em" }}>MAMA SAYS</div>
             <div style={{ fontSize: 12, color: "#fff", lineHeight: 1.6 }}>
               {pct >= 80
-                ? '"Outstanding! You have mastered this concept! 🎉"'
+                ? '"Outstanding! You have mastered this concept!"'
                 : pct >= 60
                 ? '"Good work! Review the wrong answers once and try again."'
                 : '"Don\'t worry — study the lesson once more. Mama is here!"'}
@@ -552,8 +549,8 @@ function QuizContent() {
             style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.75)", cursor: "pointer", fontFamily: sans }}>
             ← Exit
           </button>
-          <div style={{ fontSize:12, color:"rgba(255,255,255,0.6)", fontWeight:600 }}>
-            {selectedMode?.icon || "✅"} {current+1} / {questions.length}
+          <div style={{ fontSize:12, color:"rgba(255,255,255,0.6)", fontWeight:600, display:"flex", alignItems:"center", gap:6 }}>
+            {modeIcons[mode] ?? <SomiIcons.Check size={14} color="rgba(255,255,255,0.75)" />} {current+1} / {questions.length}
           </div>
         </div>
         <div style={{ height: 3, background: "rgba(255,255,255,0.15)", borderRadius: 2, overflow: "hidden" }}>
@@ -654,8 +651,8 @@ function QuizContent() {
                 {opt}
               </div>
               <span style={{ fontSize:13, fontWeight:500, color, flex:1 }}>{optText}</span>
-              {isAnswered && isCorrect  && <span style={{ fontSize: 9, color: C.navy, background: C.gold, padding: "2px 8px", borderRadius: 20, fontWeight: 700 }}>✓</span>}
-              {isAnswered && isSelected && !isCorrect && <span style={{ fontSize: 9, color: "#fff", background: C.steel, padding: "2px 8px", borderRadius: 20, fontWeight: 700 }}>✗</span>}
+              {isAnswered && isCorrect  && <span style={{ fontSize: 9, color: C.navy, background: C.gold, padding: "2px 8px", borderRadius: 20, fontWeight: 700, display: "inline-flex", alignItems: "center" }}><SomiIcons.Check size={12} color={C.navy} /></span>}
+              {isAnswered && isSelected && !isCorrect && <span style={{ fontSize: 9, color: "#fff", background: C.steel, padding: "2px 8px", borderRadius: 20, fontWeight: 700, display: "inline-flex", alignItems: "center" }}><SomiIcons.X size={12} color="#fff" /></span>}
             </motion.button>
           );
         })}
@@ -668,20 +665,29 @@ function QuizContent() {
 
           return (
             <div style={{ display:"flex", gap:12 }}>
-              {[{ opt: "A", label: "✅ True", baseColor: C.navy, baseBg: "rgba(7,23,57,0.06)" }, { opt: "B", label: "❌ False", baseColor: C.steel, baseBg: "rgba(7,23,57,0.04)" }].map(({ opt, label, baseColor, baseBg }) => {
+              {([
+                { opt: "A" as const, baseColor: C.navy, baseBg: "rgba(7,23,57,0.06)", content: (
+                  <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                    <SomiIcons.Check size={14} color={C.navy} /> True
+                  </span>
+                ) },
+                { opt: "B" as const, baseColor: C.steel, baseBg: "rgba(7,23,57,0.04)", content: (
+                  <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                    <SomiIcons.X size={14} color="#ef4444" /> False
+                  </span>
+                ) },
+              ]).map(({ opt, baseColor, baseBg, content }) => {
                 const isCorrect = opt === correctOpt;
                 const isSelected = answers[qKey] === opt;
                 let bg = baseBg, border = `2px solid rgba(7,23,57,0.12)`, color = baseColor;
                 if (isAnswered && isCorrect) { bg = "rgba(227,195,157,0.16)"; border = `2px solid ${C.gold}`; color = C.navy; }
                 else if (isAnswered && isSelected && !isCorrect) { bg = "rgba(7,23,57,0.06)"; border = "2px solid rgba(7,23,57,0.28)"; color = C.navy; }
                 return (
-                  <motion.button key={opt}
+                  <motion.button key={opt} type="button"
                     whileTap={!isAnswered ? { scale:0.95 } : {}}
                     onClick={() => handleAnswer(opt)}
-                    style={{ flex:1, padding:"20px 16px", borderRadius:16, background:bg, border, cursor:isAnswered?"default":"pointer", fontSize:16, fontWeight:700, color, textAlign:"center" }}>
-                    {label}
-                    {isAnswered && isCorrect && <span style={{ marginLeft:8, fontSize:12 }}>✓</span>}
-                    {isAnswered && isSelected && !isCorrect && <span style={{ marginLeft:8, fontSize:12 }}>✗</span>}
+                    style={{ flex:1, padding:"20px 16px", borderRadius:16, background:bg, border, cursor:isAnswered?"default":"pointer", fontSize:16, fontWeight:700, color, textAlign:"center", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+                    {content}
                   </motion.button>
                 );
               })}
@@ -757,7 +763,7 @@ function QuizContent() {
                     <div style={{ background: "#fff", borderRadius: 12, padding: "10px 14px", border: "1px solid rgba(7,23,57,0.1)" }}>
                       <div style={{ fontSize: 9, fontWeight: 700, color: C.navy, letterSpacing: "0.06em", marginBottom: 6 }}>GOOD POINTS</div>
                       {evalResult.good_points.map((p: string, i: number) => (
-                        <div key={i} style={{ fontSize: 12, color: C.navy, lineHeight: 1.6, paddingLeft: 12 }}>✅ {p}</div>
+                        <div key={i} style={{ fontSize: 12, color: C.navy, lineHeight: 1.6, paddingLeft: 12, display: "flex", alignItems: "flex-start", gap: 6 }}><SomiIcons.Check size={14} color="#071739" /><span>{p}</span></div>
                       ))}
                     </div>
                   )}
@@ -766,7 +772,7 @@ function QuizContent() {
                     <div style={{ background:"rgba(227,195,157,0.08)", borderRadius:12, padding:"10px 14px" }}>
                       <div style={{ fontSize:9, fontWeight:700, color:"#E3C39D", letterSpacing:"0.06em", marginBottom:6 }}>MISSING POINTS</div>
                       {evalResult.missing_points.map((p: string, i: number) => (
-                        <div key={i} style={{ fontSize: 12, color: C.steel, lineHeight: 1.6, paddingLeft: 12 }}>⚠️ {p}</div>
+                        <div key={i} style={{ fontSize: 12, color: C.steel, lineHeight: 1.6, paddingLeft: 12, display: "flex", alignItems: "flex-start", gap: 6 }}><SomiIcons.Warning size={14} /><span>{p}</span></div>
                       ))}
                     </div>
                   )}
@@ -828,7 +834,7 @@ function QuizContent() {
                     <div style={{ background: "#fff", borderRadius: 12, padding: "10px 14px", border: "1px solid rgba(7,23,57,0.1)" }}>
                       <div style={{ fontSize: 9, fontWeight: 700, color: C.navy, letterSpacing: "0.06em", marginBottom: 6 }}>GOOD POINTS</div>
                       {evalResult.good_points.map((p: string, i: number) => (
-                        <div key={i} style={{ fontSize: 12, color: C.navy, lineHeight: 1.6, paddingLeft: 12 }}>✅ {p}</div>
+                        <div key={i} style={{ fontSize: 12, color: C.navy, lineHeight: 1.6, paddingLeft: 12, display: "flex", alignItems: "flex-start", gap: 6 }}><SomiIcons.Check size={14} color="#071739" /><span>{p}</span></div>
                       ))}
                     </div>
                   )}
@@ -836,7 +842,7 @@ function QuizContent() {
                     <div style={{ background: "rgba(227,195,157,0.08)", borderRadius: 12, padding: "10px 14px", border: "1px solid rgba(7,23,57,0.08)" }}>
                       <div style={{ fontSize: 9, fontWeight: 700, color: C.navy, letterSpacing: "0.06em", marginBottom: 6 }}>MISSING POINTS</div>
                       {evalResult.missing_points.map((p: string, i: number) => (
-                        <div key={i} style={{ fontSize: 12, color: C.steel, lineHeight: 1.6, paddingLeft: 12 }}>⚠️ {p}</div>
+                        <div key={i} style={{ fontSize: 12, color: C.steel, lineHeight: 1.6, paddingLeft: 12, display: "flex", alignItems: "flex-start", gap: 6 }}><SomiIcons.Warning size={14} /><span>{p}</span></div>
                       ))}
                     </div>
                   )}
@@ -878,8 +884,9 @@ function QuizContent() {
             <div style={{ fontSize: 9, fontWeight: 700, color: C.silver, letterSpacing: "0.06em", marginBottom: 6 }}>EXPLANATION</div>
             <div style={{ fontSize: 12, color: C.navy, lineHeight: 1.6 }}>{q.explanation}</div>
             {q.icai_reference && (
-              <div style={{ fontSize: 10, color: C.steel, marginTop: 8, fontStyle: "italic" }}>
-                📖 Source: {q.icai_reference}
+              <div style={{ fontSize: 10, color: C.steel, marginTop: 8, fontStyle: "italic", display: "flex", alignItems: "center", gap: 6 }}>
+                <SomiIcons.BookOpen size={14} color={C.steel} />
+                Source: {q.icai_reference}
               </div>
             )}
           </motion.div>

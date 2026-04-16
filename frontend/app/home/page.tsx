@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { getSubjects } from "@/lib/syllabus";
 import MamaAgent from "@/components/MamaAgent";
 import FloatingNav from "@/components/FloatingNav";
+import { SomiIcons } from "@/components/SomiIcons";
 
 const C = { navy:"#071739",gold:"#E3C39D",goldLight:"#F0DCC4",steel:"#4B6382",silver:"#A4B5C4",sand:"#A68868",bg:"#FAFAF8" };
 
@@ -157,7 +158,7 @@ export default function Home(){
               alignItems:"flex-start",gap:6,textAlign:"left",
               fontFamily:"'DM Sans',sans-serif",
             }}>
-            <span style={{fontSize:20}}>⭐</span>
+            <span style={{ display: "inline-flex", marginRight: 4 }}><SomiIcons.Star size={20} /></span>
             <div style={{fontSize:13,fontWeight:600,color:"#071739"}}>Revision</div>
             <div style={{fontSize:10,color:"#4B6382"}}>
               {starredCount>0?`${starredCount} starred`:"Star concepts"}
@@ -176,7 +177,7 @@ export default function Home(){
               alignItems:"flex-start",gap:6,textAlign:"left",
               fontFamily:"'DM Sans',sans-serif",
             }}>
-            <span style={{fontSize:20}}>🎧</span>
+            <span style={{ display: "inline-flex", marginRight: 4 }}><SomiIcons.Headphones size={20} /></span>
             <div style={{fontSize:13,fontWeight:600,color:"#071739"}}>Audio</div>
             <div style={{fontSize:10,color:"#4B6382"}}>Listen on the go</div>
           </motion.button>

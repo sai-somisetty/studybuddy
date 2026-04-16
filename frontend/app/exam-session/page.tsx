@@ -1,4 +1,5 @@
 "use client";
+import { SomiIcons } from "@/components/SomiIcons";
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -197,7 +198,7 @@ function ExamSessionContent() {
         }}
       >
         <div style={{ textAlign: "center", padding: 24, maxWidth: 520 }}>
-          <div style={{ fontSize: 40, marginBottom: 16 }}>📋</div>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}><SomiIcons.Book size={40} /></div>
           <div
             style={{
               fontSize: 15,
@@ -352,7 +353,13 @@ function ExamSessionContent() {
                   borderRadius: 20,
                 }}
               >
-                {passed ? "PASSED ✓" : "BELOW PASS"}
+                {passed ? (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    PASSED <SomiIcons.Check size={14} color={C.navy} />
+                  </span>
+                ) : (
+                  "BELOW PASS"
+                )}
               </div>
               <div style={{ fontSize: 12, color: C.steel, marginTop: 10 }}>
                 {pct}% · Pass mark was {passMark}/{totalMarks}
@@ -431,7 +438,7 @@ function ExamSessionContent() {
               </div>
               <div style={{ fontSize: 13, color: "#fff", lineHeight: 1.6 }}>
                 {pct >= 80
-                  ? "“Outstanding! You have mastered this! 🎉 You are ready for the real exam.”"
+                  ? "“Outstanding! You have mastered this! You are ready for the real exam.”"
                   : pct >= 60
                     ? "“Good effort! Review the wrong answers once and try again. You're close!”"
                     : "“Don't worry — study the chapters once more and come back stronger. Mama believes in you!”"}
@@ -476,7 +483,9 @@ function ExamSessionContent() {
                         flexShrink: 0,
                       }}
                     >
-                      Q{i + 1} {isUnanswered ? "—" : isCorrect ? "✓" : "✗"}
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                        Q{i + 1} {isUnanswered ? "—" : isCorrect ? <SomiIcons.Check size={10} color={C.navy} /> : <SomiIcons.X size={10} color="#ef4444" />}
+                      </span>
                     </span>
                   </div>
                   <div style={{ fontSize: 12, color: C.navy, lineHeight: 1.5, marginBottom: 6 }}>
@@ -552,7 +561,10 @@ function ExamSessionContent() {
                         paddingTop: 8,
                       }}
                     >
-                      💡 {q.explanation}
+                      <span style={{ display: "inline-flex", alignItems: "flex-start", gap: 6 }}>
+                        <SomiIcons.Lightbulb size={14} />
+                        <span>{q.explanation}</span>
+                      </span>
                     </div>
                   )}
                 </div>
@@ -728,7 +740,10 @@ function ExamSessionContent() {
               color: C.navy,
             }}
           >
-            ⏰ Time&apos;s up! Review your answers and submit.
+            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <SomiIcons.Timer size={16} color={C.navy} />
+              Time&apos;s up! Review your answers and submit.
+            </span>
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import { SomiIcons } from "@/components/SomiIcons";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -222,7 +223,7 @@ export default function AudioLibrary() {
     return (
       <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans', sans-serif" }}>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🎧</div>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}><SomiIcons.Headphones size={40} /></div>
           <div style={{ fontSize: 14, color: C.navy }}>Loading audio library...</div>
         </div>
       </div>
@@ -259,7 +260,7 @@ export default function AudioLibrary() {
               display: "flex", alignItems: "center", justifyContent: "center",
               marginBottom: 32, border: `2px solid rgba(227,195,157,0.1)`,
             }}>
-            <span style={{ fontSize: 56 }}>🎧</span>
+            <SomiIcons.Headphones size={56} color="#fff" />
           </motion.div>
 
           {/* Concept info */}
@@ -332,13 +333,16 @@ export default function AudioLibrary() {
           {/* Content mode toggle */}
           <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: 3 }}>
             {(["quick", "revise"] as const).map(m => (
-              <button key={m} onClick={() => setContentMode(m)}
+              <button key={m} type="button" onClick={() => setContentMode(m)}
                 style={{
                   padding: "6px 16px", borderRadius: 6, border: "none", cursor: "pointer",
                   background: contentMode === m ? "rgba(255,255,255,0.1)" : "transparent",
                   color: contentMode === m ? C.gold : "rgba(255,255,255,0.3)",
                   fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif",
-                }}>{m === "quick" ? "⚡ Quick" : "📝 Revise"}</button>
+                  display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
+                }}>
+                {m === "quick" ? <><SomiIcons.Bolt size={14} color={contentMode === m ? C.gold : "rgba(255,255,255,0.3)"} />Quick</> : <><SomiIcons.Pen size={14} color={contentMode === m ? C.gold : "rgba(255,255,255,0.3)"} />Revise</>}
+              </button>
             ))}
           </div>
         </div>
@@ -369,7 +373,9 @@ export default function AudioLibrary() {
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'DM Sans', sans-serif" }}>
       {/* Header */}
       <div style={{ background: C.navy, paddingTop: "max(env(safe-area-inset-top, 20px), 20px)", paddingBottom: 28, position: "relative", overflow: "hidden" }}>
-        <span style={{ position: "absolute", top: -20, right: -10, fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "clamp(100px, 18vw, 180px)", color: "#fff", opacity: 0.03, lineHeight: 1, userSelect: "none", pointerEvents: "none" }}>🎧</span>
+        <span style={{ position: "absolute", top: -16, right: -8, lineHeight: 1, userSelect: "none", pointerEvents: "none", opacity: 0.06, display: "flex", alignItems: "center", justifyContent: "center" }} aria-hidden>
+          <SomiIcons.Headphones size={160} color="#fff" />
+        </span>
         <div style={{ maxWidth: 520, margin: "0 auto", padding: "0 20px", position: "relative", zIndex: 1 }}>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
@@ -393,7 +399,7 @@ export default function AudioLibrary() {
       <div style={{ maxWidth: 520, margin: "0 auto", padding: "20px 20px 100px" }}>
         {chapters.length === 0 ? (
           <div style={{ textAlign: "center", padding: 40 }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>🎧</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}><SomiIcons.Headphones size={48} /></div>
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: C.navy, marginBottom: 8 }}>No audio content yet</div>
             <div style={{ fontSize: 13, color: C.steel }}>Complete some lessons first — audio becomes available for chapters with loaded content</div>
           </div>
@@ -412,7 +418,7 @@ export default function AudioLibrary() {
                   width: 48, height: 48, borderRadius: 12, background: C.navy,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: 22, flexShrink: 0,
-                }}>🎧</div>
+                }}><SomiIcons.Headphones size={22} color="#fff" /></div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 11, color: C.steel, marginBottom: 2 }}>{ch.subjectTitle}</div>
                   <div style={{ fontSize: 15, fontWeight: 600, color: C.navy, lineHeight: 1.3, marginBottom: 4 }}>{ch.chapterTitle}</div>

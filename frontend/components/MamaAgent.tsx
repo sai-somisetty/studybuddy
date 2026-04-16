@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { SomiIcons } from "@/components/SomiIcons";
 import { motion, AnimatePresence } from "framer-motion";
 import MarkdownRenderer from "./MarkdownRenderer";
 
@@ -35,9 +36,9 @@ const GLOBAL_CHIPS  = ["Continue studying", "Quiz me", "What's my progress?", "W
 // ─── GREETING MESSAGES ─────────────────────────────────────────────────────
 function getConceptGreeting(name: string, concept: string): string {
   const greetings = [
-    `${concept} chaduvuthunnav kadha ${name}? 💪 Doubts unte adugu, lekapothe "test me" ani cheppu!`,
+    `${concept} chaduvuthunnav kadha ${name}? Doubts unte adugu, lekapothe "test me" ani cheppu!`,
     `${name}, ${concept} lo emi doubt ayina adugu — Mama ready ga undi!`,
-    `Baaga chaduvuthunnav ${name}! ${concept} about emi question ayina fire cheyyi 🔥`,
+    `Baaga chaduvuthunnav ${name}! ${concept} about emi question ayina fire cheyyi`,
   ];
   return greetings[Math.floor(Math.random() * greetings.length)];
 }
@@ -46,9 +47,9 @@ function getGlobalGreeting(name: string): string {
   const h = new Date().getHours();
   const timeGreet = h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening";
   const greetings = [
-    `${timeGreet} ${name}! 📚 Ready to study? Tell me what you want to learn or ask "what should I study today?"`,
+    `${timeGreet} ${name}! Ready to study? Tell me what you want to learn or ask "what should I study today?"`,
     `Hey ${name}! Mama ikkada undi. Subject select cheyyi or directly doubt adugu!`,
-    `Welcome back ${name}! 🎯 Let's continue where you left off — or start something new!`,
+    `Welcome back ${name}! Let's continue where you left off — or start something new!`,
   ];
   return greetings[Math.floor(Math.random() * greetings.length)];
 }
@@ -246,7 +247,7 @@ export default function MamaAgent({
               }}
             >
               <span style={{ fontSize: 7, fontWeight: 800, color: "#fff", letterSpacing: 0.5 }}>MAMA</span>
-              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.6)" }}>💬</span>
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}><SomiIcons.Chat size={12} color="rgba(255,255,255,0.6)" /></span>
             </motion.button>
 
             {/* Nudge tooltip — only show once, on concept pages */}
@@ -263,7 +264,7 @@ export default function MamaAgent({
                   boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
               >
-                <span style={{ color: "#071739", fontWeight: 700 }}>Mama</span> is here! Doubt unte tap cheyyi 👋
+                <span style={{ color: "#071739", fontWeight: 700 }}>Mama</span> is here! Doubt unte tap cheyyi <span style={{ display: "inline-flex", verticalAlign: "middle", marginLeft: 4 }}><SomiIcons.Wave size={14} /></span>
               </motion.div>
             )}
           </motion.div>

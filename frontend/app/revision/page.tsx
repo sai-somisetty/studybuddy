@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
+import { SomiIcons } from "@/components/SomiIcons";
 
 const C = {
   navy: "#071739",
@@ -381,7 +382,9 @@ export default function RevisionPage() {
             animate={{ opacity: 1, y: 0 }}
             style={{ textAlign: "center", padding: "48px 16px" }}
           >
-            <div style={{ fontSize: 40, marginBottom: 12 }}>☆</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+              <SomiIcons.StarOutline size={40} />
+            </div>
             <p style={{ fontSize: 15, color: C.navy, fontWeight: 600, marginBottom: 8 }}>No starred concepts yet</p>
             <p style={{ fontSize: 13, color: C.steel, lineHeight: 1.5, marginBottom: 24 }}>
               In a lesson, tap the star on a paragraph to save it here for quick revision.
@@ -464,8 +467,20 @@ export default function RevisionPage() {
                 }}
               >
                 <div style={{ padding: "18px 18px 12px", borderBottom: `1px solid ${C.navy}08` }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: C.gold, letterSpacing: "0.1em", marginBottom: 6 }}>
-                    ⭐ STARRED
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: C.gold,
+                      letterSpacing: "0.1em",
+                      marginBottom: 6,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <SomiIcons.Star size={14} />
+                    STARRED
                   </div>
                   <h2
                     style={{
@@ -495,28 +510,37 @@ export default function RevisionPage() {
                 <div style={{ display: "flex", borderBottom: `1px solid ${C.navy}08` }}>
                   {(
                     [
-                      { id: "quick" as const, label: "⚡ Quick" },
-                      { id: "revise" as const, label: "📝 Revise" },
+                      { id: "quick" as const, icon: SomiIcons.Bolt, text: "Quick" },
+                      { id: "revise" as const, icon: SomiIcons.Pen, text: "Revise" },
                     ] as const
-                  ).map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => setTab(t.id)}
-                      style={{
-                        flex: 1,
-                        padding: "10px 8px",
-                        fontSize: 11,
-                        fontWeight: tab === t.id ? 700 : 500,
-                        background: tab === t.id ? C.navy : "transparent",
-                        color: tab === t.id ? "#fff" : C.steel,
-                        border: "none",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
+                  ).map((t) => {
+                    const Ico = t.icon;
+                    const active = tab === t.id;
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setTab(t.id)}
+                        style={{
+                          flex: 1,
+                          padding: "10px 8px",
+                          fontSize: 11,
+                          fontWeight: active ? 700 : 500,
+                          background: active ? C.navy : "transparent",
+                          color: active ? "#fff" : C.steel,
+                          border: "none",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 4,
+                        }}
+                      >
+                        <Ico size={14} color={active ? "#fff" : C.steel} />
+                        {t.text}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <div style={{ padding: 18, minHeight: 160 }}>

@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { hasGroups } from "@/lib/syllabus";
+import { SomiIcons } from "@/components/SomiIcons";
 
 const C = {
   navy: "#071739",
@@ -20,21 +21,21 @@ const courses = [
     id: "ca",
     label: "CA",
     full: "Chartered Accountant",
-    icon: "📊",
+    icon: <SomiIcons.Chart size={24} /> as ReactNode,
     levels: ["Foundation", "Intermediate", "Final"],
   },
   {
     id: "cma",
     label: "CMA",
     full: "Cost & Management Accountant",
-    icon: "📈",
+    icon: <SomiIcons.TrendingUp size={24} /> as ReactNode,
     levels: ["Foundation", "Intermediate", "Final"],
   },
   {
     id: "cs",
     label: "CS",
     full: "Company Secretary",
-    icon: "⚖️",
+    icon: <SomiIcons.Scale size={24} /> as ReactNode,
     levels: ["Foundation", "Executive", "Professional"],
   },
 ];
@@ -86,7 +87,7 @@ export default function Onboarding() {
   }: {
     label: string;
     sub?: string;
-    icon?: string;
+    icon?: ReactNode;
     onClick: () => void;
     selected: boolean;
   }) => (
@@ -109,7 +110,7 @@ export default function Onboarding() {
         boxSizing: "border-box",
       }}
     >
-      {icon && <span style={{ fontSize: 24, flexShrink: 0 }}>{icon}</span>}
+      {icon && <span style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>{icon}</span>}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
@@ -134,8 +135,8 @@ export default function Onboarding() {
         )}
       </div>
       {selected && (
-        <span style={{ fontSize: 14, color: C.gold, fontWeight: 700 }} aria-hidden>
-          ✓
+        <span style={{ display: "flex", alignItems: "center" }} aria-hidden>
+          <SomiIcons.Check size={14} color={C.gold} />
         </span>
       )}
     </motion.button>

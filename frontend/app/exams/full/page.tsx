@@ -1,5 +1,6 @@
 "use client";
 
+import { SomiIcons } from "@/components/SomiIcons";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -103,8 +104,9 @@ export default function FullExam() {
               border: `1px solid rgba(7,23,57,0.06)`,
             }}
           >
-            <div style={{ fontSize: 12, fontWeight: 700, color: C.navy, marginBottom: 4 }}>
-              ⚠️ Use in final 4 weeks
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.navy, marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
+              <SomiIcons.Warning size={14} />
+              Use in final 4 weeks
             </div>
             <div style={{ fontSize: 11, color: C.steel, lineHeight: 1.5 }}>
               Full portion exams simulate real CA/CMA exam conditions. 60 questions, 90 minutes, full syllabus coverage.

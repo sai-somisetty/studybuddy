@@ -1,5 +1,6 @@
 "use client";
 
+import { SomiIcons } from "@/components/SomiIcons";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -178,7 +179,13 @@ export default function PreviousPapers() {
                     fontWeight: 600,
                   }}
                 >
-                  {selected === a.name ? "Selected ✓" : "→"}
+                  {selected === a.name ? (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      Selected <SomiIcons.Check size={12} color={C.gold} />
+                    </span>
+                  ) : (
+                    "→"
+                  )}
                 </div>
               </div>
 
@@ -208,7 +215,10 @@ export default function PreviousPapers() {
                       fontFamily: sans,
                     }}
                   >
-                    📖 Chapter Wise
+                    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                      <SomiIcons.BookOpen size={14} color={mode === "chapter" ? "#fff" : C.navy} />
+                      Chapter Wise
+                    </span>
                   </motion.button>
                   <motion.button
                     type="button"
@@ -230,7 +240,10 @@ export default function PreviousPapers() {
                       fontFamily: sans,
                     }}
                   >
-                    ⏱️ Full Paper
+                    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                      <SomiIcons.Timer size={14} color={mode === "full" ? "#fff" : C.navy} />
+                      Full Paper
+                    </span>
                   </motion.button>
                 </motion.div>
               )}

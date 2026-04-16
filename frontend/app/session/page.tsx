@@ -1,7 +1,8 @@
 "use client";
+import { SomiIcons } from "@/components/SomiIcons";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useRef, useEffect, Suspense } from "react";
+import { useState, useRef, useEffect, Suspense, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "https://studybuddy-production-7776.up.railway.app";
@@ -291,7 +292,7 @@ function SessionContent() {
               {/* ── Page indicator ── */}
               {msg.role === "page" && msg.pageNumber && (
                 <div style={{ background: "#fff", borderRadius: 16, padding: "16px 18px", border: `1.5px solid ${C.gold}`, textAlign: "center" }}>
-                  <div style={{ fontSize: 28, marginBottom: 6 }}>📖</div>
+                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}><SomiIcons.BookOpen size={28} /></div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: C.navy, fontFamily: serif }}>
                     Open your ICMAI book to Page {msg.pageNumber}
                   </div>
@@ -324,7 +325,7 @@ function SessionContent() {
               {/* ── Complete ── */}
               {msg.role === "complete" && (
                 <div style={{ background: "#fff", borderRadius: 16, padding: 20, textAlign: "center", border: `1px solid rgba(7,23,57,0.1)`, boxShadow: `inset 0 0 0 1px ${C.gold}` }}>
-                  <div style={{ fontSize: 36, marginBottom: 8 }}>🎉</div>
+                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}><SomiIcons.Celebration size={36} /></div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: C.navy, marginBottom: 4, fontFamily: serif }}>
                     {msg.text}
                   </div>
@@ -379,11 +380,11 @@ function SessionContent() {
 
           {/* Quick replies */}
           <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-            {[
-              { label: "YES ✓", value: "yes" },
+            {([
+              { label: (<span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4 }}>YES<SomiIcons.Check size={12} /></span>), value: "yes" },
               { label: "Not clear", value: "not clear" },
               { label: "Give example", value: "give me a different example" },
-            ].map(qr => (
+            ] as { label: ReactNode; value: string }[]).map(qr => (
               <motion.button type="button" key={qr.value} whileTap={{ scale: 0.95 }}
                 onClick={() => quickReply(qr.value)}
                 disabled={loading}

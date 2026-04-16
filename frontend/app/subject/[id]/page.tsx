@@ -1,5 +1,6 @@
 "use client";
 import React, { use, useEffect, useState, Suspense } from "react";
+import { SomiIcons } from "@/components/SomiIcons";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { getSubjects } from "@/lib/syllabus";
@@ -42,11 +43,11 @@ function PageJumper({show,onClose}:{show:boolean;onClose:()=>void}){
         }, 600);
       } else {
         setFbColor(C.steel);
-        setFeedback("📖 Page " + val + " — concept not loaded yet. Coming soon!");
+        setFeedback("Page " + val + " — concept not loaded yet. Coming soon!");
       }
     } catch {
       setFbColor(C.steel);
-      setFeedback("📖 Page " + val + " — concept not loaded yet. Coming soon!");
+      setFeedback("Page " + val + " — concept not loaded yet. Coming soon!");
     }
   };
 
@@ -62,7 +63,7 @@ function PageJumper({show,onClose}:{show:boolean;onClose:()=>void}){
             <button onClick={onClose} style={{position:"absolute",top:12,right:12,width:28,height:28,borderRadius:8,background:"rgba(7,23,57,0.04)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#071739" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </button>
-            <div style={{fontSize:32,marginBottom:12}}>📖</div>
+            <div style={{display:"flex",justifyContent:"center",marginBottom:12}}><SomiIcons.BookOpen size={32} /></div>
             <div style={{fontFamily:"'DM Serif Display',serif",fontSize:18,marginBottom:4}}>Go to Page</div>
             <div style={{fontSize:12,opacity:0.4,marginBottom:20}}>Enter your ICMAI textbook page number</div>
             <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:16}}>
@@ -144,7 +145,7 @@ function SubjectContent({pageId}:{pageId:string}){
         {/* Page jump button */}
         <div style={{maxWidth:520,margin:"0 auto",padding:"0 20px 16px"}}>
           <button onClick={()=>setShowJumper(true)} style={{background:"rgba(255,255,255,0.06)",border:"none",borderRadius:8,padding:"7px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
-            <span style={{fontSize:11,color:C.gold,opacity:0.5}}>📖 Jump to textbook page →</span>
+            <span style={{fontSize:11,color:C.gold,opacity:0.5,display:"inline-flex",alignItems:"center",gap:4}}><SomiIcons.BookOpen size={14} color="rgba(227,195,157,0.9)" />Jump to textbook page →</span>
           </button>
         </div>
       </div>
@@ -177,7 +178,7 @@ function SubjectContent({pageId}:{pageId:string}){
                 <div style={{fontSize:14,fontWeight:600,lineHeight:1.35,color:C.navy,marginBottom:4}}>{ch.title}</div>
                 <div style={{fontSize:12,color:C.navy,opacity:0.4,marginBottom:10}}>{ch.concepts} concepts</div>
                 {ch.progress>0&&(<><div style={{height:3,background:`${C.navy}0D`,borderRadius:2,overflow:"hidden",marginBottom:4}}><div style={{width:`${ch.progress}%`,height:"100%",background:C.gold,borderRadius:2}}/></div><div style={{fontSize:11,color:C.navy,opacity:0.35,fontWeight:500}}>{isDone?"100% complete":`${Math.round(ch.progress*ch.concepts/100)} of ${ch.concepts} done`}</div></>)}
-                {isDone&&<span style={{display:"inline-block",fontSize:10,fontWeight:600,padding:"3px 10px",borderRadius:20,background:`${C.navy}0A`,color:C.navy,opacity:0.5,marginTop:8}}>✓ Complete</span>}
+                {isDone&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:10,fontWeight:600,padding:"3px 10px",borderRadius:20,background:`${C.navy}0A`,color:C.navy,opacity:0.5,marginTop:8}}><SomiIcons.Check size={10} />Complete</span>}
                 {isCurrent&&<span style={{display:"inline-block",fontSize:10,fontWeight:600,padding:"3px 10px",borderRadius:20,background:C.gold,color:C.navy,marginTop:8}}>Continue →</span>}
                 {isLocked&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:10,fontWeight:600,padding:"3px 10px",borderRadius:20,background:`${C.navy}06`,color:C.navy,opacity:0.5,marginTop:8}}>Complete Ch {i} first</span>}
               </div>

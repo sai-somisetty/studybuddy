@@ -12,6 +12,7 @@ import {
   CheckCircle,
 } from "@phosphor-icons/react";
 import FloatingNav from "@/components/FloatingNav";
+import { SomiIcons } from "@/components/SomiIcons";
 
 const C = {
   navy: "#071739",
@@ -262,8 +263,8 @@ export default function ExamsPage() {
                   alignItems: "flex-start",
                 }}
               >
-                <span style={{ fontSize: 20 }} aria-hidden>
-                  📋
+                <span style={{ display: "flex", flexShrink: 0 }} aria-hidden>
+                  <SomiIcons.Book size={20} />
                 </span>
                 <div>
                   <div
@@ -288,7 +289,9 @@ export default function ExamsPage() {
                       marginTop: 4,
                     }}
                   >
-                    SOMI practice pass mark: 80/100 🎯
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      SOMI practice pass mark: 80/100 <SomiIcons.Target size={14} />
+                    </span>
                   </div>
                 </div>
               </div>
@@ -701,15 +704,8 @@ export default function ExamsPage() {
                             marginBottom: 6,
                           }}
                         >
-                          <span
-                            style={{
-                              fontSize: 10,
-                              color: C.gold,
-                              flexShrink: 0,
-                              fontWeight: 700,
-                            }}
-                          >
-                            ✓
+                          <span style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
+                            <SomiIcons.Check size={10} color={C.gold} />
                           </span>
                           <span style={{ fontSize: 12, color: C.steel }}>{rule}</span>
                         </div>

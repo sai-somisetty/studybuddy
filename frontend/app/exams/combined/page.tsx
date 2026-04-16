@@ -1,5 +1,6 @@
 "use client";
 
+import { SomiIcons } from "@/components/SomiIcons";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -189,8 +190,9 @@ export default function CombinedExam() {
                     Chapter {ch}
                   </div>
                   {isSelected && (
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
-                      ✓ Selected
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", marginTop: 2, display: "flex", alignItems: "center", gap: 4 }}>
+                      <SomiIcons.Check size={10} color="rgba(255,255,255,0.85)" />
+                      Selected
                     </div>
                   )}
                 </motion.div>

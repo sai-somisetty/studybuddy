@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { SomiIcons } from "@/components/SomiIcons";
 
 /**
  * SOMI MarkdownRenderer v2 — Navy + Gold Editorial (Refined)
@@ -140,7 +141,11 @@ function renderBlockquote(lines: string[], index: number) {
         <div style={{
           fontSize: 10, fontWeight: 700, letterSpacing: "0.14em",
           textTransform: "uppercase" as const, color: C.sand, marginBottom: 10,
-        }}>🎯 Mama&apos;s Exam Tip</div>
+          display: "flex", alignItems: "center", gap: 6,
+        }}>
+          <SomiIcons.Target size={14} />
+          Mama&apos;s Exam Tip
+        </div>
         {content.split("\n").filter(l => l.trim()).map((line, i) => (
           <p key={i} style={{ fontSize: 14, color: C.navy, lineHeight: 1.7, margin: "5px 0" }}>
             {renderInlineFormatting(line.trim())}
@@ -161,7 +166,11 @@ function renderBlockquote(lines: string[], index: number) {
         <div style={{
           fontSize: 10, fontWeight: 700, letterSpacing: "0.14em",
           textTransform: "uppercase" as const, color: C.navy, marginBottom: 12, opacity: 0.45,
-        }}>⚠️ Common Mistakes</div>
+          display: "flex", alignItems: "center", gap: 6,
+        }}>
+          <SomiIcons.Warning size={14} />
+          Common Mistakes
+        </div>
         {content.split("\n").filter(l => l.trim()).map((line, i) => (
           <p key={i} style={{ fontSize: 13.5, color: C.navy, lineHeight: 1.65, margin: "5px 0", opacity: 0.8 }}>
             {renderInlineFormatting(line.trim())}
