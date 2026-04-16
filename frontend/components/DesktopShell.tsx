@@ -196,11 +196,12 @@ export default function DesktopShell({ children }: { children: React.ReactNode }
         minHeight: "100vh",
       }}>
         <div style={{
-          width: "100%", maxWidth: 520,
+          width: "100%", maxWidth: 680,
           background: C.bg,
           minHeight: "100vh",
           position: "relative",
-          boxShadow: "0 0 40px rgba(0,0,0,0.2)",
+          borderLeft: "1px solid rgba(255,255,255,0.04)",
+          borderRight: "1px solid rgba(255,255,255,0.04)",
         }}>
           {children}
         </div>

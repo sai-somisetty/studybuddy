@@ -238,7 +238,7 @@ export default function AudioLibrary() {
     return (
       <div style={{ minHeight: "100vh", background: C.navy, fontFamily: "'DM Sans', sans-serif", display: "flex", flexDirection: "column" }}>
         {/* Header */}
-        <div style={{ padding: "max(env(safe-area-inset-top, 20px), 20px) 20px 16px", maxWidth: 520, margin: "0 auto", width: "100%" }}>
+        <div style={{ padding: "max(env(safe-area-inset-top, 20px), 20px) 20px 16px", maxWidth: 640, margin: "0 auto", width: "100%" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
             <motion.button whileTap={{ scale: 0.9 }} onClick={stopPlayback}
               style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.06)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -249,7 +249,7 @@ export default function AudioLibrary() {
         </div>
 
         {/* Album art area */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 40px", maxWidth: 520, margin: "0 auto", width: "100%" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 40px", maxWidth: 640, margin: "0 auto", width: "100%" }}>
           {/* Big icon */}
           <motion.div
             animate={{ scale: playing ? [1, 1.05, 1] : 1 }}
@@ -348,7 +348,7 @@ export default function AudioLibrary() {
         </div>
 
         {/* Mini playlist */}
-        <div style={{ maxWidth: 520, margin: "0 auto", width: "100%", padding: "16px 20px", paddingBottom: "max(20px, env(safe-area-inset-bottom, 20px))" }}>
+        <div style={{ maxWidth: 640, margin: "0 auto", width: "100%", padding: "16px 20px", paddingBottom: "max(20px, env(safe-area-inset-bottom, 20px))" }}>
           <div style={{ fontSize: 10, color: C.gold, opacity: 0.4, letterSpacing: "0.1em", fontWeight: 600, marginBottom: 8 }}>UP NEXT</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 140, overflowY: "auto" }}>
             {activeChapter.concepts.slice(currentIdx + 1, currentIdx + 5).map((c, i) => (
@@ -376,7 +376,7 @@ export default function AudioLibrary() {
         <span style={{ position: "absolute", top: -16, right: -8, lineHeight: 1, userSelect: "none", pointerEvents: "none", opacity: 0.06, display: "flex", alignItems: "center", justifyContent: "center" }} aria-hidden>
           <SomiIcons.Headphones size={160} color="#fff" />
         </span>
-        <div style={{ maxWidth: 520, margin: "0 auto", padding: "0 20px", position: "relative", zIndex: 1 }}>
+        <div style={{ maxWidth: 640, margin: "0 auto", padding: "0 20px", position: "relative", zIndex: 1 }}>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
             <motion.button whileTap={{ scale: 0.9 }} onClick={() => router.back()}
@@ -396,7 +396,7 @@ export default function AudioLibrary() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 520, margin: "0 auto", padding: "20px 20px 100px" }}>
+      <div style={{ maxWidth: 640, margin: "0 auto", padding: "20px 20px 100px" }}>
         {chapters.length === 0 ? (
           <div style={{ textAlign: "center", padding: 40 }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}><SomiIcons.Headphones size={48} /></div>

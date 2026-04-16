@@ -54,15 +54,13 @@ html, body { height: 100%; }
     box-shadow: none;
     min-height: 100vh;
   }
-}
 
-/* Hide floating pill nav on desktop — sidebar handles navigation */
-@media (min-width: 1024px) {
+  /* Hide floating pill nav on desktop — sidebar handles navigation */
   [data-floating-nav] {
     display: none !important;
   }
-}
 
-@media (min-width: 1024px) {
-  body { background: #0D1B2A; }
+  body {
+    background: #0D1B2A;
+  }
 }

@@ -92,7 +92,7 @@ export default function Home(){
 
   return(
     <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'DM Sans',sans-serif"}}>
-      <div style={{maxWidth:520,margin:"0 auto",padding:"0 20px max(100px, calc(88px + env(safe-area-inset-bottom, 0px)))"}}>
+      <div style={{maxWidth:640,margin:"0 auto",padding:"0 20px max(100px, calc(88px + env(safe-area-inset-bottom, 0px)))"}}>
         {/* HEADER */}
         <header style={{paddingTop:"max(52px,env(safe-area-inset-top,52px))",paddingBottom:8,display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
           <motion.div initial={{opacity:0}} animate={{opacity:1}}

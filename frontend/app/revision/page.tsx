@@ -312,7 +312,7 @@ export default function RevisionPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'DM Sans', sans-serif" }}>
-      <div style={{ maxWidth: 520, margin: "0 auto", padding: "0 20px", paddingBottom: 100, position: "relative" }}>
+      <div style={{ maxWidth: 640, margin: "0 auto", padding: "0 20px", paddingBottom: 100, position: "relative" }}>
         <span
           aria-hidden
           style={{

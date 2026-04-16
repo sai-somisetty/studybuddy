@@ -171,7 +171,7 @@ export default function Profile() {
     >
       <div
         style={{
-          maxWidth: 520,
+          maxWidth: 640,
           margin: "0 auto",
           padding: `0 20px max(100px, calc(88px + env(safe-area-inset-bottom, 0px)))`,
         }}
