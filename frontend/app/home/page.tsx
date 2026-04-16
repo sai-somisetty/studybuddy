@@ -123,31 +123,31 @@ export default function Home(){
         </motion.div>
 
         {/* Revision Mode CTA */}
-        {starredCount>0&&(
-          <motion.button
-            initial={{opacity:0,y:12}} animate={{opacity:1,y:0}}
-            transition={{delay:0.35}}
-            whileTap={{scale:0.97}}
-            onClick={()=>router.push("/revision")}
-            style={{
-              width:"100%",padding:"14px 18px",borderRadius:12,
-              background:"#fff",border:"1.5px solid rgba(7,23,57,0.08)",
-              cursor:"pointer",display:"flex",alignItems:"center",gap:12,
-              marginBottom:20,textAlign:"left",
-              fontFamily:"'DM Sans',sans-serif",
-            }}>
-            <span style={{fontSize:20}}>⭐</span>
-            <div style={{flex:1}}>
-              <div style={{fontSize:14,fontWeight:600,color:"#071739"}}>
-                Revision Mode
-              </div>
-              <div style={{fontSize:11,color:"#4B6382",marginTop:2}}>
-                {starredCount} starred concepts ready
-              </div>
+        <motion.button
+          initial={{opacity:0,y:12}} animate={{opacity:1,y:0}}
+          transition={{delay:0.35}}
+          whileTap={{scale:0.97}}
+          onClick={()=>router.push("/revision")}
+          style={{
+            width:"100%",padding:"14px 18px",borderRadius:12,
+            background:"#fff",border:"1.5px solid rgba(7,23,57,0.08)",
+            cursor:"pointer",display:"flex",alignItems:"center",gap:12,
+            marginBottom:20,textAlign:"left",
+            fontFamily:"'DM Sans',sans-serif",
+          }}>
+          <span style={{fontSize:20}}>⭐</span>
+          <div style={{flex:1}}>
+            <div style={{fontSize:14,fontWeight:600,color:"#071739"}}>
+              Revision Mode
             </div>
-            <span style={{fontSize:14,color:"#071739",opacity:0.2}}>›</span>
-          </motion.button>
-        )}
+            <div style={{fontSize:11,color:"#4B6382",marginTop:2}}>
+              {starredCount>0
+                ?`${starredCount} starred concepts ready`
+                :"Star ⭐ concepts in lessons to build your list"}
+            </div>
+          </div>
+          <span style={{fontSize:14,color:"#071739",opacity:0.2}}>›</span>
+        </motion.button>
 
         {/* SUBJECTS */}
         <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",marginBottom:18}}>
