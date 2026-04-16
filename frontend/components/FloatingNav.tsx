@@ -10,7 +10,7 @@ export default function FloatingNav({
   active,
   subjectPath,
 }: {
-  active: "Home" | "Study" | "Exams" | "Profile";
+  active: "Home" | "Study" | "Exams" | "Progress" | "Profile";
   subjectPath?: string;
 }) {
   const router = useRouter();
@@ -18,6 +18,7 @@ export default function FloatingNav({
     { label: "Home" as const, path: "/home" },
     { label: "Study" as const, path: subjectPath || "/home" },
     { label: "Exams" as const, path: "/exams" },
+    { label: "Progress" as const, path: "/progress" },
     { label: "Profile" as const, path: "/profile" },
   ];
 
@@ -37,7 +38,7 @@ export default function FloatingNav({
           borderRadius: 999,
           padding: "7px",
           display: "flex",
-          gap: 2,
+          gap: 0,
           boxShadow: "0 8px 24px rgba(7,23,57,0.2), 0 2px 8px rgba(7,23,57,0.1)",
         }}
       >
@@ -53,10 +54,10 @@ export default function FloatingNav({
                 background: isActive ? C.gold : "transparent",
                 border: "none",
                 cursor: "pointer",
-                padding: "12px 24px",
+                padding: "10px 12px",
                 borderRadius: 999,
                 fontFamily: "'DM Sans', sans-serif",
-                fontSize: 14,
+                fontSize: 12,
                 fontWeight: isActive ? 700 : 500,
                 color: isActive ? C.navy : "rgba(255,255,255,0.55)",
                 transition: "all 0.2s ease",
