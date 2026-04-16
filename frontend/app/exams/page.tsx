@@ -1,45 +1,54 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  BookOpen, FileText, Shuffle, Sparkle,
-  Timer, CheckCircle, House, Certificate, ChartBar,
+  BookOpen,
+  FileText,
+  Shuffle,
+  Sparkle,
+  Timer,
+  CheckCircle,
 } from "@phosphor-icons/react";
+import FloatingNav from "@/components/FloatingNav";
+
+const C = {
+  navy: "#071739",
+  gold: "#E3C39D",
+  silver: "#A4B5C4",
+  steel: "#4B6382",
+  bg: "#FAFAF8",
+};
+
+const serif = "'DM Serif Display', serif";
+const sans = "'DM Sans', sans-serif";
 
 const EXAM_TYPES = [
   {
     id: "chapter",
-    icon: <BookOpen size={22} weight="duotone" color="#071739" />,
-    bg: "rgba(7,23,57,0.05)",
-    color: "#071739",
+    icon: <BookOpen size={22} weight="duotone" color={C.navy} />,
     label: "Chapter Exam",
     sub: "50 questions · 120 mins · 100 marks",
     description: "Full chapter deep test — real exam pressure",
   },
   {
     id: "combined",
-    icon: <Shuffle size={22} weight="duotone" color="#185FA5" />,
-    bg: "#DBEAFE",
-    color: "#185FA5",
+    icon: <Shuffle size={22} weight="duotone" color={C.navy} />,
     label: "Combined Exam",
     sub: "50 questions · 120 mins · 100 marks",
     description: "Mix chapters — like real paper distribution",
   },
   {
     id: "previous",
-    icon: <FileText size={22} weight="duotone" color="#E3C39D" />,
-    bg: "rgba(227,195,157,0.08)",
-    color: "#E3C39D",
+    icon: <FileText size={22} weight="duotone" color={C.navy} />,
     label: "Previous Papers",
     sub: "50 questions · 120 mins · 100 marks",
     description: "Real ICMAI past exam questions",
   },
   {
     id: "mock",
-    icon: <Sparkle size={22} weight="duotone" color="#7C3AED" />,
-    bg: "#F5F3FF",
-    color: "#7C3AED",
+    icon: <Sparkle size={22} weight="duotone" color={C.navy} />,
     label: "Mock Exam",
     sub: "50 questions · 120 mins · 100 marks",
     description: "Full paper simulation — all chapters",
@@ -56,84 +65,32 @@ const CHAPTERS = [
 
 type Screen = "home" | "chapter_select" | "combined_select" | "confirm";
 
-function BottomNav({ active }: { active: string }) {
-  const router = useRouter();
-  return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: 0,
-        left: "50%",
-        transform: "translateX(-50%)",
-        width: "100%",
-        maxWidth: 480,
-        background: "#fff",
-        borderTop: "0.5px solid rgba(0,0,0,0.06)",
-        padding: "10px 20px 20px",
-        display: "flex",
-        justifyContent: "space-around",
-        zIndex: 100,
-      }}
-    >
-      {[
-        { label: "Home",     path: "/home" },
-        { label: "Study",    path: "/subject/cma_f_law" },
-        { label: "Exams",    path: "/exams" },
-        { label: "Progress", path: "/progress" },
-      ].map((item) => {
-        const isActive = item.label === active;
-        const iconColor = isActive ? "#071739" : "#A4B5C4";
-        const iconWeight = isActive ? "fill" : "regular";
-        const iconMap: Record<string, React.ReactNode> = {
-          Home:     <House       size={20} weight={iconWeight as "fill" | "regular"} color={iconColor} />,
-          Study:    <BookOpen    size={20} weight={iconWeight as "fill" | "regular"} color={iconColor} />,
-          Exams:    <Certificate size={20} weight={iconWeight as "fill" | "regular"} color={iconColor} />,
-          Progress: <ChartBar    size={20} weight={iconWeight as "fill" | "regular"} color={iconColor} />,
-        };
-        return (
-          <motion.div
-            key={item.label}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => router.push(item.path)}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 4,
-              cursor: "pointer",
-            }}
-          >
-            {iconMap[item.label]}
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: isActive ? 700 : 400,
-                color: iconColor,
-              }}
-            >
-              {item.label}
-            </div>
-          </motion.div>
-        );
-      })}
-    </div>
-  );
-}
-
 export default function ExamsPage() {
   const router = useRouter();
   const [screen, setScreen] = useState<Screen>("home");
   const [selectedType, setSelectedType] = useState<string>("");
   const [selectedChapters, setSelectedChapters] = useState<number[]>([]);
+  const [examCount, setExamCount] = useState(0);
 
-  const getExamConfig = () => {
-    return {
-      questions: 50,
-      marks: 100,
-      duration: 120,
-      passMark: 80,
-    };
-  };
+  useEffect(() => {
+    const raw = localStorage.getItem("somi_exam_count");
+    const n = raw != null ? parseInt(raw, 10) : NaN;
+    setExamCount(Number.isFinite(n) ? n : 0);
+  }, []);
+
+  const examSubtitle =
+    examCount === 0
+      ? "No exams completed yet"
+      : examCount === 1
+        ? "1 exam completed"
+        : `${examCount} exams completed`;
+
+  const getExamConfig = () => ({
+    questions: 50,
+    marks: 100,
+    duration: 120,
+    passMark: 80,
+  });
 
   const handleTypeSelect = (type: string) => {
     setSelectedType(type);
@@ -156,7 +113,8 @@ export default function ExamsPage() {
 
   const handleStartExam = () => {
     const config = getExamConfig();
-    const chapterParam = selectedChapters.length > 0 ? selectedChapters.join(",") : "all";
+    const chapterParam =
+      selectedChapters.length > 0 ? selectedChapters.join(",") : "all";
     router.push(
       `/exam-session?type=${selectedType}` +
         `&chapters=${chapterParam}` +
@@ -168,288 +126,275 @@ export default function ExamsPage() {
   };
 
   const handleBack = () => {
-    if (screen === "confirm" && selectedType === "combined") setScreen("combined_select");
+    if (screen === "confirm" && selectedType === "combined")
+      setScreen("combined_select");
     else if (screen === "confirm") setScreen("chapter_select");
     else setScreen("home");
   };
 
   const currentType = EXAM_TYPES.find((t) => t.id === selectedType);
 
+  const headerTitle =
+    screen === "home"
+      ? "Exams"
+      : screen === "chapter_select"
+        ? "Chapter Exam"
+        : screen === "combined_select"
+          ? "Combined Exam"
+          : "Ready to Start?";
+
+  const headerSub =
+    screen === "home"
+      ? examSubtitle
+      : screen === "confirm"
+        ? "Review your exam settings"
+        : "Select chapters";
+
+  const innerPad = "16px 20px max(100px, calc(88px + env(safe-area-inset-bottom, 0px)))";
+
   return (
-    <div className="app-shell">
-      {/* ── Header ── */}
+    <div
+      className="app-shell"
+      style={{ minHeight: "100vh", background: C.bg, fontFamily: sans }}
+    >
       <div
         style={{
-          background: "#071739",
-          padding: "18px 24px 16px",
+          maxWidth: 520,
+          margin: "0 auto",
+          padding: "0 20px",
         }}
       >
-        {screen !== "home" && (
-          <button
-            onClick={handleBack}
-            style={{
-              background: "rgba(255,255,255,0.1)",
-              border: "none",
-              borderRadius: 8,
-              padding: "6px 12px",
-              fontSize: 11,
-              fontWeight: 600,
-              color: "rgba(255,255,255,0.7)",
-              cursor: "pointer",
-              marginBottom: 10,
-            }}
-          >
-            ← Back
-          </button>
-        )}
-        <div
+        <header
           style={{
-            fontFamily: "Georgia,serif",
-            fontSize: 20,
-            fontWeight: 700,
-            color: "#fff",
-            marginBottom: 2,
+            margin: "0 -20px",
+            padding: `max(16px, env(safe-area-inset-top, 16px)) 20px 20px`,
+            background: C.navy,
+            position: "relative",
+            overflow: "hidden",
           }}
         >
-          {screen === "home"
-            ? "Exams"
-            : screen === "chapter_select"
-            ? "Chapter Exam"
-            : screen === "combined_select"
-            ? "Combined Exam"
-            : "Ready to Start?"}
-        </div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
-          {screen === "home"
-            ? "CMA Foundation · Paper 1"
-            : screen === "confirm"
-            ? "Review your exam settings"
-            : "Select chapters"}
-        </div>
-      </div>
-
-      {/* ── Screens ── */}
-      <AnimatePresence mode="wait">
-        {/* HOME */}
-        {screen === "home" && (
-          <motion.div
-            key="home"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.18 }}
-            style={{ flex: 1, padding: "16px 20px 100px", overflowY: "auto" }}
+          <span
+            style={{
+              position: "absolute",
+              top: -8,
+              right: -12,
+              fontFamily: "'Playfair Display', serif",
+              fontSize: "clamp(96px, 26vw, 140px)",
+              fontWeight: 900,
+              color: "#fff",
+              opacity: 0.04,
+              lineHeight: 1,
+              userSelect: "none",
+              pointerEvents: "none",
+            }}
+            aria-hidden
           >
-            {/* Real exam info banner */}
-            <div
+            02
+          </span>
+          {screen !== "home" && (
+            <button
+              type="button"
+              onClick={handleBack}
               style={{
-                background: "#fff",
-                borderRadius: 14,
-                padding: "12px 16px",
-                border: "0.5px solid rgba(0,0,0,0.06)",
-                marginBottom: 16,
-                display: "flex",
-                gap: 10,
-                alignItems: "flex-start",
+                position: "relative",
+                zIndex: 1,
+                background: "rgba(255,255,255,0.1)",
+                border: "none",
+                borderRadius: 8,
+                padding: "6px 12px",
+                fontSize: 11,
+                fontWeight: 600,
+                color: "rgba(255,255,255,0.75)",
+                cursor: "pointer",
+                marginBottom: 10,
+                fontFamily: sans,
               }}
             >
-              <span style={{ fontSize: 20 }}>📋</span>
-              <div>
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: "#071739",
-                    marginBottom: 4,
-                  }}
-                >
-                  Real CMA Foundation Pattern
-                </div>
-                <div style={{ fontSize: 11, color: "#4B6382", lineHeight: 1.6 }}>
-                  50 MCQs · 2 marks each · 120 mins · No negative marking · Pass: 40% per paper + 50% aggregate
-                </div>
-                <div
-                  style={{
-                    fontSize: 10,
-                    color: "#E3C39D",
-                    fontWeight: 600,
-                    marginTop: 4,
-                  }}
-                >
-                  SOMI practice pass mark: 80/100 🎯
-                </div>
-              </div>
-            </div>
-
-            <div
+              ← Back
+            </button>
+          )}
+          <div style={{ position: "relative", zIndex: 1 }}>
+            <h1
+              style={{
+                fontFamily: serif,
+                fontSize: screen === "home" ? 26 : 22,
+                fontWeight: 400,
+                color: "#fff",
+                margin: 0,
+                lineHeight: 1.2,
+              }}
+            >
+              {headerTitle}
+            </h1>
+            <p
               style={{
                 fontSize: 12,
-                fontWeight: 600,
-                color: "#4B6382",
-                marginBottom: 10,
+                color: C.silver,
+                margin: "8px 0 0",
+                opacity: 0.95,
               }}
             >
-              Select Exam Type
-            </div>
+              {headerSub}
+            </p>
+          </div>
+        </header>
 
-            <div
-              style={{
-                background: "#fff",
-                borderRadius: 16,
-                border: "0.5px solid rgba(0,0,0,0.08)",
-                overflow: "hidden",
-              }}
+        <AnimatePresence mode="wait">
+          {screen === "home" && (
+            <motion.div
+              key="home"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.18 }}
+              style={{ padding: innerPad, overflowY: "auto" }}
             >
-              {EXAM_TYPES.map((type, i, arr) => (
-                <motion.button
-                  key={type.id}
-                  whileTap={{ backgroundColor: "rgba(7,23,57,0.04)" }}
-                  onClick={() => handleTypeSelect(type.id)}
-                  style={{
-                    width: "100%",
-                    padding: "14px 16px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 14,
-                    background: "transparent",
-                    border: "none",
-                    borderBottom:
-                      i < arr.length - 1 ? "0.5px solid rgba(0,0,0,0.06)" : "none",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
+              <div
+                style={{
+                  background: "#fff",
+                  borderRadius: 14,
+                  padding: "12px 16px",
+                  border: `1px solid rgba(7,23,57,0.06)`,
+                  marginBottom: 16,
+                  display: "flex",
+                  gap: 10,
+                  alignItems: "flex-start",
+                }}
+              >
+                <span style={{ fontSize: 20 }} aria-hidden>
+                  📋
+                </span>
+                <div>
                   <div
                     style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 12,
-                      background: type.bg,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: C.navy,
+                      marginBottom: 4,
+                      letterSpacing: "0.04em",
                     }}
                   >
-                    {type.icon}
+                    Real CMA Foundation Pattern
                   </div>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, color: C.steel, lineHeight: 1.6 }}>
+                    50 MCQs · 2 marks each · 120 mins · No negative marking · Pass: 40% per paper + 50% aggregate
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      color: C.gold,
+                      fontWeight: 600,
+                      marginTop: 4,
+                    }}
+                  >
+                    SOMI practice pass mark: 80/100 🎯
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: C.navy,
+                  opacity: 0.4,
+                  marginBottom: 10,
+                }}
+              >
+                Select exam type
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {EXAM_TYPES.map((type, i) => (
+                  <motion.button
+                    key={type.id}
+                    type="button"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    whileTap={{ scale: 0.99 }}
+                    onClick={() => handleTypeSelect(type.id)}
+                    style={{
+                      width: "100%",
+                      padding: "14px 16px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 14,
+                      background: "#fff",
+                      borderRadius: 14,
+                      border: `1px solid rgba(7,23,57,0.06)`,
+                      cursor: "pointer",
+                      textAlign: "left",
+                      fontFamily: sans,
+                    }}
+                  >
                     <div
                       style={{
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: "#071739",
-                        marginBottom: 2,
+                        width: 44,
+                        height: 44,
+                        borderRadius: 12,
+                        background: "rgba(7,23,57,0.04)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        boxShadow: `inset 0 0 0 1px rgba(227,195,157,0.25)`,
                       }}
                     >
-                      {type.label}
+                      {type.icon}
                     </div>
-                    <div style={{ fontSize: 11, color: "#A4B5C4" }}>{type.sub}</div>
-                  </div>
-                  <span style={{ fontSize: 16, color: "#C5B9A8" }}>›</span>
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* CHAPTER SELECT */}
-        {screen === "chapter_select" && (
-          <motion.div
-            key="chapter_select"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.18 }}
-            style={{ flex: 1, padding: "16px 20px 100px", overflowY: "auto" }}
-          >
-            <div style={{ fontSize: 12, color: "#A4B5C4", marginBottom: 12 }}>
-              Select a chapter to test
-            </div>
-            <div
-              style={{
-                background: "#fff",
-                borderRadius: 16,
-                border: "0.5px solid rgba(0,0,0,0.08)",
-                overflow: "hidden",
-              }}
-            >
-              {CHAPTERS.map((ch, i, arr) => (
-                <motion.button
-                  key={ch.num}
-                  whileTap={{ backgroundColor: "rgba(7,23,57,0.04)" }}
-                  onClick={() => handleChapterSelect(ch.num)}
-                  style={{
-                    width: "100%",
-                    padding: "14px 16px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 14,
-                    background: "transparent",
-                    border: "none",
-                    borderBottom:
-                      i < arr.length - 1 ? "0.5px solid rgba(0,0,0,0.06)" : "none",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 10,
-                      background: "rgba(7,23,57,0.05)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#071739" }}>
-                      {ch.num}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: C.navy,
+                          marginBottom: 2,
+                        }}
+                      >
+                        {type.label}
+                      </div>
+                      <div style={{ fontSize: 11, color: C.steel }}>{type.sub}</div>
+                    </div>
+                    <span
+                      style={{ fontSize: 16, color: C.navy, opacity: 0.2, flexShrink: 0 }}
+                      aria-hidden
+                    >
+                      ›
                     </span>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: "#071739" }}>
-                      Ch {ch.num} — {ch.title}
-                    </div>
-                    <div style={{ fontSize: 11, color: "#A4B5C4" }}>50 questions · 120 mins</div>
-                  </div>
-                  <span style={{ fontSize: 16, color: "#C5B9A8" }}>›</span>
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
-        {/* COMBINED SELECT */}
-        {screen === "combined_select" && (
-          <motion.div
-            key="combined_select"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.18 }}
-            style={{ flex: 1, padding: "16px 20px 100px", overflowY: "auto" }}
-          >
-            <div style={{ fontSize: 12, color: "#A4B5C4", marginBottom: 12 }}>
-              Select 2 or more chapters
-            </div>
-            <div
-              style={{
-                background: "#fff",
-                borderRadius: 16,
-                border: "0.5px solid rgba(0,0,0,0.08)",
-                overflow: "hidden",
-                marginBottom: 16,
-              }}
+          {screen === "chapter_select" && (
+            <motion.div
+              key="chapter_select"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.18 }}
+              style={{ padding: innerPad, overflowY: "auto" }}
             >
-              {CHAPTERS.map((ch, i, arr) => {
-                const isSelected = selectedChapters.includes(ch.num);
-                return (
+              <div style={{ fontSize: 12, color: C.steel, marginBottom: 12 }}>
+                Select a chapter to test
+              </div>
+              <div
+                style={{
+                  background: "#fff",
+                  borderRadius: 14,
+                  border: `1px solid rgba(7,23,57,0.06)`,
+                  overflow: "hidden",
+                }}
+              >
+                {CHAPTERS.map((ch, i, arr) => (
                   <motion.button
                     key={ch.num}
-                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    whileTap={{ backgroundColor: "rgba(7,23,57,0.04)" }}
                     onClick={() => handleChapterSelect(ch.num)}
                     style={{
                       width: "100%",
@@ -457,12 +402,13 @@ export default function ExamsPage() {
                       display: "flex",
                       alignItems: "center",
                       gap: 14,
-                      background: isSelected ? "rgba(7,23,57,0.05)" : "transparent",
+                      background: "transparent",
                       border: "none",
                       borderBottom:
-                        i < arr.length - 1 ? "0.5px solid rgba(0,0,0,0.06)" : "none",
+                        i < arr.length - 1 ? "1px solid rgba(7,23,57,0.06)" : "none",
                       cursor: "pointer",
                       textAlign: "left",
+                      fontFamily: sans,
                     }}
                   >
                     <div
@@ -470,257 +416,338 @@ export default function ExamsPage() {
                         width: 36,
                         height: 36,
                         borderRadius: 10,
-                        background: isSelected ? "#071739" : "rgba(7,23,57,0.04)",
+                        background: "rgba(7,23,57,0.04)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         flexShrink: 0,
                       }}
                     >
-                      {isSelected ? (
-                        <CheckCircle size={18} weight="fill" color="#fff" />
-                      ) : (
-                        <span style={{ fontSize: 13, fontWeight: 700, color: "#A4B5C4" }}>
-                          {ch.num}
-                        </span>
-                      )}
+                      <span style={{ fontSize: 13, fontWeight: 700, color: C.navy }}>
+                        {ch.num}
+                      </span>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          fontSize: 13,
-                          fontWeight: isSelected ? 600 : 500,
-                          color: isSelected ? "#071739" : "#071739",
-                        }}
-                      >
+                      <div style={{ fontSize: 13, fontWeight: 500, color: C.navy }}>
                         Ch {ch.num} — {ch.title}
                       </div>
-                      <div style={{ fontSize: 11, color: "#A4B5C4" }}>+10 questions</div>
+                      <div style={{ fontSize: 11, color: C.steel }}>50 questions · 120 mins</div>
                     </div>
-                    {isSelected && (
-                      <CheckCircle size={18} weight="fill" color="#071739" />
-                    )}
+                    <span style={{ fontSize: 16, color: C.navy, opacity: 0.2 }} aria-hidden>
+                      ›
+                    </span>
                   </motion.button>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
-            {selectedChapters.length >= 2 ? (
-              <motion.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setScreen("confirm")}
-                style={{
-                  width: "100%",
-                  padding: "14px",
-                  borderRadius: 14,
-                  background: "#071739",
-                  color: "#fff",
-                  border: "none",
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                Continue with {selectedChapters.length} chapters →
-              </motion.button>
-            ) : (
+          {screen === "combined_select" && (
+            <motion.div
+              key="combined_select"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.18 }}
+              style={{ padding: innerPad, overflowY: "auto" }}
+            >
+              <div style={{ fontSize: 12, color: C.steel, marginBottom: 12 }}>
+                Select 2 or more chapters
+              </div>
               <div
                 style={{
-                  textAlign: "center",
-                  fontSize: 11,
-                  color: "#A4B5C4",
-                  marginTop: 8,
+                  background: "#fff",
+                  borderRadius: 14,
+                  border: `1px solid rgba(7,23,57,0.06)`,
+                  overflow: "hidden",
+                  marginBottom: 16,
                 }}
               >
-                Select at least 2 chapters to continue
-              </div>
-            )}
-          </motion.div>
-        )}
-
-        {/* CONFIRM */}
-        {screen === "confirm" && (
-          <motion.div
-            key="confirm"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.18 }}
-            style={{ flex: 1, padding: "16px 20px 100px", overflowY: "auto" }}
-          >
-            {(() => {
-              const config = getExamConfig();
-              return (
-                <>
-                  {/* Exam summary card */}
-                  <div
-                    style={{
-                      background: "#fff",
-                      borderRadius: 16,
-                      border: "0.5px solid rgba(0,0,0,0.08)",
-                      overflow: "hidden",
-                      marginBottom: 16,
-                    }}
-                  >
-                    {/* Header */}
-                    <div
+                {CHAPTERS.map((ch, i, arr) => {
+                  const isSelected = selectedChapters.includes(ch.num);
+                  return (
+                    <motion.button
+                      key={ch.num}
+                      type="button"
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleChapterSelect(ch.num)}
                       style={{
-                        background: currentType?.bg || "rgba(7,23,57,0.05)",
-                        padding: "20px 20px 16px",
+                        width: "100%",
+                        padding: "14px 16px",
                         display: "flex",
                         alignItems: "center",
                         gap: 14,
+                        background: isSelected ? "rgba(227,195,157,0.08)" : "transparent",
+                        border: "none",
+                        borderBottom:
+                          i < arr.length - 1 ? "1px solid rgba(7,23,57,0.06)" : "none",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        fontFamily: sans,
                       }}
                     >
                       <div
                         style={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 14,
-                          background: "#fff",
+                          width: 36,
+                          height: 36,
+                          borderRadius: 10,
+                          background: isSelected ? C.navy : "rgba(7,23,57,0.04)",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
+                          flexShrink: 0,
                         }}
                       >
-                        {currentType?.icon}
-                      </div>
-                      <div>
-                        <div
-                          style={{ fontSize: 16, fontWeight: 700, color: "#071739" }}
-                        >
-                          {currentType?.label}
-                        </div>
-                        {selectedChapters.length > 0 && (
-                          <div style={{ fontSize: 11, color: "#4B6382" }}>
-                            {selectedChapters.length === 1
-                              ? `Chapter ${selectedChapters[0]}`
-                              : `Chapters ${selectedChapters.join(", ")}`}
-                          </div>
+                        {isSelected ? (
+                          <CheckCircle size={18} weight="fill" color="#fff" />
+                        ) : (
+                          <span style={{ fontSize: 13, fontWeight: 700, color: C.steel }}>
+                            {ch.num}
+                          </span>
                         )}
                       </div>
-                    </div>
-
-                    {/* Stats */}
-                    {[
-                      { label: "Questions", value: config.questions },
-                      { label: "Total Marks", value: config.marks },
-                      { label: "Duration", value: `${config.duration} mins` },
-                      {
-                        label: "Pass Mark",
-                        value: `${config.passMark}/${config.marks}`,
-                      },
-                    ].map((stat, i, arr) => (
-                      <div
-                        key={stat.label}
-                        style={{
-                          padding: "12px 20px",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          borderBottom:
-                            i < arr.length - 1
-                              ? "0.5px solid rgba(0,0,0,0.06)"
-                              : "none",
-                        }}
-                      >
-                        <span style={{ fontSize: 13, color: "#4B6382" }}>
-                          {stat.label}
-                        </span>
-                        <span
-                          style={{ fontSize: 13, fontWeight: 700, color: "#071739" }}
-                        >
-                          {stat.value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Rules */}
-                  <div
-                    style={{
-                      background: "#FFFEF9",
-                      borderRadius: 14,
-                      padding: "12px 16px",
-                      border: "0.5px solid rgba(0,0,0,0.06)",
-                      marginBottom: 20,
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        color: "#A4B5C4",
-                        letterSpacing: "0.06em",
-                        marginBottom: 8,
-                      }}
-                    >
-                      EXAM RULES
-                    </div>
-                    {[
-                      "No negative marking",
-                      "All questions are MCQ",
-                      `Pass mark: ${config.passMark}/${config.marks} (80%)`,
-                      "Timer shown — submit when done",
-                      "Results shown immediately",
-                    ].map((rule) => (
-                      <div
-                        key={rule}
-                        style={{
-                          display: "flex",
-                          gap: 8,
-                          alignItems: "flex-start",
-                          marginBottom: 6,
-                        }}
-                      >
-                        <span
+                      <div style={{ flex: 1 }}>
+                        <div
                           style={{
-                            fontSize: 10,
-                            color: "#071739",
-                            flexShrink: 0,
+                            fontSize: 13,
+                            fontWeight: isSelected ? 600 : 500,
+                            color: C.navy,
                           }}
                         >
-                          ✓
-                        </span>
-                        <span style={{ fontSize: 12, color: "#4B6382" }}>{rule}</span>
+                          Ch {ch.num} — {ch.title}
+                        </div>
+                        <div style={{ fontSize: 11, color: C.steel }}>+10 questions</div>
                       </div>
-                    ))}
-                  </div>
+                      {isSelected && (
+                        <CheckCircle size={18} weight="fill" color={C.navy} />
+                      )}
+                    </motion.button>
+                  );
+                })}
+              </div>
 
-                  {/* Start button */}
-                  <motion.button
-                    whileTap={{ scale: 0.97 }}
-                    onClick={handleStartExam}
-                    style={{
-                      width: "100%",
-                      padding: "16px",
-                      borderRadius: 14,
-                      background:
-                        "#071739",
-                      color: "#fff",
-                      border: "none",
-                      fontSize: 15,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                    }}
-                  >
-                    <Timer size={18} weight="fill" color="#E3C39D" />
-                    Start Exam
-                  </motion.button>
-                </>
-              );
-            })()}
-          </motion.div>
-        )}
-      </AnimatePresence>
+              {selectedChapters.length >= 2 ? (
+                <motion.button
+                  type="button"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setScreen("confirm")}
+                  style={{
+                    width: "100%",
+                    padding: "14px",
+                    borderRadius: 14,
+                    background: C.navy,
+                    color: C.gold,
+                    border: "none",
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    fontFamily: sans,
+                  }}
+                >
+                  Continue with {selectedChapters.length} chapters →
+                </motion.button>
+              ) : (
+                <div
+                  style={{
+                    textAlign: "center",
+                    fontSize: 11,
+                    color: C.steel,
+                    marginTop: 8,
+                  }}
+                >
+                  Select at least 2 chapters to continue
+                </div>
+              )}
+            </motion.div>
+          )}
 
-      <BottomNav active="Exams" />
+          {screen === "confirm" && (
+            <motion.div
+              key="confirm"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.18 }}
+              style={{ padding: innerPad, overflowY: "auto" }}
+            >
+              {(() => {
+                const config = getExamConfig();
+                return (
+                  <>
+                    <div
+                      style={{
+                        background: "#fff",
+                        borderRadius: 14,
+                        border: `1px solid rgba(7,23,57,0.06)`,
+                        overflow: "hidden",
+                        marginBottom: 16,
+                      }}
+                    >
+                      <div
+                        style={{
+                          background: "linear-gradient(135deg, rgba(227,195,157,0.12), rgba(7,23,57,0.04))",
+                          padding: "20px 20px 16px",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 14,
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: 14,
+                            background: "#fff",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            boxShadow: `inset 0 0 0 1px rgba(7,23,57,0.06)`,
+                          }}
+                        >
+                          {currentType?.icon}
+                        </div>
+                        <div>
+                          <div
+                            style={{
+                              fontFamily: serif,
+                              fontSize: 18,
+                              fontWeight: 600,
+                              color: C.navy,
+                            }}
+                          >
+                            {currentType?.label}
+                          </div>
+                          {selectedChapters.length > 0 && (
+                            <div style={{ fontSize: 11, color: C.steel, marginTop: 4 }}>
+                              {selectedChapters.length === 1
+                                ? `Chapter ${selectedChapters[0]}`
+                                : `Chapters ${selectedChapters.join(", ")}`}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {[
+                        { label: "Questions", value: config.questions },
+                        { label: "Total Marks", value: config.marks },
+                        { label: "Duration", value: `${config.duration} mins` },
+                        {
+                          label: "Pass Mark",
+                          value: `${config.passMark}/${config.marks}`,
+                        },
+                      ].map((stat, i, arr) => (
+                        <div
+                          key={stat.label}
+                          style={{
+                            padding: "12px 20px",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            borderBottom:
+                              i < arr.length - 1 ? "1px solid rgba(7,23,57,0.06)" : "none",
+                          }}
+                        >
+                          <span style={{ fontSize: 13, color: C.steel }}>{stat.label}</span>
+                          <span
+                            style={{
+                              fontSize: 13,
+                              fontWeight: 700,
+                              color: C.navy,
+                              fontFamily: serif,
+                            }}
+                          >
+                            {stat.value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div
+                      style={{
+                        background: "#fff",
+                        borderRadius: 14,
+                        padding: "12px 16px",
+                        border: `1px solid rgba(7,23,57,0.06)`,
+                        marginBottom: 20,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          color: C.steel,
+                          letterSpacing: "0.1em",
+                          marginBottom: 8,
+                        }}
+                      >
+                        EXAM RULES
+                      </div>
+                      {[
+                        "No negative marking",
+                        "All questions are MCQ",
+                        `Pass mark: ${config.passMark}/${config.marks} (80%)`,
+                        "Timer shown — submit when done",
+                        "Results shown immediately",
+                      ].map((rule) => (
+                        <div
+                          key={rule}
+                          style={{
+                            display: "flex",
+                            gap: 8,
+                            alignItems: "flex-start",
+                            marginBottom: 6,
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: 10,
+                              color: C.gold,
+                              flexShrink: 0,
+                              fontWeight: 700,
+                            }}
+                          >
+                            ✓
+                          </span>
+                          <span style={{ fontSize: 12, color: C.steel }}>{rule}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <motion.button
+                      type="button"
+                      whileTap={{ scale: 0.97 }}
+                      onClick={handleStartExam}
+                      style={{
+                        width: "100%",
+                        padding: "16px",
+                        borderRadius: 14,
+                        background: C.navy,
+                        color: C.gold,
+                        border: "none",
+                        fontSize: 15,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 8,
+                        fontFamily: sans,
+                      }}
+                    >
+                      <Timer size={18} weight="fill" color={C.gold} />
+                      Start Exam
+                    </motion.button>
+                  </>
+                );
+              })()}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <FloatingNav active="Exams" />
     </div>
   );
 }
