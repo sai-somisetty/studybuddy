@@ -98,6 +98,7 @@ def sync_chapter(course: str, paper: int, chapter: int, dry_run: bool = False):
         for c in page_concepts:
             mama_lines.append({
                 "text": c.get("text") or "",
+                "image_url": c.get("image_url") or "",
                 "heading": c.get("heading") or "",
                 "is_key_concept": c.get("is_key_concept", False),
                 "tenglish": c.get("tenglish") or "",
