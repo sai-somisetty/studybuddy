@@ -44,5 +44,25 @@ html, body { height: 100%; }
   .brand-stats { display: flex; gap: 24px; align-items: center; }
   .login-form { flex: 1; height: 100vh; overflow-y: auto; justify-content: center; padding: clamp(32px,5vw,60px); }
   body { background: #E8E4DF; }
-  .app-shell { max-width: 480px; margin: 0 auto; min-height: 100vh; box-shadow: 0 0 60px rgba(0,0,0,0.15); }
+}
+
+@media (min-width: 1024px) {
+  /* Desktop shell handles layout — remove old centering */
+  .app-shell {
+    max-width: none;
+    margin: 0;
+    box-shadow: none;
+    min-height: 100vh;
+  }
+}
+
+/* Hide floating pill nav on desktop — sidebar handles navigation */
+@media (min-width: 1024px) {
+  [data-floating-nav] {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  body { background: #0D1B2A; }
 }

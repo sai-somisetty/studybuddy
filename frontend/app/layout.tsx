@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import ClientLayout from "@/components/ClientLayout";
 
 export const metadata: Metadata = {
   title: "SOMI — Student's Own Mentor Intelligence",
@@ -25,7 +26,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-ivory font-sans antialiased">
-        {children}
+        <ClientLayout>{children}</ClientLayout>
         {/* Nuke ALL service workers, clear ALL caches, force fresh load */}
         <script
           dangerouslySetInnerHTML={{

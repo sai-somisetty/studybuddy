@@ -24,6 +24,7 @@ export default function FloatingNav({
 
   return (
     <div
+      data-floating-nav="true"
       style={{
         position: "fixed",
         bottom: "max(20px, env(safe-area-inset-bottom, 20px))",
