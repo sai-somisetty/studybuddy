@@ -31,6 +31,9 @@ interface MamaLine {
   image_url?: string | null;
   heading?: string;
   is_key_concept: boolean;
+  english?: string | null;
+  english_variation_2?: string | null;
+  english_variation_3?: string | null;
   tenglish: string;
   tenglish_variation_2?: string;
   tenglish_variation_3?: string;
@@ -122,6 +125,26 @@ function LessonContent() {
 
   // ── Active zone (Mama / PDF) ──
   const [activeZone, setActiveZone]           = useState<"mama" | "icmai">("mama");
+
+  const [lang, setLang] = useState<"tenglish" | "english">(() => {
+    if (typeof window === "undefined") return "tenglish";
+    const v = localStorage.getItem("somi_lang");
+    return v === "english" ? "english" : "tenglish";
+  });
+
+  function getContent(para: MamaLine | undefined, variation: "v1" | "v2" | "v3"): string {
+    if (!para) return "";
+    if (variation === "v1") {
+      if (lang === "english") return (para.english || para.tenglish || "").trim();
+      return (para.tenglish || para.english || "").trim();
+    }
+    if (variation === "v2") {
+      if (lang === "english") return (para.english_variation_2 || para.tenglish_variation_2 || "").trim();
+      return (para.tenglish_variation_2 || para.english_variation_2 || "").trim();
+    }
+    if (lang === "english") return (para.english_variation_3 || para.tenglish_variation_3 || "").trim();
+    return (para.tenglish_variation_3 || para.english_variation_3 || "").trim();
+  }
 
   // Re-read somi_starred after toggle (localStorage does not trigger React)
   const [paraImportantTick, setParaImportantTick] = useState(0);
@@ -448,8 +471,28 @@ function LessonContent() {
             </button>
           </div>
 
-          {/* Right — zone toggle */}
+          {/* Right — language + zone toggle */}
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <button
+              type="button"
+              onClick={() => {
+                const next = lang === "tenglish" ? "english" : "tenglish";
+                setLang(next);
+                localStorage.setItem("somi_lang", next);
+              }}
+              style={{
+                padding: "4px 10px",
+                borderRadius: 6,
+                fontSize: 10,
+                fontWeight: 600,
+                border: "none",
+                cursor: "pointer",
+                background: "rgba(255,255,255,0.08)",
+                color: "rgba(255,255,255,0.6)",
+              }}
+            >
+              {lang === "tenglish" ? "ENG" : "తెలు"}
+            </button>
             <button type="button" onClick={() => setActiveZone(z => z === "mama" ? "icmai" : "mama")}
               style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               {activeZone === "mama" ? <SomiIcons.BookOpen size={14} color="rgba(255,255,255,0.85)" /> : <SomiIcons.Brain size={14} color="rgba(255,255,255,0.85)" />}
@@ -619,8 +662,8 @@ function LessonContent() {
                                   chapter,
                                   title: currentPara?.concept_title || currentPara?.text?.slice(0, 60) || concept,
                                   bookPage: currentPage?.book_page,
-                                  quickContent: currentPara?.tenglish || "",
-                                  reviseContent: currentPara?.tenglish_variation_2 || "",
+                                  quickContent: getContent(currentPara, "v1"),
+                                  reviseContent: getContent(currentPara, "v2"),
                                   starredAt: new Date().toISOString(),
                                 });
                               }
@@ -709,9 +752,9 @@ function LessonContent() {
                         exit={{ opacity: 0, y: -6 }}>
                         <MarkdownRenderer
                           content={
-                            (activeTab === "quick"    ? (currentPara?.tenglish || "") :
-                             activeTab === "example"  ? (currentPara?.tenglish_variation_2 || "") :
-                                                        (currentPara?.tenglish_variation_3 || "")
+                            (activeTab === "quick"    ? getContent(currentPara, "v1") :
+                             activeTab === "example"  ? getContent(currentPara, "v2") :
+                                                        getContent(currentPara, "v3")
                             ).replace(/\bthe student\b/gi, studentName)
                              .replace(/\{name\}/gi, studentName)
                           }
