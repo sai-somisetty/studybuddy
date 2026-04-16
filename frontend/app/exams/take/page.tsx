@@ -53,10 +53,10 @@ const sampleQuestions = [
 ];
 
 const sourceColors: Record<string, { bg: string; color: string; label: string }> = {
-  previous_paper: { bg:"#FFF7ED", color:"#E67E22", label:"Previous Paper" },
-  textbook_exact: { bg:"#E1F5EE", color:"#0E6655", label:"Textbook Exact" },
+  previous_paper: { bg:"rgba(227,195,157,0.08)", color:"#E3C39D", label:"Previous Paper" },
+  textbook_exact: { bg:"rgba(7,23,57,0.05)", color:"#071739", label:"Textbook Exact" },
   tweaked:        { bg:"#EEF2FF", color:"#185FA5", label:"Tweaked"        },
-  ai_generated:   { bg:"#F5F0E8", color:"#6B6560", label:"AI Generated"   },
+  ai_generated:   { bg:"rgba(7,23,57,0.04)", color:"#4B6382", label:"AI Generated"   },
 };
 
 function ExamContent() {
@@ -95,7 +95,7 @@ function ExamContent() {
     return `${m}:${sec.toString().padStart(2, "0")}`;
   };
 
-  const timerColor = timeLeft < 300 ? "#DC2626" : timeLeft < 600 ? "#E67E22" : "#fff";
+  const timerColor = timeLeft < 300 ? "#DC2626" : timeLeft < 600 ? "#E3C39D" : "#fff";
 
   const handleSelect = (opt: string) => {
     if (answers[question.id]) return;
@@ -135,7 +135,7 @@ function ExamContent() {
     <div className="app-shell">
 
       {/* Header with timer */}
-      <div style={{ background:"#0A2E28", padding:"14px 20px" }}>
+      <div style={{ background:"#071739", padding:"14px 20px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
           <div>
             <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)" }}>{subject} · {examType}</div>
@@ -151,15 +151,15 @@ function ExamContent() {
         </div>
         {/* Progress bar */}
         <div style={{ height:3, background:"rgba(255,255,255,0.15)", borderRadius:2, overflow:"hidden" }}>
-          <div style={{ width:`${((current+1)/questions.length)*100}%`, height:"100%", background:"#E67E22", borderRadius:2, transition:"width 0.3s" }} />
+          <div style={{ width:`${((current+1)/questions.length)*100}%`, height:"100%", background:"#E3C39D", borderRadius:2, transition:"width 0.3s" }} />
         </div>
         {/* Question dots */}
         <div style={{ display:"flex", gap:3, marginTop:6, flexWrap:"wrap" }}>
           {questions.map((q, i) => (
             <div key={i} onClick={() => { setCurrent(i); setSelected(answers[questions[i].id]||null); }}
               style={{ width:16, height:16, borderRadius:4, cursor:"pointer", fontSize:8, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:700,
-                background: flagged.has(q.id) ? "#E67E22" : answers[q.id] ? "#0E6655" : i===current ? "#fff" : "rgba(255,255,255,0.2)",
-                color: i===current ? "#0A2E28" : "#fff"
+                background: flagged.has(q.id) ? "#E3C39D" : answers[q.id] ? "#071739" : i===current ? "#fff" : "rgba(255,255,255,0.2)",
+                color: i===current ? "#071739" : "#fff"
               }}>
               {i+1}
             </div>
@@ -180,7 +180,7 @@ function ExamContent() {
               🚩
             </motion.div>
           </div>
-          <div style={{ fontSize:14, fontWeight:600, color:"#1A1208", lineHeight:1.5 }}>
+          <div style={{ fontSize:14, fontWeight:600, color:"#071739", lineHeight:1.5 }}>
             {question.question_text}
           </div>
         </div>
@@ -195,9 +195,9 @@ function ExamContent() {
             const isSelected = answers[question.id] === opt;
             let bg     = "#fff";
             let border = "0.5px solid rgba(0,0,0,0.06)";
-            let color  = "#1A1208";
+            let color  = "#071739";
             let badgeBg = "#E6F1FB", badgeColor = "#185FA5";
-            if (answered && isCorrect)          { bg="#f0fdf4"; border="1.5px solid #16a34a"; color="#14532d"; badgeBg="#16a34a"; badgeColor="#fff"; }
+            if (answered && isCorrect)          { bg="#f0fdf4"; border="1.5px solid #16a34a"; color="#071739"; badgeBg="#16a34a"; badgeColor="#fff"; }
             else if (answered && isSelected)    { bg="#fef2f2"; border="1.5px solid #ef4444"; color="#991b1b"; badgeBg="#ef4444"; badgeColor="#fff"; }
             return (
               <motion.button key={opt} whileTap={{ scale:0.98 }}
@@ -216,10 +216,10 @@ function ExamContent() {
         {/* Explanation — shown after answering */}
         {answers[question.id] && (
           <motion.div initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }}
-            style={{ background:"#fff", borderRadius:16, padding:14, border:"0.5px solid #E1F5EE" }}>
-            <div style={{ fontSize:9, fontWeight:700, color:"#A89880", letterSpacing:"0.06em", marginBottom:6 }}>EXPLANATION</div>
-            <div style={{ fontSize:12, color:"#1A1208", lineHeight:1.6 }}>{question.explanation}</div>
-            <div style={{ fontSize:10, color:"#A89880", marginTop:6 }}>{question.icai_reference}</div>
+            style={{ background:"#fff", borderRadius:16, padding:14, border:"0.5px solid rgba(7,23,57,0.05)" }}>
+            <div style={{ fontSize:9, fontWeight:700, color:"#A4B5C4", letterSpacing:"0.06em", marginBottom:6 }}>EXPLANATION</div>
+            <div style={{ fontSize:12, color:"#071739", lineHeight:1.6 }}>{question.explanation}</div>
+            <div style={{ fontSize:10, color:"#A4B5C4", marginTop:6 }}>{question.icai_reference}</div>
           </motion.div>
         )}
 
@@ -231,19 +231,19 @@ function ExamContent() {
           {current > 0 && (
             <motion.button whileTap={{ scale:0.97 }}
               onClick={() => { setCurrent(current-1); setSelected(answers[questions[current-1].id]||null); }}
-              style={{ flex:1, padding:"14px", borderRadius:16, background:"#F5F0E8", color:"#1A1208", fontSize:14, fontWeight:600, border:"none", cursor:"pointer" }}>
+              style={{ flex:1, padding:"14px", borderRadius:16, background:"rgba(7,23,57,0.04)", color:"#071739", fontSize:14, fontWeight:600, border:"none", cursor:"pointer" }}>
               ← Prev
             </motion.button>
           )}
           {answers[question.id] && (
             <motion.button whileTap={{ scale:0.97 }} onClick={handleNext}
-              style={{ flex:2, padding:"14px", borderRadius:16, background:"#0A2E28", color:"#fff", fontSize:14, fontWeight:700, border:"none", cursor:"pointer" }}>
+              style={{ flex:2, padding:"14px", borderRadius:16, background:"#071739", color:"#fff", fontSize:14, fontWeight:700, border:"none", cursor:"pointer" }}>
               {isLast ? "Submit Exam →" : "Next →"}
             </motion.button>
           )}
           {!answers[question.id] && (
             <motion.button whileTap={{ scale:0.97 }} onClick={handleNext}
-              style={{ flex:1, padding:"14px", borderRadius:16, background:"#F5F0E8", color:"#6B6560", fontSize:13, fontWeight:500, border:"none", cursor:"pointer" }}>
+              style={{ flex:1, padding:"14px", borderRadius:16, background:"rgba(7,23,57,0.04)", color:"#4B6382", fontSize:13, fontWeight:500, border:"none", cursor:"pointer" }}>
               Skip →
             </motion.button>
           )}
@@ -256,7 +256,7 @@ function ExamContent() {
 
 export default function ExamTake() {
   return (
-    <Suspense fallback={<div className="app-shell" style={{ display:"flex", alignItems:"center", justifyContent:"center" }}><div style={{ color:"#0A2E28", fontSize:16 }}>Loading exam...</div></div>}>
+    <Suspense fallback={<div className="app-shell" style={{ display:"flex", alignItems:"center", justifyContent:"center" }}><div style={{ color:"#071739", fontSize:16 }}>Loading exam...</div></div>}>
       <ExamContent />
     </Suspense>
   );

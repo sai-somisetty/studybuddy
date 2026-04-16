@@ -12,7 +12,7 @@ const courses = [
     levels:["Foundation","Intermediate","Final"] },
   { id:"cma", label:"CMA", full:"Cost & Management Accountant", icon:"📈", color:"#3B6D11", bg:"#DCFCE7",
     levels:["Foundation","Intermediate","Final"] },
-  { id:"cs",  label:"CS",  full:"Company Secretary",            icon:"⚖️", color:"#854F0B", bg:"#FEF9C3",
+  { id:"cs",  label:"CS",  full:"Company Secretary",            icon:"⚖️", color:"#854F0B", bg:"rgba(227,195,157,0.15)",
     levels:["Foundation","Executive","Professional"] },
 ];
 
@@ -54,8 +54,8 @@ export default function Onboarding() {
         display:"flex", alignItems:"center", gap:14, cursor:"pointer" }}>
       {icon && <div style={{ fontSize:24, flexShrink:0 }}>{icon}</div>}
       <div style={{ flex:1 }}>
-        <div style={{ fontSize:15, fontWeight:700, color:selected?"#fff":"#1A1208" }}>{label}</div>
-        {sub && <div style={{ fontSize:11, color:selected?"rgba(255,255,255,0.7)":"#A89880", marginTop:2 }}>{sub}</div>}
+        <div style={{ fontSize:15, fontWeight:700, color:selected?"#fff":"#071739" }}>{label}</div>
+        {sub && <div style={{ fontSize:11, color:selected?"rgba(255,255,255,0.7)":"#A4B5C4", marginTop:2 }}>{sub}</div>}
       </div>
       {selected && <div style={{ fontSize:14, color:"#fff" }}>✓</div>}
     </motion.div>
@@ -63,7 +63,7 @@ export default function Onboarding() {
 
   return (
     <div className="app-shell">
-      <div style={{ background:"#0A2E28", padding:"24px 24px 20px" }}>
+      <div style={{ background:"#071739", padding:"24px 24px 20px" }}>
         <div style={{ fontFamily:"Georgia,serif", fontSize:20, fontWeight:700, color:"#fff", marginBottom:4 }}>SOMI</div>
         <div style={{ fontSize:12, color:"rgba(255,255,255,0.5)" }}>
           {step===1 && "Let's set up your study plan"}
@@ -76,7 +76,7 @@ export default function Onboarding() {
         <div style={{ display:"flex", gap:6, marginTop:14 }}>
           {Array.from({length:totalSteps},(_,i)=>i+1).map(s => (
             <div key={s} style={{ flex:1, height:3, borderRadius:2,
-              background:s<=step?"#E67E22":"rgba(255,255,255,0.2)" }} />
+              background:s<=step?"#E3C39D":"rgba(255,255,255,0.2)" }} />
           ))}
         </div>
         <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)", marginTop:5 }}>
@@ -90,7 +90,7 @@ export default function Onboarding() {
         {step===1 && (
           <motion.div initial={{ opacity:0, x:20 }} animate={{ opacity:1, x:0 }}
             style={{ display:"flex", flexDirection:"column", gap:12 }}>
-            <div style={{ fontSize:16, fontWeight:700, color:"#1A1208", fontFamily:"Georgia,serif", marginBottom:4 }}>
+            <div style={{ fontSize:16, fontWeight:700, color:"#071739", fontFamily:"Georgia,serif", marginBottom:4 }}>
               Which course are you preparing for?
             </div>
             {courses.map(c => (
@@ -105,7 +105,7 @@ export default function Onboarding() {
         {step===2 && selectedCourse && (
           <motion.div initial={{ opacity:0, x:20 }} animate={{ opacity:1, x:0 }}
             style={{ display:"flex", flexDirection:"column", gap:12 }}>
-            <div style={{ fontSize:16, fontWeight:700, color:"#1A1208", fontFamily:"Georgia,serif", marginBottom:4 }}>
+            <div style={{ fontSize:16, fontWeight:700, color:"#071739", fontFamily:"Georgia,serif", marginBottom:4 }}>
               Which level of {selectedCourse.label}?
             </div>
             {selectedCourse.levels.map(l => (
@@ -119,7 +119,7 @@ export default function Onboarding() {
                 selected={level===l} onClick={() => handleLevel(l)} />
             ))}
             <button onClick={() => setStep(1)}
-              style={{ background:"none", border:"none", fontSize:12, color:"#A89880", cursor:"pointer", textAlign:"left", marginTop:4 }}>
+              style={{ background:"none", border:"none", fontSize:12, color:"#A4B5C4", cursor:"pointer", textAlign:"left", marginTop:4 }}>
               ← Change course
             </button>
           </motion.div>
@@ -129,23 +129,23 @@ export default function Onboarding() {
         {step===3 && needsGroup && (
           <motion.div initial={{ opacity:0, x:20 }} animate={{ opacity:1, x:0 }}
             style={{ display:"flex", flexDirection:"column", gap:12 }}>
-            <div style={{ fontSize:16, fontWeight:700, color:"#1A1208", fontFamily:"Georgia,serif", marginBottom:4 }}>
+            <div style={{ fontSize:16, fontWeight:700, color:"#071739", fontFamily:"Georgia,serif", marginBottom:4 }}>
               Which group are you studying?
             </div>
             <OptionCard label="Group 1"
               sub="First 3 papers of the level"
-              color="#0A2E28" bg="#E1F5EE"
+              color="#071739" bg="rgba(7,23,57,0.05)"
               selected={group===1} onClick={() => handleGroup(1)} />
             <OptionCard label="Group 2"
               sub="Second 3-4 papers of the level"
-              color="#0A2E28" bg="#E1F5EE"
+              color="#071739" bg="rgba(7,23,57,0.05)"
               selected={group===2} onClick={() => handleGroup(2)} />
             <OptionCard label="Both Groups"
               sub="Preparing for all papers together"
-              color="#E67E22" bg="#FFF7ED"
+              color="#E3C39D" bg="rgba(227,195,157,0.08)"
               selected={group===0} onClick={() => handleGroup(0)} />
             <button onClick={() => setStep(2)}
-              style={{ background:"none", border:"none", fontSize:12, color:"#A89880", cursor:"pointer", textAlign:"left", marginTop:4 }}>
+              style={{ background:"none", border:"none", fontSize:12, color:"#A4B5C4", cursor:"pointer", textAlign:"left", marginTop:4 }}>
               ← Change level
             </button>
           </motion.div>
@@ -155,15 +155,15 @@ export default function Onboarding() {
         {((step===3 && !needsGroup) || step===4) && (
           <motion.div initial={{ opacity:0, x:20 }} animate={{ opacity:1, x:0 }}
             style={{ display:"flex", flexDirection:"column", gap:12 }}>
-            <div style={{ fontSize:16, fontWeight:700, color:"#1A1208", fontFamily:"Georgia,serif", marginBottom:4 }}>
+            <div style={{ fontSize:16, fontWeight:700, color:"#071739", fontFamily:"Georgia,serif", marginBottom:4 }}>
               When is your exam attempt?
             </div>
             {attempts.map(a => (
-              <OptionCard key={a} label={a} color="#0A2E28" bg="#E1F5EE"
+              <OptionCard key={a} label={a} color="#071739" bg="rgba(7,23,57,0.05)"
                 selected={attempt===a} onClick={() => handleAttempt(a)} />
             ))}
             <button onClick={() => setStep(needsGroup ? 3 : 2)}
-              style={{ background:"none", border:"none", fontSize:12, color:"#A89880", cursor:"pointer", textAlign:"left", marginTop:4 }}>
+              style={{ background:"none", border:"none", fontSize:12, color:"#A4B5C4", cursor:"pointer", textAlign:"left", marginTop:4 }}>
               ← Back
             </button>
           </motion.div>

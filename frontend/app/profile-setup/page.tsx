@@ -72,7 +72,7 @@ export default function ProfileSetupPage() {
     }}>
       {/* Header */}
       <div style={{
-        background: "linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)",
+        background: "#071739",
         borderRadius: 16, padding: "16px 20px", marginBottom: 24
       }}>
         <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>
@@ -81,7 +81,7 @@ export default function ProfileSetupPage() {
         <div style={{ height: 3, background: "rgba(255,255,255,0.15)", borderRadius: 2 }}>
           <motion.div
             animate={{ width: `${((step + 1) / steps.length) * 100}%` }}
-            style={{ height: "100%", background: "#E67E22", borderRadius: 2 }} />
+            style={{ height: "100%", background: "#E3C39D", borderRadius: 2 }} />
         </div>
         <div style={{ fontSize: 17, fontWeight: 700, color: "#fff", marginTop: 10, fontFamily: "Georgia,serif" }}>
           {currentStep === "name" && "What's your name?"}
@@ -111,8 +111,8 @@ export default function ProfileSetupPage() {
               placeholder="Enter your first name"
               style={{
                 width: "100%", padding: "14px 16px",
-                borderRadius: 12, border: "1.5px solid #E5E0D8",
-                fontSize: 18, color: "#1A1208", background: "#fff",
+                borderRadius: 12, border: "1.5px solid rgba(7,23,57,0.08)",
+                fontSize: 18, color: "#071739", background: "#fff",
                 outline: "none", boxSizing: "border-box"
               }}
             />
@@ -135,14 +135,14 @@ export default function ProfileSetupPage() {
                 onClick={() => setGender(g.id)}
                 style={{
                   padding: "14px 16px", borderRadius: 12,
-                  border: gender === g.id ? "2px solid #0A2E28" : "1.5px solid #E5E0D8",
-                  background: gender === g.id ? "#E1F5EE" : "#fff",
+                  border: gender === g.id ? "2px solid #071739" : "1.5px solid rgba(7,23,57,0.08)",
+                  background: gender === g.id ? "rgba(7,23,57,0.05)" : "#fff",
                   display: "flex", alignItems: "center", gap: 12,
                   cursor: "pointer", textAlign: "left"
                 }}>
                 <span style={{ fontSize: 24 }}>{g.emoji}</span>
-                <span style={{ fontSize: 15, fontWeight: 600, color: "#1A1208" }}>{g.label}</span>
-                {gender === g.id && <span style={{ marginLeft: "auto", color: "#0A2E28" }}>✓</span>}
+                <span style={{ fontSize: 15, fontWeight: 600, color: "#071739" }}>{g.label}</span>
+                {gender === g.id && <span style={{ marginLeft: "auto", color: "#071739" }}>✓</span>}
               </motion.button>
             ))}
           </motion.div>
@@ -160,10 +160,10 @@ export default function ProfileSetupPage() {
                 onClick={() => setState(s)}
                 style={{
                   padding: "12px 10px", borderRadius: 12,
-                  border: state === s ? "2px solid #0A2E28" : "1.5px solid #E5E0D8",
-                  background: state === s ? "#E1F5EE" : "#fff",
+                  border: state === s ? "2px solid #071739" : "1.5px solid rgba(7,23,57,0.08)",
+                  background: state === s ? "rgba(7,23,57,0.05)" : "#fff",
                   fontSize: 12, fontWeight: state === s ? 700 : 500,
-                  color: state === s ? "#0A2E28" : "#1A1208",
+                  color: state === s ? "#071739" : "#071739",
                   cursor: "pointer"
                 }}>
                 {s}
@@ -189,17 +189,17 @@ export default function ProfileSetupPage() {
                 onClick={() => setLanguage(l.id)}
                 style={{
                   padding: "14px 16px", borderRadius: 12,
-                  border: language === l.id ? "2px solid #0A2E28" : "1.5px solid #E5E0D8",
-                  background: language === l.id ? "#E1F5EE" : "#fff",
+                  border: language === l.id ? "2px solid #071739" : "1.5px solid rgba(7,23,57,0.08)",
+                  background: language === l.id ? "rgba(7,23,57,0.05)" : "#fff",
                   display: "flex", alignItems: "center", gap: 12,
                   cursor: "pointer", textAlign: "left"
                 }}>
                 <span style={{ fontSize: 24 }}>{l.emoji}</span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#1A1208" }}>{l.label}</div>
-                  <div style={{ fontSize: 11, color: "#A89880", marginTop: 2 }}>{l.sublabel}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "#071739" }}>{l.label}</div>
+                  <div style={{ fontSize: 11, color: "#A4B5C4", marginTop: 2 }}>{l.sublabel}</div>
                 </div>
-                {language === l.id && <span style={{ color: "#0A2E28" }}>✓</span>}
+                {language === l.id && <span style={{ color: "#071739" }}>✓</span>}
               </motion.button>
             ))}
           </motion.div>
@@ -215,7 +215,7 @@ export default function ProfileSetupPage() {
           style={{
             width: "100%", padding: "14px",
             borderRadius: 12, border: "none",
-            background: canNext() && !loading ? "#0A2E28" : "#E5E0D8",
+            background: canNext() && !loading ? "#071739" : "rgba(7,23,57,0.08)",
             color: "#fff", fontSize: 14, fontWeight: 600,
             cursor: canNext() && !loading ? "pointer" : "default"
           }}>
@@ -223,7 +223,7 @@ export default function ProfileSetupPage() {
         </motion.button>
         {step > 0 && (
           <button onClick={() => setStep(s => s - 1)}
-            style={{ width: "100%", marginTop: 10, padding: "10px", borderRadius: 12, border: "none", background: "transparent", color: "#A89880", fontSize: 12, cursor: "pointer" }}>
+            style={{ width: "100%", marginTop: 10, padding: "10px", borderRadius: 12, border: "none", background: "transparent", color: "#A4B5C4", fontSize: 12, cursor: "pointer" }}>
             ← Back
           </button>
         )}

@@ -85,16 +85,16 @@ export default function AuthPage() {
         style={{ marginBottom: 32, textAlign: "center" }}>
         <div style={{ 
           width: 64, height: 64, borderRadius: 20,
-          background: "#0A2E28", display: "flex",
+          background: "#071739", display: "flex",
           alignItems: "center", justifyContent: "center",
           margin: "0 auto 12px"
         }}>
           <span style={{ fontSize: 28 }}>📖</span>
         </div>
-        <div style={{ fontSize: 22, fontWeight: 700, color: "#0A2E28", fontFamily: "Georgia,serif" }}>
+        <div style={{ fontSize: 22, fontWeight: 700, color: "#071739", fontFamily: "Georgia,serif" }}>
           SOMI
         </div>
-        <div style={{ fontSize: 12, color: "#A89880", marginTop: 4 }}>
+        <div style={{ fontSize: 12, color: "#A4B5C4", marginTop: 4 }}>
           CMA Exam Prep — Mama Style
         </div>
       </motion.div>
@@ -115,10 +115,10 @@ export default function AuthPage() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}>
-              <div style={{ fontSize: 17, fontWeight: 700, color: "#0A2E28", marginBottom: 6 }}>
+              <div style={{ fontSize: 17, fontWeight: 700, color: "#071739", marginBottom: 6 }}>
                 Welcome! 👋
               </div>
-              <div style={{ fontSize: 13, color: "#A89880", marginBottom: 20 }}>
+              <div style={{ fontSize: 13, color: "#A4B5C4", marginBottom: 20 }}>
                 Enter your email to get started
               </div>
               <input
@@ -129,8 +129,8 @@ export default function AuthPage() {
                 placeholder="your@email.com"
                 style={{
                   width: "100%", padding: "12px 14px",
-                  borderRadius: 12, border: "1.5px solid #E5E0D8",
-                  fontSize: 14, color: "#1A1208",
+                  borderRadius: 12, border: "1.5px solid rgba(7,23,57,0.08)",
+                  fontSize: 14, color: "#071739",
                   background: "#FAFAF8", outline: "none",
                   boxSizing: "border-box", marginBottom: 12
                 }}
@@ -147,7 +147,7 @@ export default function AuthPage() {
                 style={{
                   width: "100%", padding: "13px",
                   borderRadius: 12, border: "none",
-                  background: email.trim() && !loading ? "#0A2E28" : "#E5E0D8",
+                  background: email.trim() && !loading ? "#071739" : "rgba(7,23,57,0.08)",
                   color: "#fff", fontSize: 14, fontWeight: 600,
                   cursor: email.trim() && !loading ? "pointer" : "default"
                 }}>
@@ -161,13 +161,13 @@ export default function AuthPage() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}>
-              <div style={{ fontSize: 17, fontWeight: 700, color: "#0A2E28", marginBottom: 6 }}>
+              <div style={{ fontSize: 17, fontWeight: 700, color: "#071739", marginBottom: 6 }}>
                 Check your email 📧
               </div>
-              <div style={{ fontSize: 13, color: "#A89880", marginBottom: 4 }}>
+              <div style={{ fontSize: 13, color: "#A4B5C4", marginBottom: 4 }}>
                 We sent a 6-digit code to
               </div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "#0A2E28", marginBottom: 20 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#071739", marginBottom: 20 }}>
                 {email}
               </div>
               <input
@@ -179,8 +179,8 @@ export default function AuthPage() {
                 maxLength={6}
                 style={{
                   width: "100%", padding: "12px 14px",
-                  borderRadius: 12, border: "1.5px solid #E5E0D8",
-                  fontSize: 20, color: "#1A1208", letterSpacing: "0.2em",
+                  borderRadius: 12, border: "1.5px solid rgba(7,23,57,0.08)",
+                  fontSize: 20, color: "#071739", letterSpacing: "0.2em",
                   background: "#FAFAF8", outline: "none",
                   boxSizing: "border-box", marginBottom: 12,
                   textAlign: "center"
@@ -198,7 +198,7 @@ export default function AuthPage() {
                 style={{
                   width: "100%", padding: "13px",
                   borderRadius: 12, border: "none",
-                  background: otp.length >= 6 && !loading ? "#0A2E28" : "#E5E0D8",
+                  background: otp.length >= 6 && !loading ? "#071739" : "rgba(7,23,57,0.08)",
                   color: "#fff", fontSize: 14, fontWeight: 600,
                   cursor: otp.length >= 6 && !loading ? "pointer" : "default",
                   marginBottom: 12
@@ -210,7 +210,7 @@ export default function AuthPage() {
                 style={{
                   width: "100%", padding: "10px",
                   borderRadius: 12, border: "none",
-                  background: "transparent", color: "#A89880",
+                  background: "transparent", color: "#A4B5C4",
                   fontSize: 12, cursor: "pointer"
                 }}>
                 ← Change email
@@ -221,7 +221,7 @@ export default function AuthPage() {
                 style={{
                   width: "100%", padding: "10px",
                   borderRadius: 12, border: "none",
-                  background: "transparent", color: "#0A2E28",
+                  background: "transparent", color: "#071739",
                   fontSize: 12, cursor: "pointer", fontWeight: 600
                 }}>
                 Resend OTP

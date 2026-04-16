@@ -73,7 +73,7 @@ function formatTime(seconds: number) {
 function timerColor(seconds: number, durationMins: number) {
   const totalSecs = durationMins * 60;
   if (seconds > totalSecs * 0.5) return "#16a34a";
-  if (seconds > 5 * 60) return "#E67E22";
+  if (seconds > 5 * 60) return "#E3C39D";
   return "#ef4444";
 }
 
@@ -185,13 +185,13 @@ function ExamSessionContent() {
             style={{
               fontSize: 15,
               fontWeight: 700,
-              color: "#0A2E28",
+              color: "#071739",
               marginBottom: 8,
             }}
           >
             Preparing your exam...
           </div>
-          <div style={{ fontSize: 12, color: "#A89880", lineHeight: 1.6, marginBottom: 20 }}>
+          <div style={{ fontSize: 12, color: "#A4B5C4", lineHeight: 1.6, marginBottom: 20 }}>
             Loading questions for{" "}
             {chaptersParam === "all" ? "all chapters" : `chapter${chaptersParam.includes(",") ? "s" : ""} ${chaptersParam}`}
           </div>
@@ -205,7 +205,7 @@ function ExamSessionContent() {
                   width: 8,
                   height: 8,
                   borderRadius: "50%",
-                  background: "#0A2E28",
+                  background: "#071739",
                 }}
               />
             ))}
@@ -238,7 +238,7 @@ function ExamSessionContent() {
         {/* Results header */}
         <div
           style={{
-            background: "linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)",
+            background: "#071739",
             padding: "18px 24px 16px",
           }}
         >
@@ -299,7 +299,7 @@ function ExamSessionContent() {
             >
               {score}
             </div>
-            <div style={{ fontSize: 14, color: "#6B6560", marginBottom: 8 }}>
+            <div style={{ fontSize: 14, color: "#4B6382", marginBottom: 8 }}>
               out of {totalMarks} marks
             </div>
             <div
@@ -315,7 +315,7 @@ function ExamSessionContent() {
             >
               {passed ? "PASSED ✓" : "FAILED ✗"}
             </div>
-            <div style={{ fontSize: 12, color: "#6B6560", marginTop: 10 }}>
+            <div style={{ fontSize: 12, color: "#4B6382", marginTop: 10 }}>
               {pct}% · Pass mark was {passMark}/{totalMarks}
             </div>
           </div>
@@ -332,8 +332,8 @@ function ExamSessionContent() {
             {[
               { label: "Correct", value: correct, color: "#16a34a", bg: "#F0FDF4" },
               { label: "Wrong", value: wrong, color: "#ef4444", bg: "#FEF2F2" },
-              { label: "Unanswered", value: unanswered, color: "#E67E22", bg: "#FFF7ED" },
-              { label: "Total Questions", value: examQuestions.length, color: "#0A2E28", bg: "#fff" },
+              { label: "Unanswered", value: unanswered, color: "#E3C39D", bg: "rgba(227,195,157,0.08)" },
+              { label: "Total Questions", value: examQuestions.length, color: "#071739", bg: "#fff" },
             ].map((item, i, arr) => (
               <div
                 key={item.label}
@@ -354,7 +354,7 @@ function ExamSessionContent() {
                   {item.label === "Wrong" && (
                     <XCircle size={16} weight="fill" color="#ef4444" />
                   )}
-                  <span style={{ fontSize: 13, color: "#6B6560" }}>{item.label}</span>
+                  <span style={{ fontSize: 13, color: "#4B6382" }}>{item.label}</span>
                 </div>
                 <span style={{ fontSize: 15, fontWeight: 700, color: item.color }}>
                   {item.value}
@@ -366,7 +366,7 @@ function ExamSessionContent() {
           {/* Mama says */}
           <div
             style={{
-              background: "linear-gradient(135deg, #0A2E28, #0A4A3C)",
+              background: "#071739",
               borderRadius: 16,
               padding: 14,
             }}
@@ -384,7 +384,7 @@ function ExamSessionContent() {
           </div>
 
           {/* Question review */}
-          <div style={{ fontSize: 12, fontWeight: 600, color: "#6B6560" }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#4B6382" }}>
             Question Review
           </div>
           {examQuestions.map((q, i) => {
@@ -413,8 +413,8 @@ function ExamSessionContent() {
                     style={{
                       fontSize: 10,
                       fontWeight: 700,
-                      color: isUnanswered ? "#A89880" : isCorrect ? "#16a34a" : "#ef4444",
-                      background: isUnanswered ? "#F5F0E8" : isCorrect ? "#F0FDF4" : "#FEF2F2",
+                      color: isUnanswered ? "#A4B5C4" : isCorrect ? "#16a34a" : "#ef4444",
+                      background: isUnanswered ? "rgba(7,23,57,0.04)" : isCorrect ? "#F0FDF4" : "#FEF2F2",
                       padding: "2px 8px",
                       borderRadius: 6,
                       flexShrink: 0,
@@ -423,7 +423,7 @@ function ExamSessionContent() {
                     Q{i + 1} {isUnanswered ? "—" : isCorrect ? "✓" : "✗"}
                   </span>
                 </div>
-                <div style={{ fontSize: 12, color: "#1A1208", lineHeight: 1.5, marginBottom: 6 }}>
+                <div style={{ fontSize: 12, color: "#071739", lineHeight: 1.5, marginBottom: 6 }}>
                   {q.question_text}
                 </div>
                 {["A", "B", "C", "D"].map((opt) => {
@@ -434,7 +434,7 @@ function ExamSessionContent() {
                   const isUserAns = ans === opt;
 
                   let bg = "transparent";
-                  let color = "#6B6560";
+                  let color = "#4B6382";
                   let fontWeight: number | string = 400;
 
                   if (isCorrectOpt) {
@@ -518,7 +518,7 @@ function ExamSessionContent() {
                 flex: 1,
                 padding: "14px",
                 borderRadius: 14,
-                background: "#0A2E28",
+                background: "#071739",
                 color: "#fff",
                 fontSize: 13,
                 fontWeight: 700,
@@ -535,8 +535,8 @@ function ExamSessionContent() {
                 flex: 1,
                 padding: "14px",
                 borderRadius: 14,
-                background: "#F5F0E8",
-                color: "#1A1208",
+                background: "rgba(7,23,57,0.04)",
+                color: "#071739",
                 fontSize: 13,
                 fontWeight: 700,
                 border: "none",
@@ -564,7 +564,7 @@ function ExamSessionContent() {
       {/* Header with timer */}
       <div
         style={{
-          background: "linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)",
+          background: "#071739",
           padding: "14px 20px 12px",
         }}
       >
@@ -629,7 +629,7 @@ function ExamSessionContent() {
           <motion.div
             animate={{ width: `${progressPct}%` }}
             transition={{ duration: 0.3 }}
-            style={{ height: "100%", background: "#E67E22", borderRadius: 2 }}
+            style={{ height: "100%", background: "#E3C39D", borderRadius: 2 }}
           />
         </div>
 
@@ -703,7 +703,7 @@ function ExamSessionContent() {
                   style={{
                     fontSize: 10,
                     fontWeight: 700,
-                    color: "#A89880",
+                    color: "#A4B5C4",
                     letterSpacing: "0.06em",
                     marginBottom: 8,
                   }}
@@ -714,7 +714,7 @@ function ExamSessionContent() {
                   style={{
                     fontSize: 14,
                     fontWeight: 600,
-                    color: "#1A1208",
+                    color: "#071739",
                     lineHeight: 1.65,
                   }}
                 >
@@ -742,9 +742,9 @@ function ExamSessionContent() {
                       width: "100%",
                       padding: "13px 14px",
                       borderRadius: 14,
-                      background: isSelected ? "#E1F5EE" : "#fff",
+                      background: isSelected ? "rgba(7,23,57,0.05)" : "#fff",
                       border: isSelected
-                        ? "1.5px solid #0E6655"
+                        ? "1.5px solid #071739"
                         : "0.5px solid rgba(0,0,0,0.08)",
                       cursor: submitted ? "default" : "pointer",
                       textAlign: "left",
@@ -756,13 +756,13 @@ function ExamSessionContent() {
                         width: 30,
                         height: 30,
                         borderRadius: 8,
-                        background: isSelected ? "#0E6655" : "#F5F0E8",
+                        background: isSelected ? "#071739" : "rgba(7,23,57,0.04)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         fontSize: 11,
                         fontWeight: 700,
-                        color: isSelected ? "#fff" : "#A89880",
+                        color: isSelected ? "#fff" : "#A4B5C4",
                         flexShrink: 0,
                       }}
                     >
@@ -772,14 +772,14 @@ function ExamSessionContent() {
                       style={{
                         fontSize: 13,
                         fontWeight: isSelected ? 600 : 400,
-                        color: isSelected ? "#0A2E28" : "#1A1208",
+                        color: isSelected ? "#071739" : "#071739",
                         flex: 1,
                       }}
                     >
                       {optText}
                     </span>
                     {isSelected && (
-                      <CheckCircle size={16} weight="fill" color="#0E6655" />
+                      <CheckCircle size={16} weight="fill" color="#071739" />
                     )}
                   </motion.button>
                 );
@@ -828,10 +828,10 @@ function ExamSessionContent() {
                   cursor: "pointer",
                   background:
                     i === currentQ
-                      ? "#0A2E28"
+                      ? "#071739"
                       : answers[i]
-                      ? "#0E6655"
-                      : "#E5E0D8",
+                      ? "#071739"
+                      : "rgba(7,23,57,0.08)",
                   transition: "background 0.2s",
                 }}
               />
@@ -847,8 +847,8 @@ function ExamSessionContent() {
             style={{
               padding: "13px 16px",
               borderRadius: 14,
-              background: currentQ === 0 ? "#F5F0E8" : "#E5E0D8",
-              color: currentQ === 0 ? "#C5B9A8" : "#6B6560",
+              background: currentQ === 0 ? "rgba(7,23,57,0.04)" : "rgba(7,23,57,0.08)",
+              color: currentQ === 0 ? "#C5B9A8" : "#4B6382",
               border: "none",
               fontSize: 13,
               fontWeight: 600,
@@ -872,8 +872,8 @@ function ExamSessionContent() {
                 flex: 1,
                 padding: "13px",
                 borderRadius: 14,
-                background: selectedAns ? "#0A2E28" : "#E5E0D8",
-                color: selectedAns ? "#fff" : "#A89880",
+                background: selectedAns ? "#071739" : "rgba(7,23,57,0.08)",
+                color: selectedAns ? "#fff" : "#A4B5C4",
                 border: "none",
                 fontSize: 13,
                 fontWeight: 700,
@@ -897,7 +897,7 @@ function ExamSessionContent() {
                 flex: isLast ? 1 : undefined,
                 padding: "13px 20px",
                 borderRadius: 14,
-                background: "linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)",
+                background: "#071739",
                 color: "#fff",
                 border: "none",
                 fontSize: 13,
@@ -911,7 +911,7 @@ function ExamSessionContent() {
         </div>
 
         {!allAnswered && !timeUp && (
-          <div style={{ textAlign: "center", fontSize: 10, color: "#A89880" }}>
+          <div style={{ textAlign: "center", fontSize: 10, color: "#A4B5C4" }}>
             {examQuestions.length - answeredCount} question
             {examQuestions.length - answeredCount !== 1 ? "s" : ""} remaining
           </div>
@@ -929,7 +929,7 @@ export default function ExamSessionPage() {
           className="app-shell"
           style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
         >
-          <div style={{ color: "#0A2E28", fontSize: 14 }}>Loading exam...</div>
+          <div style={{ color: "#071739", fontSize: 14 }}>Loading exam...</div>
         </div>
       }
     >

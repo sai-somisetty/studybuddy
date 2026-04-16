@@ -59,10 +59,10 @@ function SourceBadge({ source }: { source: "kg" | "llm_fallback" }) {
     return (
       <span style={{
         display: "inline-flex", alignItems: "center", gap: 4,
-        fontSize: 9, color: "#0E6655", background: "#E1F5EE",
+        fontSize: 9, color: "#071739", background: "rgba(7,23,57,0.05)",
         padding: "2px 8px", borderRadius: 10, fontWeight: 600,
       }}>
-        <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#0E6655" }} />
+        <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#071739" }} />
         Verified
       </span>
     );
@@ -70,10 +70,10 @@ function SourceBadge({ source }: { source: "kg" | "llm_fallback" }) {
   return (
     <span style={{
       display: "inline-flex", alignItems: "center", gap: 4,
-      fontSize: 9, color: "#E67E22", background: "#FFF7ED",
+      fontSize: 9, color: "#E3C39D", background: "rgba(227,195,157,0.08)",
       padding: "2px 8px", borderRadius: 10, fontWeight: 600,
     }}>
-      <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#E67E22" }} />
+      <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#E3C39D" }} />
       AI Generated
     </span>
   );
@@ -84,14 +84,14 @@ function MamaTyping() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0" }}>
       <div style={{
-        background: "#F5F0E8", borderRadius: "14px 14px 14px 4px",
+        background: "rgba(7,23,57,0.04)", borderRadius: "14px 14px 14px 4px",
         padding: "10px 16px", display: "flex", gap: 5, alignItems: "center"
       }}>
         {[0, 1, 2].map(i => (
           <motion.div key={i}
             animate={{ y: [0, -5, 0] }}
             transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.15 }}
-            style={{ width: 6, height: 6, borderRadius: "50%", background: "#0A2E28" }}
+            style={{ width: 6, height: 6, borderRadius: "50%", background: "#071739" }}
           />
         ))}
       </div>
@@ -239,7 +239,7 @@ export default function MamaAgent({
               onClick={() => setIsOpen(true)}
               style={{
                 width: 52, height: 52, borderRadius: 16, border: "none",
-                background: "linear-gradient(135deg, #0A2E28, #0A4A3C)",
+                background: "#071739",
                 cursor: "pointer", display: "flex", flexDirection: "column",
                 alignItems: "center", justifyContent: "center", gap: 1,
                 boxShadow: "0 4px 20px rgba(10,46,40,0.35)",
@@ -257,13 +257,13 @@ export default function MamaAgent({
                 transition={{ delay: 1.5 }}
                 style={{
                   position: "absolute", bottom: 58, right: 0, width: 180,
-                  background: "#fff", border: "1px solid #E5E0D8",
+                  background: "#fff", border: "1px solid rgba(7,23,57,0.08)",
                   borderRadius: "12px 12px 4px 12px", padding: "8px 12px",
-                  fontSize: 11, color: "#1A1208", lineHeight: 1.4,
+                  fontSize: 11, color: "#071739", lineHeight: 1.4,
                   boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
               >
-                <span style={{ color: "#0A2E28", fontWeight: 700 }}>Mama</span> is here! Doubt unte tap cheyyi 👋
+                <span style={{ color: "#071739", fontWeight: 700 }}>Mama</span> is here! Doubt unte tap cheyyi 👋
               </motion.div>
             )}
           </motion.div>
@@ -302,28 +302,28 @@ export default function MamaAgent({
               <div style={{
                 padding: "12px 16px", display: "flex", alignItems: "center",
                 justifyContent: "space-between",
-                borderBottom: "1px solid #E5E0D8", flexShrink: 0,
+                borderBottom: "1px solid rgba(7,23,57,0.08)", flexShrink: 0,
                 background: "#fff", borderRadius: "20px 20px 0 0",
               }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{
                     width: 36, height: 36, borderRadius: 12,
-                    background: "linear-gradient(135deg, #0A2E28, #0A4A3C)",
+                    background: "#071739",
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}>
                     <span style={{ fontSize: 7, fontWeight: 800, color: "#fff" }}>MAMA</span>
                   </div>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "#0A2E28" }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#071739" }}>
                       Ask Mama
                     </div>
                     <div style={{
-                      fontSize: 10, color: "#0E6655", fontWeight: 500,
+                      fontSize: 10, color: "#071739", fontWeight: 500,
                       display: "flex", alignItems: "center", gap: 4,
                     }}>
                       <span style={{
                         width: 5, height: 5, borderRadius: "50%",
-                        background: "#0E6655", display: "inline-block",
+                        background: "#071739", display: "inline-block",
                       }} />
                       {contextLabel}
                     </div>
@@ -333,8 +333,8 @@ export default function MamaAgent({
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setIsOpen(false)}
                   style={{
-                    background: "#F5F0E8", border: "none", borderRadius: 10,
-                    color: "#6B6560", cursor: "pointer", width: 34, height: 34,
+                    background: "rgba(7,23,57,0.04)", border: "none", borderRadius: 10,
+                    color: "#4B6382", cursor: "pointer", width: 34, height: 34,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 16,
                   }}
@@ -361,7 +361,7 @@ export default function MamaAgent({
                     {msg.role === "user" ? (
                       /* ── User bubble ── */
                       <div style={{
-                        background: "#0A2E28", color: "#fff",
+                        background: "#071739", color: "#fff",
                         borderRadius: "14px 14px 4px 14px",
                         padding: "10px 14px", maxWidth: "80%",
                         fontSize: 12, lineHeight: 1.6, fontWeight: 500,
@@ -374,7 +374,7 @@ export default function MamaAgent({
                         <div style={{
                           background: "#fff", borderRadius: "4px 14px 14px 14px",
                           padding: "12px 14px", fontSize: 12, lineHeight: 1.6,
-                          color: "#1A1208", border: "0.5px solid rgba(0,0,0,0.06)",
+                          color: "#071739", border: "0.5px solid rgba(0,0,0,0.06)",
                         }}>
                           {/* Source badge */}
                           {msg.source && (
@@ -397,9 +397,9 @@ export default function MamaAgent({
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => handleChipClick(action)}
                                 style={{
-                                  background: "#fff", border: "1px solid #E5E0D8",
+                                  background: "#fff", border: "1px solid rgba(7,23,57,0.08)",
                                   borderRadius: 20, padding: "6px 12px", fontSize: 11,
-                                  color: "#0A2E28", cursor: "pointer", fontWeight: 500,
+                                  color: "#071739", cursor: "pointer", fontWeight: 500,
                                 }}
                               >
                                 {action}
@@ -417,7 +417,7 @@ export default function MamaAgent({
 
               {/* ── Input bar ── */}
               <div style={{
-                padding: "10px 14px 20px", borderTop: "1px solid #E5E0D8",
+                padding: "10px 14px 20px", borderTop: "1px solid rgba(7,23,57,0.08)",
                 flexShrink: 0, background: "#fff",
               }}>
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -431,8 +431,8 @@ export default function MamaAgent({
                       : "Ask Mama anything..."}
                     style={{
                       flex: 1, padding: "10px 14px", borderRadius: 20,
-                      border: "1.5px solid #E5E0D8", background: "#FAFAF8",
-                      fontSize: 13, color: "#1A1208", outline: "none",
+                      border: "1.5px solid rgba(7,23,57,0.08)", background: "#FAFAF8",
+                      fontSize: 13, color: "#071739", outline: "none",
                       fontFamily: "inherit",
                     }}
                   />
@@ -442,7 +442,7 @@ export default function MamaAgent({
                     disabled={!input.trim() || isTyping}
                     style={{
                       width: 38, height: 38, borderRadius: "50%",
-                      background: input.trim() && !isTyping ? "#0A2E28" : "#E5E0D8",
+                      background: input.trim() && !isTyping ? "#071739" : "rgba(7,23,57,0.08)",
                       border: "none",
                       cursor: input.trim() && !isTyping ? "pointer" : "default",
                       display: "flex", alignItems: "center", justifyContent: "center",

@@ -186,23 +186,23 @@ function PDFPane({
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      background: "#F5F0E8",
+      background: "rgba(7,23,57,0.04)",
       borderLeft: "1px solid #e5e7eb",
       gap: 12,
       padding: 24,
     }}>
       <div style={{ fontSize: 40 }}>📄</div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: "#0A2E28", textAlign: "center" }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: "#071739", textAlign: "center" }}>
         PDF Viewer
       </div>
       {namespace && (
-        <div style={{ fontSize: 11, color: "#6B6560", textAlign: "center", lineHeight: 1.6 }}>
+        <div style={{ fontSize: 11, color: "#4B6382", textAlign: "center", lineHeight: 1.6 }}>
           <div>Namespace: {namespace}</div>
           {bookPage && <div>Book page: {bookPage}</div>}
         </div>
       )}
       {!namespace && (
-        <div style={{ fontSize: 11, color: "#A89880", textAlign: "center" }}>
+        <div style={{ fontSize: 11, color: "#A4B5C4", textAlign: "center" }}>
           Select a concept to preview its PDF page
         </div>
       )}
@@ -274,7 +274,7 @@ function SelectPageModal({
           borderBottom: "1px solid #e5e7eb",
           flexShrink: 0,
         }}>
-          <span style={{ fontSize: 15, fontWeight: 700, color: "#0A2E28" }}>
+          <span style={{ fontSize: 15, fontWeight: 700, color: "#071739" }}>
             📂 Select Page
           </span>
           <button
@@ -319,7 +319,7 @@ function SelectPageModal({
                   <span style={{ fontSize: 10, color: "#9ca3af", width: 12 }}>
                     {subjOpen ? "▼" : "▶"}
                   </span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#0A2E28" }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#071739" }}>
                     {subject.label}
                   </span>
                 </button>
@@ -401,19 +401,19 @@ function SelectPageModal({
                                         alignItems: "center",
                                         gap: 8,
                                         padding: "7px 20px 7px 68px",
-                                        background: isSelected ? "#E1F5EE" : "transparent",
+                                        background: isSelected ? "rgba(7,23,57,0.05)" : "transparent",
                                         border: "none",
-                                        borderLeft: isSelected ? "3px solid #0A2E28" : "3px solid transparent",
+                                        borderLeft: isSelected ? "3px solid #071739" : "3px solid transparent",
                                         borderBottom: "1px solid #f9fafb",
                                         cursor: "pointer",
                                         textAlign: "left",
                                       }}
                                     >
-                                      <span style={{ fontSize: 11, color: isSelected ? "#0A2E28" : "#374151", fontWeight: isSelected ? 600 : 400 }}>
+                                      <span style={{ fontSize: 11, color: isSelected ? "#071739" : "#374151", fontWeight: isSelected ? 600 : 400 }}>
                                         {concept.label}
                                       </span>
                                       {isSelected && (
-                                        <span style={{ fontSize: 10, color: "#0A2E28", marginLeft: "auto" }}>✓</span>
+                                        <span style={{ fontSize: 10, color: "#071739", marginLeft: "auto" }}>✓</span>
                                       )}
                                     </button>
                                   );
@@ -548,14 +548,14 @@ function ConceptForm({
   updateForm: (field: keyof MamaLine, value: string | boolean | number | string[]) => void;
   updateOption: (idx: number, value: string) => void;
 }) {
-  const ACCENT = "#0A2E28";
+  const ACCENT = "#071739";
   const inputStyle: React.CSSProperties = {
     width: "100%",
     padding: "8px 10px",
     borderRadius: 8,
     border: "1px solid #e5e7eb",
     fontSize: 12,
-    color: "#1A1208",
+    color: "#071739",
     background: "#FAFAF8",
     outline: "none",
     lineHeight: 1.6,
@@ -584,7 +584,7 @@ function ConceptForm({
           alignItems: "center",
           justifyContent: "space-between",
           padding: "10px 16px",
-          background: "#F5F0E8",
+          background: "rgba(7,23,57,0.04)",
           borderBottom: "1px solid #e5e7eb",
           userSelect: "none",
         }}
@@ -612,7 +612,7 @@ function ConceptForm({
       {/* ── 📖 Content — always open ── */}
       <SectionHeader icon="📖" label="Content" collapsible={false} />
       <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6" }}>
-        <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6560", display: "block", marginBottom: 4 }}>
+        <label style={{ fontSize: 10, fontWeight: 600, color: "#4B6382", display: "block", marginBottom: 4 }}>
           ICMAI Official Text
         </label>
         <textarea
@@ -640,7 +640,7 @@ function ConceptForm({
       <SectionHeader sectionKey="tenglish" icon="🧠" label="Mama's Explanation" />
       {sectionOpen.tenglish && (
         <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6" }}>
-          <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6560", display: "block", marginBottom: 4 }}>
+          <label style={{ fontSize: 10, fontWeight: 600, color: "#4B6382", display: "block", marginBottom: 4 }}>
             Tenglish Explanation
           </label>
           <textarea
@@ -658,7 +658,7 @@ function ConceptForm({
       {sectionOpen.kitty && (
         <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6", display: "flex", flexDirection: "column", gap: 10 }}>
           <div>
-            <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6560", display: "block", marginBottom: 4 }}>
+            <label style={{ fontSize: 10, fontWeight: 600, color: "#4B6382", display: "block", marginBottom: 4 }}>
               Kitty Question
             </label>
             <textarea
@@ -670,7 +670,7 @@ function ConceptForm({
             />
           </div>
           <div>
-            <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6560", display: "block", marginBottom: 4 }}>
+            <label style={{ fontSize: 10, fontWeight: 600, color: "#4B6382", display: "block", marginBottom: 4 }}>
               Mama's Answer to Kitty
             </label>
             <textarea
@@ -689,7 +689,7 @@ function ConceptForm({
       {sectionOpen.check && (
         <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6", display: "flex", flexDirection: "column", gap: 10 }}>
           <div>
-            <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6560", display: "block", marginBottom: 4 }}>
+            <label style={{ fontSize: 10, fontWeight: 600, color: "#4B6382", display: "block", marginBottom: 4 }}>
               Question
             </label>
             <textarea
@@ -702,7 +702,7 @@ function ConceptForm({
           </div>
 
           <div>
-            <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6560", display: "block", marginBottom: 6 }}>
+            <label style={{ fontSize: 10, fontWeight: 600, color: "#4B6382", display: "block", marginBottom: 6 }}>
               Options (select correct answer)
             </label>
             {["A", "B", "C", "D"].map((letter, idx) => (
@@ -741,7 +741,7 @@ function ConceptForm({
           </div>
 
           <div>
-            <label style={{ fontSize: 10, fontWeight: 600, color: "#6B6560", display: "block", marginBottom: 4 }}>
+            <label style={{ fontSize: 10, fontWeight: 600, color: "#4B6382", display: "block", marginBottom: 4 }}>
               Explanation
             </label>
             <textarea
@@ -882,7 +882,7 @@ export default function ContentDashboardPage() {
       {/* Top bar */}
       <div style={{
         height: 48,
-        background: "#0A2E28",
+        background: "#071739",
         display: "flex",
         alignItems: "center",
         padding: "0 20px",
@@ -918,7 +918,7 @@ export default function ContentDashboardPage() {
               gap: 12,
               flexShrink: 0,
             }}>
-              <span style={{ fontSize: 11, color: "#6B6560", fontWeight: 600 }}>PAGE</span>
+              <span style={{ fontSize: 11, color: "#4B6382", fontWeight: 600 }}>PAGE</span>
               <div style={{ display: "flex", gap: 4 }}>
                 {pages.map((_, i) => (
                   <button
@@ -928,8 +928,8 @@ export default function ContentDashboardPage() {
                       padding: "3px 10px",
                       borderRadius: 6,
                       border: "none",
-                      background: selectedPageIdx === i ? "#0A2E28" : "#F5F0E8",
-                      color: selectedPageIdx === i ? "#fff" : "#1A1208",
+                      background: selectedPageIdx === i ? "#071739" : "rgba(7,23,57,0.04)",
+                      color: selectedPageIdx === i ? "#fff" : "#071739",
                       fontSize: 11,
                       fontWeight: 600,
                       cursor: "pointer",
@@ -941,7 +941,7 @@ export default function ContentDashboardPage() {
               </div>
               {currentLines.length > 0 && (
                 <>
-                  <span style={{ fontSize: 11, color: "#6B6560", fontWeight: 600, marginLeft: 8 }}>PARA</span>
+                  <span style={{ fontSize: 11, color: "#4B6382", fontWeight: 600, marginLeft: 8 }}>PARA</span>
                   <div style={{ display: "flex", gap: 4 }}>
                     {currentLines.map((_, i) => (
                       <button
@@ -951,8 +951,8 @@ export default function ContentDashboardPage() {
                           padding: "3px 10px",
                           borderRadius: 6,
                           border: "none",
-                          background: selectedLineIdx === i ? "#E67E22" : "#F5F0E8",
-                          color: selectedLineIdx === i ? "#fff" : "#1A1208",
+                          background: selectedLineIdx === i ? "#E3C39D" : "rgba(7,23,57,0.04)",
+                          color: selectedLineIdx === i ? "#fff" : "#071739",
                           fontSize: 11,
                           fontWeight: 600,
                           cursor: "pointer",
@@ -981,7 +981,7 @@ export default function ContentDashboardPage() {
                   padding: "5px 14px",
                   borderRadius: 8,
                   border: "none",
-                  background: form ? "#0A2E28" : "#e5e7eb",
+                  background: form ? "#071739" : "#e5e7eb",
                   color: form ? "#fff" : "#9ca3af",
                   fontSize: 11,
                   fontWeight: 700,
@@ -998,17 +998,17 @@ export default function ContentDashboardPage() {
             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>
-                <div style={{ fontSize: 13, color: "#0A2E28", fontWeight: 700 }}>Loading content…</div>
+                <div style={{ fontSize: 13, color: "#071739", fontWeight: 700 }}>Loading content…</div>
               </div>
             </div>
           ) : !selectedConcept ? (
             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 32 }}>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 40, marginBottom: 12 }}>📂</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#0A2E28", marginBottom: 8 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#071739", marginBottom: 8 }}>
                   No page selected
                 </div>
-                <div style={{ fontSize: 11, color: "#A89880", lineHeight: 1.6, marginBottom: 20 }}>
+                <div style={{ fontSize: 11, color: "#A4B5C4", lineHeight: 1.6, marginBottom: 20 }}>
                   Use the Change Page button above to pick a concept
                 </div>
                 <button
@@ -1042,7 +1042,7 @@ export default function ContentDashboardPage() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#A89880",
+              color: "#A4B5C4",
               fontSize: 13,
             }}>
               No content for this concept yet.

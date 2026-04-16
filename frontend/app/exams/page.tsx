@@ -10,9 +10,9 @@ import {
 const EXAM_TYPES = [
   {
     id: "chapter",
-    icon: <BookOpen size={22} weight="duotone" color="#0E6655" />,
-    bg: "#E1F5EE",
-    color: "#0E6655",
+    icon: <BookOpen size={22} weight="duotone" color="#071739" />,
+    bg: "rgba(7,23,57,0.05)",
+    color: "#071739",
     label: "Chapter Exam",
     sub: "50 questions · 120 mins · 100 marks",
     description: "Full chapter deep test — real exam pressure",
@@ -28,9 +28,9 @@ const EXAM_TYPES = [
   },
   {
     id: "previous",
-    icon: <FileText size={22} weight="duotone" color="#E67E22" />,
-    bg: "#FFF7ED",
-    color: "#E67E22",
+    icon: <FileText size={22} weight="duotone" color="#E3C39D" />,
+    bg: "rgba(227,195,157,0.08)",
+    color: "#E3C39D",
     label: "Previous Papers",
     sub: "50 questions · 120 mins · 100 marks",
     description: "Real ICMAI past exam questions",
@@ -82,7 +82,7 @@ function BottomNav({ active }: { active: string }) {
         { label: "Progress", path: "/progress" },
       ].map((item) => {
         const isActive = item.label === active;
-        const iconColor = isActive ? "#0E6655" : "#A89880";
+        const iconColor = isActive ? "#071739" : "#A4B5C4";
         const iconWeight = isActive ? "fill" : "regular";
         const iconMap: Record<string, React.ReactNode> = {
           Home:     <House       size={20} weight={iconWeight as "fill" | "regular"} color={iconColor} />,
@@ -180,7 +180,7 @@ export default function ExamsPage() {
       {/* ── Header ── */}
       <div
         style={{
-          background: "linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)",
+          background: "#071739",
           padding: "18px 24px 16px",
         }}
       >
@@ -259,19 +259,19 @@ export default function ExamsPage() {
                   style={{
                     fontSize: 11,
                     fontWeight: 700,
-                    color: "#0A2E28",
+                    color: "#071739",
                     marginBottom: 4,
                   }}
                 >
                   Real CMA Foundation Pattern
                 </div>
-                <div style={{ fontSize: 11, color: "#6B6560", lineHeight: 1.6 }}>
+                <div style={{ fontSize: 11, color: "#4B6382", lineHeight: 1.6 }}>
                   50 MCQs · 2 marks each · 120 mins · No negative marking · Pass: 40% per paper + 50% aggregate
                 </div>
                 <div
                   style={{
                     fontSize: 10,
-                    color: "#E67E22",
+                    color: "#E3C39D",
                     fontWeight: 600,
                     marginTop: 4,
                   }}
@@ -285,7 +285,7 @@ export default function ExamsPage() {
               style={{
                 fontSize: 12,
                 fontWeight: 600,
-                color: "#6B6560",
+                color: "#4B6382",
                 marginBottom: 10,
               }}
             >
@@ -303,7 +303,7 @@ export default function ExamsPage() {
               {EXAM_TYPES.map((type, i, arr) => (
                 <motion.button
                   key={type.id}
-                  whileTap={{ backgroundColor: "#F5F0E8" }}
+                  whileTap={{ backgroundColor: "rgba(7,23,57,0.04)" }}
                   onClick={() => handleTypeSelect(type.id)}
                   style={{
                     width: "100%",
@@ -338,13 +338,13 @@ export default function ExamsPage() {
                       style={{
                         fontSize: 14,
                         fontWeight: 600,
-                        color: "#1A1208",
+                        color: "#071739",
                         marginBottom: 2,
                       }}
                     >
                       {type.label}
                     </div>
-                    <div style={{ fontSize: 11, color: "#A89880" }}>{type.sub}</div>
+                    <div style={{ fontSize: 11, color: "#A4B5C4" }}>{type.sub}</div>
                   </div>
                   <span style={{ fontSize: 16, color: "#C5B9A8" }}>›</span>
                 </motion.button>
@@ -363,7 +363,7 @@ export default function ExamsPage() {
             transition={{ duration: 0.18 }}
             style={{ flex: 1, padding: "16px 20px 100px", overflowY: "auto" }}
           >
-            <div style={{ fontSize: 12, color: "#A89880", marginBottom: 12 }}>
+            <div style={{ fontSize: 12, color: "#A4B5C4", marginBottom: 12 }}>
               Select a chapter to test
             </div>
             <div
@@ -377,7 +377,7 @@ export default function ExamsPage() {
               {CHAPTERS.map((ch, i, arr) => (
                 <motion.button
                   key={ch.num}
-                  whileTap={{ backgroundColor: "#F5F0E8" }}
+                  whileTap={{ backgroundColor: "rgba(7,23,57,0.04)" }}
                   onClick={() => handleChapterSelect(ch.num)}
                   style={{
                     width: "100%",
@@ -398,22 +398,22 @@ export default function ExamsPage() {
                       width: 36,
                       height: 36,
                       borderRadius: 10,
-                      background: "#E1F5EE",
+                      background: "rgba(7,23,57,0.05)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       flexShrink: 0,
                     }}
                   >
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#0E6655" }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#071739" }}>
                       {ch.num}
                     </span>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: "#1A1208" }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: "#071739" }}>
                       Ch {ch.num} — {ch.title}
                     </div>
-                    <div style={{ fontSize: 11, color: "#A89880" }}>50 questions · 120 mins</div>
+                    <div style={{ fontSize: 11, color: "#A4B5C4" }}>50 questions · 120 mins</div>
                   </div>
                   <span style={{ fontSize: 16, color: "#C5B9A8" }}>›</span>
                 </motion.button>
@@ -432,7 +432,7 @@ export default function ExamsPage() {
             transition={{ duration: 0.18 }}
             style={{ flex: 1, padding: "16px 20px 100px", overflowY: "auto" }}
           >
-            <div style={{ fontSize: 12, color: "#A89880", marginBottom: 12 }}>
+            <div style={{ fontSize: 12, color: "#A4B5C4", marginBottom: 12 }}>
               Select 2 or more chapters
             </div>
             <div
@@ -457,7 +457,7 @@ export default function ExamsPage() {
                       display: "flex",
                       alignItems: "center",
                       gap: 14,
-                      background: isSelected ? "#E1F5EE" : "transparent",
+                      background: isSelected ? "rgba(7,23,57,0.05)" : "transparent",
                       border: "none",
                       borderBottom:
                         i < arr.length - 1 ? "0.5px solid rgba(0,0,0,0.06)" : "none",
@@ -470,7 +470,7 @@ export default function ExamsPage() {
                         width: 36,
                         height: 36,
                         borderRadius: 10,
-                        background: isSelected ? "#0A2E28" : "#F5F0E8",
+                        background: isSelected ? "#071739" : "rgba(7,23,57,0.04)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -480,7 +480,7 @@ export default function ExamsPage() {
                       {isSelected ? (
                         <CheckCircle size={18} weight="fill" color="#fff" />
                       ) : (
-                        <span style={{ fontSize: 13, fontWeight: 700, color: "#A89880" }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: "#A4B5C4" }}>
                           {ch.num}
                         </span>
                       )}
@@ -490,15 +490,15 @@ export default function ExamsPage() {
                         style={{
                           fontSize: 13,
                           fontWeight: isSelected ? 600 : 500,
-                          color: isSelected ? "#0A2E28" : "#1A1208",
+                          color: isSelected ? "#071739" : "#071739",
                         }}
                       >
                         Ch {ch.num} — {ch.title}
                       </div>
-                      <div style={{ fontSize: 11, color: "#A89880" }}>+10 questions</div>
+                      <div style={{ fontSize: 11, color: "#A4B5C4" }}>+10 questions</div>
                     </div>
                     {isSelected && (
-                      <CheckCircle size={18} weight="fill" color="#0E6655" />
+                      <CheckCircle size={18} weight="fill" color="#071739" />
                     )}
                   </motion.button>
                 );
@@ -515,7 +515,7 @@ export default function ExamsPage() {
                   width: "100%",
                   padding: "14px",
                   borderRadius: 14,
-                  background: "#0A2E28",
+                  background: "#071739",
                   color: "#fff",
                   border: "none",
                   fontSize: 14,
@@ -530,7 +530,7 @@ export default function ExamsPage() {
                 style={{
                   textAlign: "center",
                   fontSize: 11,
-                  color: "#A89880",
+                  color: "#A4B5C4",
                   marginTop: 8,
                 }}
               >
@@ -567,7 +567,7 @@ export default function ExamsPage() {
                     {/* Header */}
                     <div
                       style={{
-                        background: currentType?.bg || "#E1F5EE",
+                        background: currentType?.bg || "rgba(7,23,57,0.05)",
                         padding: "20px 20px 16px",
                         display: "flex",
                         alignItems: "center",
@@ -589,12 +589,12 @@ export default function ExamsPage() {
                       </div>
                       <div>
                         <div
-                          style={{ fontSize: 16, fontWeight: 700, color: "#1A1208" }}
+                          style={{ fontSize: 16, fontWeight: 700, color: "#071739" }}
                         >
                           {currentType?.label}
                         </div>
                         {selectedChapters.length > 0 && (
-                          <div style={{ fontSize: 11, color: "#6B6560" }}>
+                          <div style={{ fontSize: 11, color: "#4B6382" }}>
                             {selectedChapters.length === 1
                               ? `Chapter ${selectedChapters[0]}`
                               : `Chapters ${selectedChapters.join(", ")}`}
@@ -626,11 +626,11 @@ export default function ExamsPage() {
                               : "none",
                         }}
                       >
-                        <span style={{ fontSize: 13, color: "#6B6560" }}>
+                        <span style={{ fontSize: 13, color: "#4B6382" }}>
                           {stat.label}
                         </span>
                         <span
-                          style={{ fontSize: 13, fontWeight: 700, color: "#1A1208" }}
+                          style={{ fontSize: 13, fontWeight: 700, color: "#071739" }}
                         >
                           {stat.value}
                         </span>
@@ -652,7 +652,7 @@ export default function ExamsPage() {
                       style={{
                         fontSize: 10,
                         fontWeight: 700,
-                        color: "#A89880",
+                        color: "#A4B5C4",
                         letterSpacing: "0.06em",
                         marginBottom: 8,
                       }}
@@ -678,13 +678,13 @@ export default function ExamsPage() {
                         <span
                           style={{
                             fontSize: 10,
-                            color: "#0E6655",
+                            color: "#071739",
                             flexShrink: 0,
                           }}
                         >
                           ✓
                         </span>
-                        <span style={{ fontSize: 12, color: "#6B6560" }}>{rule}</span>
+                        <span style={{ fontSize: 12, color: "#4B6382" }}>{rule}</span>
                       </div>
                     ))}
                   </div>
@@ -698,7 +698,7 @@ export default function ExamsPage() {
                       padding: "16px",
                       borderRadius: 14,
                       background:
-                        "linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)",
+                        "#071739",
                       color: "#fff",
                       border: "none",
                       fontSize: 15,
@@ -710,7 +710,7 @@ export default function ExamsPage() {
                       gap: 8,
                     }}
                   >
-                    <Timer size={18} weight="fill" color="#E67E22" />
+                    <Timer size={18} weight="fill" color="#E3C39D" />
                     Start Exam
                   </motion.button>
                 </>

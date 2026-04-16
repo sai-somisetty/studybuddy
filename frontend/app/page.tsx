@@ -24,7 +24,7 @@ export default function Page() {
     }}>
       <div style={{ 
         width: 40, height: 40, borderRadius: 12,
-        background: "#0A2E28", display: "flex",
+        background: "#071739", display: "flex",
         alignItems: "center", justifyContent: "center"
       }}>
         <span style={{ color: "#fff", fontSize: 14, fontWeight: 700 }}>S</span>

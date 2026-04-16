@@ -10,21 +10,21 @@ function MenuItem({ icon, label, sub, arrow=true, danger=false, onTap }: {
   return (
     <motion.div whileTap={{ scale:0.98 }} onClick={onTap}
       style={{ display:"flex", alignItems:"center", gap:14, padding:"13px 0", cursor:onTap?"pointer":"default", borderBottom:"0.5px solid rgba(0,0,0,0.05)" }}>
-      <div style={{ width:36, height:36, borderRadius:10, background:danger?"#FEF2F2":"#F5F0E8", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, flexShrink:0 }}>
+      <div style={{ width:36, height:36, borderRadius:10, background:danger?"#FEF2F2":"rgba(7,23,57,0.04)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, flexShrink:0 }}>
         {icon}
       </div>
       <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontSize:13, fontWeight:600, color:danger?"#DC2626":"#1A1208" }}>{label}</div>
-        {sub && <div style={{ fontSize:11, color:"#A89880", marginTop:1 }}>{sub}</div>}
+        <div style={{ fontSize:13, fontWeight:600, color:danger?"#DC2626":"#071739" }}>{label}</div>
+        {sub && <div style={{ fontSize:11, color:"#A4B5C4", marginTop:1 }}>{sub}</div>}
       </div>
-      {arrow && <div style={{ fontSize:12, color:"#A89880" }}>→</div>}
+      {arrow && <div style={{ fontSize:12, color:"#A4B5C4" }}>→</div>}
     </motion.div>
   );
 }
 
 function Section({ label }: { label:string }) {
   return (
-    <div style={{ fontSize:10, fontWeight:700, color:"#A89880", letterSpacing:"0.06em", marginTop:20, marginBottom:4 }}>
+    <div style={{ fontSize:10, fontWeight:700, color:"#A4B5C4", letterSpacing:"0.06em", marginTop:20, marginBottom:4 }}>
       {label}
     </div>
   );
@@ -72,7 +72,7 @@ export default function Profile() {
       className="app-shell"
     >
       {/* Header */}
-      <div style={{ background:"#0A2E28", padding:"20px 24px 24px" }}>
+      <div style={{ background:"#071739", padding:"20px 24px 24px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
           <button onClick={() => router.back()}
             style={{ background:"rgba(255,255,255,0.1)", border:"none", borderRadius:8, padding:"6px 12px", fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.7)", cursor:"pointer" }}>
@@ -84,7 +84,7 @@ export default function Profile() {
 
         {/* Avatar + name */}
         <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-          <div style={{ width:56, height:56, borderRadius:18, background:"#E67E22", display:"flex", alignItems:"center", justifyContent:"center", border:"2px solid rgba(255,255,255,0.2)", flexShrink:0 }}>
+          <div style={{ width:56, height:56, borderRadius:18, background:"#E3C39D", display:"flex", alignItems:"center", justifyContent:"center", border:"2px solid rgba(255,255,255,0.2)", flexShrink:0 }}>
             <span style={{ fontSize:22, fontWeight:700, color:"#fff", fontFamily:"Georgia,serif" }}>
               {name.charAt(0).toUpperCase()}
             </span>
@@ -94,7 +94,7 @@ export default function Profile() {
             <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)", marginTop:2 }}>
               {course.toUpperCase()} · {levelDisplay}{groupDisplay} · {attempt}
             </div>
-            <div style={{ marginTop:6, background:"rgba(230,126,34,0.2)", color:"#E67E22", fontSize:10, fontWeight:700, padding:"3px 10px", borderRadius:20, display:"inline-block" }}>
+            <div style={{ marginTop:6, background:"rgba(227,195,157,0.15)", color:"#E3C39D", fontSize:10, fontWeight:700, padding:"3px 10px", borderRadius:20, display:"inline-block" }}>
               {plan}
             </div>
           </div>
@@ -117,12 +117,12 @@ export default function Profile() {
           sub={attempt}
           onTap={handleChangeCourse} />
         <motion.div whileTap={{ scale:0.97 }} onClick={handleChangeCourse}
-          style={{ background:"#E1F5EE", borderRadius:14, padding:"14px 16px", display:"flex", justifyContent:"space-between", alignItems:"center", border:"0.5px solid rgba(14,102,85,0.2)", cursor:"pointer", marginTop:10 }}>
+          style={{ background:"rgba(7,23,57,0.05)", borderRadius:14, padding:"14px 16px", display:"flex", justifyContent:"space-between", alignItems:"center", border:"0.5px solid rgba(14,102,85,0.2)", cursor:"pointer", marginTop:10 }}>
           <div>
-            <div style={{ fontSize:13, fontWeight:600, color:"#0E6655" }}>Change Course / Level / Group</div>
-            <div style={{ fontSize:11, color:"#0E6655", opacity:0.7, marginTop:2 }}>Switch CA / CMA / CS, level or group</div>
+            <div style={{ fontSize:13, fontWeight:600, color:"#071739" }}>Change Course / Level / Group</div>
+            <div style={{ fontSize:11, color:"#071739", opacity:0.7, marginTop:2 }}>Switch CA / CMA / CS, level or group</div>
           </div>
-          <div style={{ fontSize:14, color:"#0E6655" }}>→</div>
+          <div style={{ fontSize:14, color:"#071739" }}>→</div>
         </motion.div>
 
         <Section label="SUBSCRIPTION" />
@@ -143,7 +143,7 @@ export default function Profile() {
 
         {/* Bottom tagline */}
         <div style={{ textAlign:"center", marginTop:24 }}>
-          <div style={{ fontSize:12, fontFamily:"Georgia,serif", color:"#A89880" }}>SOMI</div>
+          <div style={{ fontSize:12, fontFamily:"Georgia,serif", color:"#A4B5C4" }}>SOMI</div>
           <div style={{ fontSize:10, color:"#C8C0B4", marginTop:2 }}>Mama explains. You pass.</div>
         </div>
 

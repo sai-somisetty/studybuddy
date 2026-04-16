@@ -193,7 +193,7 @@ function SessionContent() {
     <div className="app-shell">
 
       {/* Header */}
-      <div style={{ background: "linear-gradient(135deg, #0A2E28 0%, #0A4A3C 100%)", padding: "14px 20px 12px" }}>
+      <div style={{ background: "#071739", padding: "14px 20px 12px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
           <button onClick={() => router.back()}
             style={{ background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>
@@ -223,7 +223,7 @@ function SessionContent() {
               {/* ── Student message ── */}
               {msg.role === "student" && (
                 <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                  <div style={{ maxWidth: "80%", background: "#0A2E28", borderRadius: "18px 18px 4px 18px", padding: "12px 14px" }}>
+                  <div style={{ maxWidth: "80%", background: "#071739", borderRadius: "18px 18px 4px 18px", padding: "12px 14px" }}>
                     <div style={{ fontSize: 13, color: "#fff", lineHeight: 1.6 }}>{msg.text}</div>
                   </div>
                 </div>
@@ -234,17 +234,17 @@ function SessionContent() {
                 <div style={{ display: "flex", justifyContent: "flex-start" }}>
                   <div style={{ maxWidth: "88%", background: "#fff", borderRadius: "18px 18px 18px 4px", padding: "14px 16px", border: "0.5px solid rgba(0,0,0,0.06)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                      <div style={{ width: 24, height: 24, borderRadius: 7, background: "#0A2E28", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <div style={{ width: 24, height: 24, borderRadius: 7, background: "#071739", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <span style={{ fontSize: 7, fontWeight: 800, color: "#fff" }}>MAMA</span>
                       </div>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#0A2E28" }}>Mama</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#071739" }}>Mama</span>
                     </div>
 
                     {/* ICAI text box */}
                     {msg.icaiText && (
-                      <div style={{ background: "#E1F5EE", borderRadius: 12, padding: "10px 12px", marginBottom: 10, border: "1px solid rgba(14,102,85,0.12)" }}>
-                        <div style={{ fontSize: 8, fontWeight: 700, color: "#0E6655", letterSpacing: "0.08em", marginBottom: 4 }}>ICMAI TEXTBOOK</div>
-                        <div style={{ fontSize: 13, color: "#085041", lineHeight: 1.6, fontFamily: "Georgia,serif", fontStyle: "italic" }}>
+                      <div style={{ background: "rgba(7,23,57,0.05)", borderRadius: 12, padding: "10px 12px", marginBottom: 10, border: "1px solid rgba(14,102,85,0.12)" }}>
+                        <div style={{ fontSize: 8, fontWeight: 700, color: "#071739", letterSpacing: "0.08em", marginBottom: 4 }}>ICMAI TEXTBOOK</div>
+                        <div style={{ fontSize: 13, color: "#071739", lineHeight: 1.6, fontFamily: "Georgia,serif", fontStyle: "italic" }}>
                           "{msg.icaiText}"
                         </div>
                         {msg.icaiRef && (
@@ -253,7 +253,7 @@ function SessionContent() {
                       </div>
                     )}
 
-                    <div style={{ fontSize: 13, color: "#1A1208", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+                    <div style={{ fontSize: 13, color: "#071739", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
                       {msg.text}
                     </div>
                   </div>
@@ -264,14 +264,14 @@ function SessionContent() {
               {msg.role === "kitty" && (
                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
                   transition={{ type: "spring", damping: 20 }}
-                  style={{ background: "linear-gradient(135deg,#FEF9C3,#FFEDD5)", borderRadius: 16, padding: 14, border: "1px solid rgba(230,126,34,0.15)" }}>
+                  style={{ background: "linear-gradient(135deg,rgba(227,195,157,0.15),#FFEDD5)", borderRadius: 16, padding: 14, border: "1px solid rgba(227,195,157,0.1)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                    <div style={{ width: 22, height: 22, borderRadius: 6, background: "#E67E22", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ width: 22, height: 22, borderRadius: 6, background: "#E3C39D", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <span style={{ fontSize: 6, fontWeight: 800, color: "#fff" }}>KITTY</span>
                     </div>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "#9a3412" }}>Kitty asks</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#A68868" }}>Kitty asks</span>
                   </div>
-                  <div style={{ fontSize: 13, color: "#431407", lineHeight: 1.6, fontStyle: "italic" }}>
+                  <div style={{ fontSize: 13, color: "#071739", lineHeight: 1.6, fontStyle: "italic" }}>
                     "{msg.text}"
                   </div>
                 </motion.div>
@@ -279,12 +279,12 @@ function SessionContent() {
 
               {/* ── Page indicator ── */}
               {msg.role === "page" && msg.pageNumber && (
-                <div style={{ background: "linear-gradient(135deg,#FFF7ED,#FFEDD5)", borderRadius: 16, padding: "16px 18px", border: "1.5px solid #E67E22", textAlign: "center" }}>
+                <div style={{ background: "linear-gradient(135deg,rgba(227,195,157,0.08),#FFEDD5)", borderRadius: 16, padding: "16px 18px", border: "1.5px solid #E3C39D", textAlign: "center" }}>
                   <div style={{ fontSize: 28, marginBottom: 6 }}>📖</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "#9a3412" }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "#A68868" }}>
                     Open your ICMAI book to Page {msg.pageNumber}
                   </div>
-                  <div style={{ fontSize: 11, color: "#A89880", marginTop: 4 }}>
+                  <div style={{ fontSize: 11, color: "#A4B5C4", marginTop: 4 }}>
                     Find Section {sectionLabel} and tell Mama when ready
                   </div>
                 </div>
@@ -294,14 +294,14 @@ function SessionContent() {
               {msg.role === "check" && msg.checkOptions && (
                 <div style={{ background: "#fff", borderRadius: 16, padding: 16, border: "1.5px solid rgba(24,95,165,0.2)" }}>
                   <div style={{ fontSize: 8, fontWeight: 700, color: "#185FA5", letterSpacing: "0.08em", marginBottom: 8 }}>CHECK QUESTION</div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1208", lineHeight: 1.6, marginBottom: 12 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#071739", lineHeight: 1.6, marginBottom: 12 }}>
                     {msg.checkQuestion}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {msg.checkOptions.map((opt, i) => (
                       <motion.button key={i} whileTap={{ scale: 0.98 }}
                         onClick={() => quickReply(String.fromCharCode(65 + i))}
-                        style={{ textAlign: "left", padding: "10px 14px", borderRadius: 12, background: "#FAFAF8", border: "1px solid #E5E0D8", fontSize: 13, color: "#1A1208", cursor: "pointer", lineHeight: 1.5 }}>
+                        style={{ textAlign: "left", padding: "10px 14px", borderRadius: 12, background: "#FAFAF8", border: "1px solid rgba(7,23,57,0.08)", fontSize: 13, color: "#071739", cursor: "pointer", lineHeight: 1.5 }}>
                         <span style={{ fontWeight: 700, marginRight: 8 }}>{String.fromCharCode(65 + i)}.</span>
                         {opt}
                       </motion.button>
@@ -314,7 +314,7 @@ function SessionContent() {
               {msg.role === "complete" && (
                 <div style={{ background: "linear-gradient(135deg,#F0FDF4,#DCFCE7)", borderRadius: 16, padding: 20, textAlign: "center", border: "1.5px solid rgba(14,102,85,0.2)" }}>
                   <div style={{ fontSize: 36, marginBottom: 8 }}>🎉</div>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: "#0E6655", marginBottom: 4 }}>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "#071739", marginBottom: 4 }}>
                     {msg.text}
                   </div>
                   <div style={{ fontSize: 12, color: "#6B9B8A", marginBottom: 16 }}>
@@ -323,12 +323,12 @@ function SessionContent() {
                   <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
                     <motion.button whileTap={{ scale: 0.97 }}
                       onClick={() => router.push(`/quiz?namespace=${course}_${level.charAt(0)}_${subjectCode}&concept=${encodeURIComponent(sectionLabel)}&subject=${encodeURIComponent(subject)}`)}
-                      style={{ padding: "12px 20px", borderRadius: 14, background: "#0A2E28", color: "#fff", fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer" }}>
+                      style={{ padding: "12px 20px", borderRadius: 14, background: "#071739", color: "#fff", fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer" }}>
                       Take Quiz →
                     </motion.button>
                     <motion.button whileTap={{ scale: 0.97 }}
                       onClick={() => router.back()}
-                      style={{ padding: "12px 20px", borderRadius: 14, background: "#F5F0E8", color: "#1A1208", fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer" }}>
+                      style={{ padding: "12px 20px", borderRadius: 14, background: "rgba(7,23,57,0.04)", color: "#071739", fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer" }}>
                       Back to Chapter
                     </motion.button>
                   </div>
@@ -344,7 +344,7 @@ function SessionContent() {
           <div style={{ display: "flex", justifyContent: "flex-start" }}>
             <div style={{ background: "#fff", borderRadius: "18px 18px 18px 4px", padding: "12px 16px", border: "0.5px solid rgba(0,0,0,0.06)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 7, background: "#0A2E28", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 24, height: 24, borderRadius: 7, background: "#071739", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <span style={{ fontSize: 7, fontWeight: 800, color: "#fff" }}>MAMA</span>
                 </div>
               </div>
@@ -352,7 +352,7 @@ function SessionContent() {
                 {[0, 1, 2].map(i => (
                   <motion.div key={i} animate={{ y: [0, -4, 0] }}
                     transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.15 }}
-                    style={{ width: 6, height: 6, borderRadius: "50%", background: "#0A2E28" }} />
+                    style={{ width: 6, height: 6, borderRadius: "50%", background: "#071739" }} />
                 ))}
               </div>
             </div>
@@ -376,7 +376,7 @@ function SessionContent() {
               <motion.button key={qr.value} whileTap={{ scale: 0.95 }}
                 onClick={() => quickReply(qr.value)}
                 disabled={loading}
-                style={{ flex: 1, padding: "8px 6px", borderRadius: 10, background: "#F5F0E8", border: "none", fontSize: 11, fontWeight: 600, color: "#6B6560", cursor: loading ? "default" : "pointer" }}>
+                style={{ flex: 1, padding: "8px 6px", borderRadius: 10, background: "rgba(7,23,57,0.04)", border: "none", fontSize: 11, fontWeight: 600, color: "#4B6382", cursor: loading ? "default" : "pointer" }}>
                 {qr.label}
               </motion.button>
             ))}
@@ -390,12 +390,12 @@ function SessionContent() {
               onKeyDown={e => e.key === "Enter" && handleSend(input)}
               placeholder="Ask Mama anything..."
               disabled={loading}
-              style={{ flex: 1, padding: "12px 14px", borderRadius: 14, border: "1.5px solid #E5E0D8", background: "#FAFAF8", fontSize: 13, color: "#1A1208", outline: "none" }}
+              style={{ flex: 1, padding: "12px 14px", borderRadius: 14, border: "1.5px solid rgba(7,23,57,0.08)", background: "#FAFAF8", fontSize: 13, color: "#071739", outline: "none" }}
             />
             <motion.button whileTap={{ scale: 0.95 }}
               onClick={() => handleSend(input)}
               disabled={!input.trim() || loading}
-              style={{ width: 44, height: 44, borderRadius: 14, background: input.trim() && !loading ? "#0A2E28" : "#E5E0D8", border: "none", cursor: input.trim() && !loading ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              style={{ width: 44, height: 44, borderRadius: 14, background: input.trim() && !loading ? "#071739" : "rgba(7,23,57,0.08)", border: "none", cursor: input.trim() && !loading ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <span style={{ fontSize: 16, color: "#fff" }}>↑</span>
             </motion.button>
           </div>
@@ -411,7 +411,7 @@ export default function SessionPage() {
   return (
     <Suspense fallback={
       <div className="app-shell" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ color: "#0A2E28" }}>Starting session...</div>
+        <div style={{ color: "#071739" }}>Starting session...</div>
       </div>
     }>
       <SessionContent />

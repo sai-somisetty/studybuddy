@@ -31,14 +31,14 @@ export default function PDFViewer({
         loading={
           <div style={{
             display: "flex", justifyContent: "center",
-            padding: 40, color: "#0A2E28", fontSize: 13
+            padding: 40, color: "#071739", fontSize: 13
           }}>
             Loading textbook...
           </div>
         }
         error={
           <div style={{
-            padding: 24, textAlign: "center", color: "#E67E22"
+            padding: 24, textAlign: "center", color: "#E3C39D"
           }}>
             Could not load PDF. Check connection.
           </div>
@@ -67,7 +67,7 @@ export default function PDFViewer({
           disabled={!canGoPrev}
           style={{
             width: 40, height: 40, borderRadius: "50%",
-            background: !canGoPrev ? "#E5E0D8" : "#0A2E28",
+            background: !canGoPrev ? "rgba(7,23,57,0.08)" : "#071739",
             color: "#fff", border: "none",
             cursor: !canGoPrev ? "default" : "pointer",
             fontSize: 16
@@ -79,7 +79,7 @@ export default function PDFViewer({
           disabled={!canGoNext}
           style={{
             width: 40, height: 40, borderRadius: "50%",
-            background: !canGoNext ? "#E5E0D8" : "#0A2E28",
+            background: !canGoNext ? "rgba(7,23,57,0.08)" : "#071739",
             color: "#fff", border: "none",
             cursor: !canGoNext ? "default" : "pointer",
             fontSize: 16
