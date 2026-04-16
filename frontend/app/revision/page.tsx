@@ -37,23 +37,239 @@ function loadStarred(): StarredItem[] {
   }
 }
 
+type RevisionOverviewProps = {
+  items: StarredItem[];
+  onStartRevision: (playlist: StarredItem[]) => void;
+};
+
+function RevisionOverview({ items, onStartRevision }: RevisionOverviewProps) {
+  const [filterSubject, setFilterSubject] = useState<string>("all");
+  const [filterChapter, setFilterChapter] = useState<string>("all");
+
+  const subjects = [...new Set(items.map((i) => i.subject).filter(Boolean))] as string[];
+  const chapters = [...new Set(items.map((i) => i.chapter).filter(Boolean))] as string[];
+
+  const filtered = items.filter((i) => {
+    if (filterSubject !== "all" && i.subject !== filterSubject) return false;
+    if (filterChapter !== "all" && i.chapter !== filterChapter) return false;
+    return true;
+  });
+
+  const grouped = filtered.reduce<Record<string, StarredItem[]>>((acc, row) => {
+    const k = row.subject || "Other";
+    if (!acc[k]) acc[k] = [];
+    acc[k].push(row);
+    return acc;
+  }, {});
+
+  return (
+    <>
+      {/* Subject filter */}
+      <div
+        style={{
+          display: "flex",
+          gap: 6,
+          overflowX: "auto",
+          marginBottom: 10,
+          paddingBottom: 4,
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            setFilterSubject("all");
+            setFilterChapter("all");
+          }}
+          style={{
+            padding: "6px 14px",
+            borderRadius: 20,
+            flexShrink: 0,
+            background: filterSubject === "all" ? "#071739" : "transparent",
+            color: filterSubject === "all" ? "#E3C39D" : "#071739",
+            border: filterSubject === "all" ? "none" : "1.5px solid rgba(7,23,57,0.1)",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            fontFamily: "'DM Sans', sans-serif",
+          }}
+        >
+          All Subjects
+        </button>
+        {subjects.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => {
+              setFilterSubject(s);
+              setFilterChapter("all");
+            }}
+            style={{
+              padding: "6px 14px",
+              borderRadius: 20,
+              flexShrink: 0,
+              background: filterSubject === s ? "#071739" : "transparent",
+              color: filterSubject === s ? "#E3C39D" : "#071739",
+              border: filterSubject === s ? "none" : "1.5px solid rgba(7,23,57,0.1)",
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "'DM Sans', sans-serif",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {s.length > 25 ? `${s.slice(0, 25)}…` : s}
+          </button>
+        ))}
+      </div>
+
+      {/* Chapter filter — only show when a subject is selected */}
+      {filterSubject !== "all" && (
+        <div
+          style={{
+            display: "flex",
+            gap: 6,
+            overflowX: "auto",
+            marginBottom: 14,
+            paddingBottom: 4,
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setFilterChapter("all")}
+            style={{
+              padding: "6px 14px",
+              borderRadius: 20,
+              flexShrink: 0,
+              background: filterChapter === "all" ? "#071739" : "transparent",
+              color: filterChapter === "all" ? "#E3C39D" : "#071739",
+              border: filterChapter === "all" ? "none" : "1.5px solid rgba(7,23,57,0.1)",
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "'DM Sans', sans-serif",
+            }}
+          >
+            All Chapters
+          </button>
+          {chapters
+            .filter((ch) => items.some((i) => i.subject === filterSubject && i.chapter === ch))
+            .map((ch) => (
+              <button
+                key={ch}
+                type="button"
+                onClick={() => setFilterChapter(ch)}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 20,
+                  flexShrink: 0,
+                  background: filterChapter === ch ? "#071739" : "transparent",
+                  color: filterChapter === ch ? "#E3C39D" : "#071739",
+                  border: filterChapter === ch ? "none" : "1.5px solid rgba(7,23,57,0.1)",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontFamily: "'DM Sans', sans-serif",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {ch.length > 20 ? `${ch.slice(0, 20)}…` : ch}
+              </button>
+            ))}
+        </div>
+      )}
+
+      {filtered.length === 0 && items.length > 0 && (
+        <p style={{ fontSize: 13, color: C.steel, marginBottom: 16, lineHeight: 1.5 }}>
+          No starred concepts in this selection. Try a different filter.
+        </p>
+      )}
+
+      {filtered.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          {Object.entries(grouped).map(([subject, rows]) => (
+            <div key={subject} style={{ marginBottom: 18 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: C.steel,
+                  letterSpacing: "0.06em",
+                  marginBottom: 8,
+                }}
+              >
+                {subject}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {rows.map((row) => (
+                  <div
+                    key={row.key}
+                    style={{
+                      padding: "12px 14px",
+                      borderRadius: 12,
+                      background: "#fff",
+                      border: `1px solid rgba(7,23,57,0.08)`,
+                      fontSize: 13,
+                      color: C.navy,
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    <div style={{ fontWeight: 600 }}>{row.title || row.concept}</div>
+                    {row.chapter && (
+                      <div style={{ fontSize: 11, color: C.steel, marginTop: 4 }}>{row.chapter}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <motion.button
+        type="button"
+        whileTap={{ scale: filtered.length > 0 ? 0.98 : 1 }}
+        onClick={() => {
+          if (filtered.length > 0) onStartRevision([...filtered]);
+        }}
+        disabled={filtered.length === 0}
+        style={{
+          width: "100%",
+          padding: "14px",
+          borderRadius: 12,
+          background: filtered.length > 0 ? C.navy : `${C.navy}40`,
+          color: C.gold,
+          border: "none",
+          fontSize: 14,
+          fontWeight: 600,
+          cursor: filtered.length > 0 ? "pointer" : "not-allowed",
+          marginBottom: 8,
+        }}
+      >
+        Start Revision ({filtered.length} concepts)
+      </motion.button>
+    </>
+  );
+}
+
 export default function RevisionPage() {
   const router = useRouter();
   const [items, setItems] = useState<StarredItem[]>([]);
+  const [playlist, setPlaylist] = useState<StarredItem[]>([]);
+  const [inPlayer, setInPlayer] = useState(false);
   const [idx, setIdx] = useState(0);
   const [tab, setTab] = useState<"quick" | "revise">("quick");
 
   const refresh = useCallback(() => {
-    const next = loadStarred();
-    setItems(next);
-    setIdx((i) => (next.length === 0 ? 0 : Math.min(i, next.length - 1)));
+    setItems(loadStarred());
   }, []);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
-  const current = items[idx];
+  const current = inPlayer ? playlist[idx] : undefined;
 
   const openInLesson = () => {
     if (!current) return;
@@ -69,20 +285,29 @@ export default function RevisionPage() {
 
   const removeCurrent = () => {
     if (!current) return;
-    const next = items.filter((_, i) => i !== idx);
-    localStorage.setItem("somi_starred", JSON.stringify(next));
-    const impKey = `imp_${current.pageId}_${current.paraIdx}`;
-    localStorage.removeItem(impKey);
-    setItems(next);
-    setIdx((i) => (next.length === 0 ? 0 : Math.min(i, next.length - 1)));
+    const key = current.key;
+    const nextItems = items.filter((x) => x.key !== key);
+    localStorage.setItem("somi_starred", JSON.stringify(nextItems));
+    localStorage.removeItem(`imp_${current.pageId}_${current.paraIdx}`);
+    setItems(nextItems);
+    const nextPl = playlist.filter((x) => x.key !== key);
+    setPlaylist(nextPl);
+    setIdx((i) => (nextPl.length === 0 ? 0 : Math.min(i, nextPl.length - 1)));
+    if (nextPl.length === 0) setInPlayer(false);
   };
 
-  const goPrev = () => setIdx((i) => (i <= 0 ? items.length - 1 : i - 1));
-  const goNext = () => setIdx((i) => (items.length === 0 ? 0 : (i + 1) % items.length));
+  const goPrev = () => setIdx((i) => (i <= 0 ? playlist.length - 1 : i - 1));
+  const goNext = () => setIdx((i) => (playlist.length === 0 ? 0 : (i + 1) % playlist.length));
 
   useEffect(() => {
     setTab("quick");
   }, [idx]);
+
+  const startRevision = (filtered: StarredItem[]) => {
+    setPlaylist(filtered);
+    setIdx(0);
+    setInPlayer(true);
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'DM Sans', sans-serif" }}>
@@ -99,7 +324,7 @@ export default function RevisionPage() {
           <motion.button
             type="button"
             whileTap={{ scale: 0.92 }}
-            onClick={() => router.push("/home")}
+            onClick={() => (inPlayer ? setInPlayer(false) : router.push("/home"))}
             style={{
               width: 40,
               height: 40,
@@ -111,7 +336,7 @@ export default function RevisionPage() {
               alignItems: "center",
               justifyContent: "center",
             }}
-            aria-label="Back to home"
+            aria-label={inPlayer ? "Back to revision list" : "Back to home"}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth="2" strokeLinecap="round">
               <path d="M15 18l-6-6 6-6" />
@@ -119,10 +344,12 @@ export default function RevisionPage() {
           </motion.button>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: C.navy, fontWeight: 400 }}>
-              Revision Mode
+              {inPlayer ? "Revision" : "Revision Mode"}
             </div>
             <div style={{ fontSize: 12, color: C.steel, marginTop: 2 }}>
-              {items.length} starred {items.length === 1 ? "concept" : "concepts"}
+              {inPlayer
+                ? `${idx + 1} / ${playlist.length} in this session`
+                : `${items.length} starred ${items.length === 1 ? "concept" : "concepts"}`}
             </div>
           </div>
         </header>
@@ -156,6 +383,8 @@ export default function RevisionPage() {
               Back to Home
             </motion.button>
           </motion.div>
+        ) : !inPlayer ? (
+          <RevisionOverview items={items} onStartRevision={startRevision} />
         ) : (
           <>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
@@ -177,7 +406,7 @@ export default function RevisionPage() {
                 ← Prev
               </motion.button>
               <span style={{ fontSize: 11, color: C.steel, fontWeight: 600 }}>
-                {idx + 1} / {items.length}
+                {idx + 1} / {playlist.length}
               </span>
               <motion.button
                 type="button"
