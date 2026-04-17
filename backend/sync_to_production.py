@@ -98,12 +98,12 @@ def sync_chapter(course: str, paper: int, chapter: int, dry_run: bool = False):
         for c in page_concepts:
             mama_lines.append({
                 "text": c.get("text") or "",
-                "image_url": c.get("image_url") or "",
                 "heading": c.get("heading") or "",
                 "is_key_concept": c.get("is_key_concept", False),
                 "english": c.get("english") or "",
                 "english_variation_2": c.get("english_variation_2") or "",
                 "english_variation_3": clean_v3(c.get("english_variation_3") or ""),
+                "image_url": c.get("image_url") or "",
                 "tenglish": c.get("tenglish") or "",
                 "tenglish_variation_2": c.get("tenglish_variation_2") or "",
                 "tenglish_variation_3": clean_v3(c.get("tenglish_variation_3") or ""),
@@ -144,6 +144,7 @@ def sync_chapter(course: str, paper: int, chapter: int, dry_run: bool = False):
         row_data = {
             "namespace": namespace,
             "concept": f"Page {book_page}",
+            "sections": "",
             "course": course,
             "paper": paper,
             "chapter": chapter,
