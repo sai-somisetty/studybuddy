@@ -5,6 +5,7 @@ import { useState, useRef, useEffect, useCallback, useMemo, Suspense } from "rea
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import MamaAgent from "@/components/MamaAgent";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { SomiIcons } from "@/components/SomiIcons";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "https://studybuddy-production-7776.up.railway.app";
@@ -17,8 +18,6 @@ const PDFViewer = dynamic(() => import('./PDFViewer'), {
     </div>
   )
 });
-
-const MarkdownRenderer = dynamic(() => import('@/components/MarkdownRenderer'), { ssr: false });
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 type ExplanationTab = "quick" | "example" | "deepdive";
@@ -606,6 +605,16 @@ function LessonContent() {
                     )}
                   </AnimatePresence>
                 </motion.div>
+
+                {currentPara?.text?.includes("```mermaid") && (
+                  <div style={{ margin: "12px 0" }}>
+                    <MarkdownRenderer
+                      content={
+                        currentPara.text.match(/```mermaid[\s\S]*?```/)?.[0] || ""
+                      }
+                    />
+                  </div>
+                )}
 
                 {/* ── BLOCK 2: Explanation Tabs ── */}
                 <div style={{ background: "#fff", borderRadius: 16, border: "0.5px solid rgba(0,0,0,0.06)", overflow: "hidden" }}>
