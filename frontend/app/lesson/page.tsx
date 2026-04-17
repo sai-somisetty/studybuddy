@@ -561,31 +561,35 @@ function LessonContent() {
                   />
                 ) : null}
 
-                {/* ── BLOCK 1: ICMAI Sticky Accordion ── */}
+                {/* ── BLOCK 1: ICMAI accordion (collapsed by default — MAMA first) ── */}
                 <motion.div
                   style={{
                     background: "rgba(7,23,57,0.05)", borderRadius: 16,
                     border: "1px solid rgba(7,23,57,0.08)", overflow: "hidden"
                   }}>
                   <button
+                    type="button"
+                    aria-expanded={icmaiExpanded}
                     onClick={() => setIcmaiExpanded(e => !e)}
                     style={{
                       width: "100%", padding: "12px 16px", background: "transparent",
                       border: "none", cursor: "pointer", display: "flex",
                       alignItems: "center", justifyContent: "space-between", gap: 8
                     }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: 9, fontWeight: 700, color: "#071739", flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4 }}><SomiIcons.BookOpen size={12} />ICMAI</span>
-                      <span style={{
-                        fontSize: 11, color: "#071739", fontFamily: "Georgia,serif",
-                        fontStyle: "italic", overflow: "hidden", textOverflow: "ellipsis",
-                        whiteSpace: icmaiExpanded ? "normal" : "nowrap", flex: 1
-                      }}>
-                        {currentPara?.text}
+                    <span style={{
+                      fontSize: 12, fontWeight: 600, color: "#071739",
+                      display: "inline-flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0,
+                    }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                        <span aria-hidden>📖</span>
+                        <span style={{ fontSize: 11, fontWeight: 700 }}>ICMAI</span>
                       </span>
-                    </div>
-                    <span style={{ fontSize: 12, color: "#071739", flexShrink: 0, transform: icmaiExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
-                      ▾
+                      <span style={{ fontSize: 11, color: "#4B6382", fontWeight: 500 }}>
+                        · Page {currentPage?.book_page ?? "—"}
+                      </span>
+                      <span style={{ marginLeft: "auto", fontSize: 11, color: "#071739" }} aria-hidden>
+                        {icmaiExpanded ? "▲" : "▼"}
+                      </span>
                     </span>
                   </button>
                   <AnimatePresence>
@@ -593,7 +597,7 @@ function LessonContent() {
                       <motion.div
                         initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }}
                         style={{ overflow: "hidden" }}>
-                        <div style={{ padding: "0 16px 14px", fontSize: 13, color: "#071739", lineHeight: 1.8, fontFamily: "Georgia,serif", fontStyle: "italic" }}>
+                        <div style={{ padding: "0 16px 14px", fontSize: 13, color: "#071739", lineHeight: 1.8, fontFamily: "Georgia,serif", fontStyle: "italic", whiteSpace: "pre-wrap" }}>
                           {currentPara?.text}
                         </div>
                       </motion.div>

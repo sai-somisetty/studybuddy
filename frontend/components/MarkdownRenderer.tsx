@@ -468,7 +468,13 @@ function LegacyEditorialMarkdown({ content, className }: Props) {
 export default function MarkdownRenderer({ content, className }: Props) {
   if (!content) return null;
 
-  const parts = content.split(/(```mermaid[\s\S]*?```)/gi);
+  // Clean HTML artifacts before rendering
+  let cleaned = content;
+  cleaned = cleaned.replace(/<br\s*\/?>/gi, "\n");
+  cleaned = cleaned.replace(/&lt;/g, "<");
+  cleaned = cleaned.replace(/&gt;/g, ">");
+
+  const parts = cleaned.split(/(```mermaid[\s\S]*?```)/gi);
 
   return (
     <div className={className}>

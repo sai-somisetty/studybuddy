@@ -36,6 +36,18 @@ def clean_v3(text: str) -> str:
     return text
 
 
+def clean_html(text: str) -> str:
+    """Remove HTML tags that corrupt mermaid/markdown"""
+    if not text:
+        return text or ""
+    text = text.replace("<br/>", "\n")
+    text = text.replace("<br>", "\n")
+    text = text.replace("&lt;", "<")
+    text = text.replace("&gt;", ">")
+    text = text.replace("&amp;", "&")
+    return text
+
+
 def get_subject(paper: int) -> str:
     mapping = {
         1: "law",
@@ -97,16 +109,16 @@ def sync_chapter(course: str, paper: int, chapter: int, dry_run: bool = False):
         mama_lines = []
         for c in page_concepts:
             mama_lines.append({
-                "text": c.get("text") or "",
+                "text": clean_html(c.get("text") or ""),
                 "heading": c.get("heading") or "",
                 "is_key_concept": c.get("is_key_concept", False),
-                "english": c.get("english") or "",
-                "english_variation_2": c.get("english_variation_2") or "",
-                "english_variation_3": clean_v3(c.get("english_variation_3") or ""),
+                "tenglish": clean_html(c.get("tenglish") or ""),
+                "tenglish_variation_2": clean_html(c.get("tenglish_variation_2") or ""),
+                "tenglish_variation_3": clean_html(clean_v3(c.get("tenglish_variation_3") or "")),
+                "english": clean_html(c.get("english") or ""),
+                "english_variation_2": clean_html(c.get("english_variation_2") or ""),
+                "english_variation_3": clean_html(clean_v3(c.get("english_variation_3") or "")),
                 "image_url": c.get("image_url") or "",
-                "tenglish": c.get("tenglish") or "",
-                "tenglish_variation_2": c.get("tenglish_variation_2") or "",
-                "tenglish_variation_3": clean_v3(c.get("tenglish_variation_3") or ""),
                 "kitty_question": c.get("kitty_question") or "",
                 "mama_kitty_answer": c.get("mama_kitty_answer") or "",
                 "check_question": c.get("check_question") or "",
