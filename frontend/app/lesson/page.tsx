@@ -598,7 +598,9 @@ function LessonContent() {
                         initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }}
                         style={{ overflow: "hidden" }}>
                         <div style={{ padding: "0 16px 14px", fontSize: 13, color: "#071739", lineHeight: 1.8, fontFamily: "Georgia,serif", fontStyle: "italic", whiteSpace: "pre-wrap" }}>
-                          {currentPara?.text}
+                          {(currentPara.text || "")
+                            .replace(/```mermaid[\s\S]*?```/g, "[Diagram — see above]")
+                            .trim()}
                         </div>
                       </motion.div>
                     )}
