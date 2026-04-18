@@ -134,8 +134,10 @@ function LessonContent() {
   function getContent(para: MamaLine | undefined, variation: "v1" | "v2" | "v3"): string {
     if (!para) return "";
     if (variation === "v1") {
-      if (lang === "english") return (para.english || para.tenglish || "").trim();
-      return (para.tenglish || para.english || "").trim();
+      const masterContent = lang === "english"
+        ? (para.english_variation_3 || para.tenglish_variation_3 || para.english || para.tenglish || "")
+        : (para.tenglish_variation_3 || para.english_variation_3 || para.tenglish || para.english || "");
+      return masterContent.split("\n\n").slice(0, 3).join("\n\n").trim();
     }
     if (variation === "v2") {
       if (lang === "english") return (para.english_variation_2 || para.tenglish_variation_2 || "").trim();
