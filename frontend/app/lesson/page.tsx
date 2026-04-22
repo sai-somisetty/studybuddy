@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import MamaAgent from "@/components/MamaAgent";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+import ConversationalContent from "@/components/ConversationalContent";
 import { SomiIcons } from "@/components/SomiIcons";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "https://studybuddy-production-7776.up.railway.app";
@@ -767,15 +768,24 @@ function LessonContent() {
                       <motion.div key={activeTab}
                         initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -6 }}>
-                        <MarkdownRenderer
-                          content={
-                            (activeTab === "quick"    ? getContent(currentPara, "v1") :
-                             activeTab === "example"  ? getContent(currentPara, "v2") :
-                                                        getContent(currentPara, "v3")
-                            ).replace(/\bthe student\b/gi, studentName)
-                             .replace(/\{name\}/gi, studentName)
-                          }
-                        />
+                        {activeTab === "deepdive" ? (
+                          <ConversationalContent
+                            content={
+                              getContent(currentPara, "v3")
+                                .replace(/\bthe student\b/gi, studentName)
+                                .replace(/\{name\}/gi, studentName)
+                            }
+                          />
+                        ) : (
+                          <MarkdownRenderer
+                            content={
+                              (activeTab === "quick"   ? getContent(currentPara, "v1")
+                                                       : getContent(currentPara, "v2")
+                              ).replace(/\bthe student\b/gi, studentName)
+                               .replace(/\{name\}/gi, studentName)
+                            }
+                          />
+                        )}
                         {activeTab === "deepdive" && !hasDeepDive && (
                           <div style={{ fontSize: 12, color: "#A4B5C4", fontStyle: "italic" }}>
                             Master tab inkaa generate kaaledhu. Quick tab chuddu!
