@@ -134,16 +134,17 @@ function LessonContent() {
 
   function getContent(para: MamaLine | undefined, variation: "v1" | "v2" | "v3"): string {
     if (!para) return "";
+    // v1 Quick  → tenglish (short notes) / english fallback
     if (variation === "v1") {
-      const masterContent = lang === "english"
-        ? (para.english_variation_3 || para.tenglish_variation_3 || para.english || para.tenglish || "")
-        : (para.tenglish_variation_3 || para.english_variation_3 || para.tenglish || para.english || "");
-      return masterContent.split("\n\n").slice(0, 3).join("\n\n").trim();
+      if (lang === "english") return (para.english || para.tenglish || "").trim();
+      return (para.tenglish || para.english || "").trim();
     }
+    // v2 Revise → english_variation_2 (keywords) / tenglish_variation_2 fallback
     if (variation === "v2") {
       if (lang === "english") return (para.english_variation_2 || para.tenglish_variation_2 || "").trim();
       return (para.tenglish_variation_2 || para.english_variation_2 || "").trim();
     }
+    // v3 Master → tenglish_variation_3 (MAMA deep dive) / english_variation_3 for ENG toggle
     if (lang === "english") return (para.english_variation_3 || para.tenglish_variation_3 || "").trim();
     return (para.tenglish_variation_3 || para.english_variation_3 || "").trim();
   }
