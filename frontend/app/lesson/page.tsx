@@ -192,7 +192,19 @@ function LessonContent() {
       try {
         const res  = await fetch(`${API}/lesson/smart?namespace=${namespace}`);
         const data = await res.json();
-        if (data.pages?.length > 0) setPages(data.pages);
+        if (data.pages?.length > 0) {
+          setPages(data.pages);
+          try {
+            const saved = JSON.parse(localStorage.getItem(`somi_pos_${namespace}`) || "null");
+            if (saved && saved.pageIdx < data.pages.length) {
+              setCurrentPageIdx(saved.pageIdx);
+              const paraCount = data.pages[saved.pageIdx]?.mama_lines?.length || 0;
+              if (saved.paraIdx < paraCount) {
+                setCurrentParaIdx(saved.paraIdx);
+              }
+            }
+          } catch {}
+        }
       } catch (e) {
         console.error("Fetch failed:", e);
       } finally {
@@ -201,6 +213,15 @@ function LessonContent() {
     }
     fetchPages();
   }, [namespace]);
+
+  useEffect(() => {
+    if (pages.length > 0) {
+      localStorage.setItem(`somi_pos_${namespace}`, JSON.stringify({
+        pageIdx: currentPageIdx,
+        paraIdx: currentParaIdx,
+      }));
+    }
+  }, [currentPageIdx, currentParaIdx, namespace, pages.length]);
 
   // ── Reset on para change ──
   const resetParaState = useCallback(() => {
@@ -813,6 +834,13 @@ function LessonContent() {
                 {/* ── BLOCK 4: Student Action Buttons ── */}
                 {!showMCQ && (
                   <div style={{ display: "flex", gap: 8 }}>
+                    {(currentParaIdx > 0 || currentPageIdx > 0) && (
+                      <motion.button whileTap={{ scale: 0.97 }}
+                        onClick={goPrevPara}
+                        style={{ padding: "11px 12px", borderRadius: 10, background: "transparent", color: "#4B6382", border: "1.5px solid rgba(7,23,57,0.08)", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                        ←
+                      </motion.button>
+                    )}
                     <motion.button whileTap={{ scale: 0.97 }}
                       onClick={goNextPara}
                       style={{ flex: 1, padding: "11px 16px", borderRadius: 10, background: "transparent", color: "#071739", border: "1.5px solid rgba(7,23,57,0.12)", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
