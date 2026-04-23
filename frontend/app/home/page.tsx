@@ -80,14 +80,7 @@ export default function Home(){
   const h=new Date().getHours();
   const greeting=h<12?`What's the plan\nthis morning?`:h<17?`Back for more,\n${name}?`:`What's the plan\ntonight?`;
   const levelDisplay=level.charAt(0).toUpperCase()+level.slice(1);
-  const stats={streak:12,weekHours:"4.2h",concepts:70,accuracy:"81%"};
   const todayTopic=subjects[0]?.title||"Select a subject";
-  const subjectMeta=[
-    {progress:72,mastered:35,total:48,chapters:6},
-    {progress:41,mastered:25,total:62,chapters:8},
-    {progress:18,mastered:10,total:55,chapters:7},
-    {progress:0,mastered:0,total:40,chapters:5},
-  ];
   const daysUntilExam = daysUntilExamFromAttempt(attempt);
 
   return(
@@ -114,17 +107,6 @@ export default function Home(){
           <h1 style={{fontFamily:"'DM Serif Display',serif",fontSize:"clamp(32px,7vw,42px)",fontWeight:400,color:C.navy,lineHeight:1.15,whiteSpace:"pre-line",letterSpacing:"-0.01em",position:"relative",zIndex:1}}>{greeting}</h1>
           <p style={{fontSize:14,color:C.navy,opacity:0.35,marginTop:12}}>{course.toUpperCase()} {levelDisplay} · {attempt}</p>
         </motion.section>
-
-        {/* STATS */}
-        <motion.div initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:0.2}}
-          style={{display:"flex",borderRadius:12,border:`1px solid ${C.navy}0D`,overflow:"hidden",marginBottom:28}}>
-          {[{v:String(stats.streak),l:"Day Streak",accent:true},{v:stats.weekHours,l:"This Week"},{v:String(stats.concepts),l:"Concepts"},{v:stats.accuracy,l:"Accuracy"}].map((s,i)=>(
-            <div key={i} style={{flex:1,padding:"16px 0",textAlign:"center",borderRight:i<3?`1px solid ${C.navy}0A`:"none",background:s.accent?`${C.navy}06`:"transparent"}}>
-              <div style={{fontFamily:"'DM Serif Display',serif",fontSize:s.accent?26:22,color:C.navy,lineHeight:1}}>{s.v}</div>
-              <div style={{fontSize:10,color:C.navy,marginTop:4,letterSpacing:"0.1em",textTransform:"uppercase" as const}}>{s.l}</div>
-            </div>
-          ))}
-        </motion.div>
 
         {/* TODAY CARD */}
         <motion.div initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:0.3}}
@@ -190,36 +172,21 @@ export default function Home(){
         </div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:40}}>
           {subjects.map((s:any,i:number)=>{
-            const meta=subjectMeta[i]||{progress:0,mastered:0,total:30,chapters:5};
-            const isLocked=false;
             const cardGhost=paperGhostFromCode(s.code);
             return(
               <motion.div key={s.id} initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.4+i*0.06}}
-                whileTap={!isLocked?{scale:0.98}:{}} onClick={()=>!isLocked&&router.push(`/subject/${s.id}`)}
-                style={{position:"relative",borderRadius:14,background:"#fff",border:`1px solid ${C.navy}0A`,padding:"22px",gridColumn:"span 1",overflow:"hidden",cursor:isLocked?"default":"pointer",filter:"none"}}>
+                whileTap={{scale:0.98}} onClick={()=>router.push(`/subject/${s.id}`)}
+                style={{position:"relative",borderRadius:14,background:"#fff",border:`1px solid ${C.navy}0A`,padding:"22px",gridColumn:"span 1",overflow:"hidden",cursor:"pointer"}}>
                 <span style={{position:"absolute",top:-15,right:-5,fontFamily:"'DM Serif Display',serif",fontSize:"clamp(80px,12vw,140px)",fontWeight:900,color:C.navy,opacity:0.025,lineHeight:1,userSelect:"none",pointerEvents:"none"}}>{cardGhost}</span>
                 <div style={{position:"relative",zIndex:1}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+                  <div style={{marginBottom:12}}>
                     <span style={{fontSize:10,fontWeight:600,letterSpacing:"0.18em",textTransform:"uppercase" as const,color:C.navy}}>{s.code}</span>
-                    {meta.progress>0&&<OrbitalRing percent={meta.progress} size={40} delay={500+i*100}/>}
                   </div>
                   <h3 style={{fontFamily:"'DM Serif Display',serif",fontSize:"clamp(17px,2.5vw,20px)",fontWeight:400,color:C.navy,lineHeight:1.25,marginBottom:12,maxWidth:"85%"}}>{s.title}</h3>
-                  {meta.progress>0?(
-                    <>
-                      <div style={{display:"flex",gap:18,alignItems:"baseline",marginBottom:14}}>
-                        <div><span style={{fontFamily:"'DM Serif Display',serif",fontSize:22,color:C.navy}}>{meta.mastered}</span><span style={{fontSize:11,color:C.navy,opacity:0.75,marginLeft:4}}>/ {meta.total} mastered</span></div>
-                        <div style={{height:16,width:1,background:C.navy,opacity:0.08}}/>
-                        <span style={{fontSize:12,color:C.navy,opacity:0.75}}>{meta.chapters} chapters</span>
-                      </div>
-                      <div style={{display:"flex",gap:3,height:4,borderRadius:2,overflow:"hidden"}}>
-                        {Array.from({length:Math.min(meta.total,50)}).map((_,j)=>(<div key={j} style={{flex:1,borderRadius:1,background:j<meta.mastered?C.gold:C.navy,opacity:j<meta.mastered?0.7:0.05}}/>))}
-                      </div>
-                    </>
-                  ):(
-                    <div>
-                      <span style={{fontSize:12,color:C.navy,opacity:0.6}}>{meta.total} concepts · {meta.chapters} chapters</span>
-                    </div>
-                  )}
+                  <div>
+                    <span style={{fontSize:12,color:C.navy,opacity:0.5}}>{s.chapters} chapters</span>
+                    <div style={{marginTop:10,display:"inline-flex",alignItems:"center",gap:6,background:C.gold,padding:"8px 16px",borderRadius:8,fontSize:12,fontWeight:600,color:C.navy}}>Start Learning →</div>
+                  </div>
                 </div>
               </motion.div>
             );
