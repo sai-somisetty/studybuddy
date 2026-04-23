@@ -167,12 +167,12 @@ function SubjectContent({pageId}:{pageId:string}){
         {chapters.map((ch,i)=>{
           const isCurrent=i===currentChIdx;
           const isDone=ch.progress===100;
-          const isLocked=ch.progress===0&&i>0&&chapters[i-1].progress<100;
+          const isLocked=false;
           return(
             <motion.div key={ch.number} initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:0.24+i*0.04}}
               whileTap={!isLocked?{scale:0.98}:{}}
               onClick={()=>!isLocked&&router.push(`/chapter/${subject.id}?chapter=${ch.number}&subject=${encodeURIComponent(subject.title)}&subjectId=${subject.id}`)}
-              style={{display:"flex",gap:16,alignItems:"flex-start",padding:18,background:"#fff",borderRadius:14,border:isCurrent?`1.5px solid ${C.gold}`:`1px solid ${C.navy}0A`,boxShadow:isCurrent?`0 0 16px ${C.gold}1A`:"none",marginBottom:12,cursor:isLocked?"default":"pointer",opacity:isLocked?0.4:1}}>
+              style={{display:"flex",gap:16,alignItems:"flex-start",padding:18,background:"#fff",borderRadius:14,border:isCurrent?`1.5px solid ${C.gold}`:`1px solid ${C.navy}0A`,boxShadow:isCurrent?`0 0 16px ${C.gold}1A`:"none",marginBottom:12,cursor:isLocked?"default":"pointer",opacity:1}}>
               <span style={{fontFamily:"'DM Serif Display',serif",fontSize:28,color:isCurrent?C.gold:C.navy,opacity:isCurrent?0.5:0.12,lineHeight:1,minWidth:32,paddingTop:2}}>{ch.number}</span>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontSize:14,fontWeight:600,lineHeight:1.35,color:C.navy,marginBottom:4}}>{ch.title}</div>
@@ -180,7 +180,6 @@ function SubjectContent({pageId}:{pageId:string}){
                 {ch.progress>0&&(<><div style={{height:3,background:`${C.navy}0D`,borderRadius:2,overflow:"hidden",marginBottom:4}}><div style={{width:`${ch.progress}%`,height:"100%",background:C.gold,borderRadius:2}}/></div><div style={{fontSize:11,color:C.navy,opacity:0.35,fontWeight:500}}>{isDone?"100% complete":`${Math.round(ch.progress*ch.concepts/100)} of ${ch.concepts} done`}</div></>)}
                 {isDone&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:10,fontWeight:600,padding:"3px 10px",borderRadius:20,background:`${C.navy}0A`,color:C.navy,opacity:0.5,marginTop:8}}><SomiIcons.Check size={10} />Complete</span>}
                 {isCurrent&&<span style={{display:"inline-block",fontSize:10,fontWeight:600,padding:"3px 10px",borderRadius:20,background:C.gold,color:C.navy,marginTop:8}}>Continue →</span>}
-                {isLocked&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:10,fontWeight:600,padding:"3px 10px",borderRadius:20,background:`${C.navy}06`,color:C.navy,opacity:0.5,marginTop:8}}>Complete Ch {i} first</span>}
               </div>
               <span style={{fontSize:14,color:isCurrent?C.gold:C.navy,opacity:isCurrent?0.5:0.15,alignSelf:"center"}}>›</span>
             </motion.div>

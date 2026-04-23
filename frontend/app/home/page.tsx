@@ -191,12 +191,12 @@ export default function Home(){
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:40}}>
           {subjects.map((s:any,i:number)=>{
             const meta=subjectMeta[i]||{progress:0,mastered:0,total:30,chapters:5};
-            const isLocked=meta.progress===0&&i>0;
+            const isLocked=false;
             const cardGhost=paperGhostFromCode(s.code);
             return(
               <motion.div key={s.id} initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.4+i*0.06}}
                 whileTap={!isLocked?{scale:0.98}:{}} onClick={()=>!isLocked&&router.push(`/subject/${s.id}`)}
-                style={{position:"relative",borderRadius:14,background:"#fff",border:`1px solid ${C.navy}0A`,padding:"22px",gridColumn:"span 1",overflow:"hidden",cursor:isLocked?"default":"pointer",filter:isLocked?"grayscale(0.3)":"none"}}>
+                style={{position:"relative",borderRadius:14,background:"#fff",border:`1px solid ${C.navy}0A`,padding:"22px",gridColumn:"span 1",overflow:"hidden",cursor:isLocked?"default":"pointer",filter:"none"}}>
                 <span style={{position:"absolute",top:-15,right:-5,fontFamily:"'DM Serif Display',serif",fontSize:"clamp(80px,12vw,140px)",fontWeight:900,color:C.navy,opacity:0.025,lineHeight:1,userSelect:"none",pointerEvents:"none"}}>{cardGhost}</span>
                 <div style={{position:"relative",zIndex:1}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
@@ -218,7 +218,6 @@ export default function Home(){
                   ):(
                     <div>
                       <span style={{fontSize:12,color:C.navy,opacity:0.6}}>{meta.total} concepts · {meta.chapters} chapters</span>
-                      {isLocked&&(<div style={{marginTop:14,display:"inline-flex",alignItems:"center",gap:6,background:`${C.navy}08`,padding:"8px 16px",borderRadius:8,fontSize:12,color:C.navy,opacity:0.6}}>Start when ready</div>)}
                     </div>
                   )}
                 </div>
