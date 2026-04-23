@@ -572,13 +572,13 @@ function parseContent(content: string): Section[] {
     }
 
     // ─── Topic intro ───
-    if (line.match(/(\*\*|###?\s*).*(ante enti|Core concept|What is it)/i)) {
+    if (line.match(/(\*\*|#{1,6}\s+).*(ante enti|Core concept|What is it)/i)) {
       const introLines: string[] = [line]
       i++
       while (i < lines.length) {
         const next = lines[i].trim()
         if (!next) { i++; continue }
-        if (next.startsWith('**') || next.match(/^#{1,3}\s/) || next.startsWith('```') || next.startsWith('- **') || next.startsWith('* **') || next === ':::chart') break
+        if (next.startsWith('**') || next.match(/^#{1,6}\s/) || next.startsWith('```') || next.startsWith('- **') || next.startsWith('* **') || next === ':::chart') break
         introLines.push(next); i++
       }
       sections.push({ type: 'intro', lines: introLines })
@@ -586,13 +586,13 @@ function parseContent(content: string): Section[] {
     }
 
     // ─── Key points ───
-    if (line.match(/(\*\*|###?\s*).*(Key points|important points|Key Officials)/i)) {
+    if (line.match(/(\*\*|#{1,6}\s+).*(Key points|important points|Key Officials)/i)) {
       i++
       const items: { key: string; text: string }[] = []
       while (i < lines.length) {
         const next = lines[i].trim()
         if (!next) { i++; continue }
-        if (next.match(/(\*\*|###?\s*).*(example|daily life|chusthe|Exam|trap|gurtunchu|Visualization|Comparison|Timeline|Formula)/i)) break
+        if (next.match(/(\*\*|#{1,6}\s+).*(example|daily life|chusthe|Exam|trap|gurtunchu|Visualization|Comparison|Timeline|Formula)/i)) break
         if (next.startsWith('```') || next === ':::chart') break
         const bulletMatch = next.match(/^[-*]?\s*\*?\*?([^*\n]{2,30})\*?\*?[\s:—-]+(.+)/)
         if (bulletMatch) {
@@ -600,7 +600,7 @@ function parseContent(content: string): Section[] {
           i++
           while (i < lines.length) {
             const cont = lines[i].trim()
-            if (!cont || cont.startsWith('- **') || cont.startsWith('* **') || cont.startsWith('**') || cont.match(/^#{1,3}\s/)) break
+            if (!cont || cont.startsWith('- **') || cont.startsWith('* **') || cont.startsWith('**') || cont.match(/^#{1,6}\s/)) break
             pointText += ' ' + cont; i++
           }
           items.push({ key: bulletMatch[1].trim(), text: pointText })
@@ -625,7 +625,7 @@ function parseContent(content: string): Section[] {
     }
 
     // ─── Comparison ───
-    if (line.match(/(\*\*|###?\s*).*(vs |Vs |VS |Difference|Comparison)/i)) {
+    if (line.match(/(\*\*|#{1,6}\s+).*(vs |Vs |VS |Difference|Comparison)/i)) {
       i++
       const left: { title: string; points: string[] } = { title: '', points: [] }
       const right: { title: string; points: string[] } = { title: '', points: [] }
@@ -633,7 +633,7 @@ function parseContent(content: string): Section[] {
       while (i < lines.length) {
         const next = lines[i].trim()
         if (!next) { i++; continue }
-        if (next.match(/(\*\*|###?\s*).*(example|Exam|trap|Visualization|Key points)/i)) break
+        if (next.match(/(\*\*|#{1,6}\s+).*(example|Exam|trap|Visualization|Key points)/i)) break
         if (next.startsWith('```') || next === ':::chart') break
         const sideMatch = next.match(/^\*\*([^*]+)\*\*\s*:?\s*$/)
         if (sideMatch) {
@@ -656,13 +656,13 @@ function parseContent(content: string): Section[] {
     }
 
     // ─── Timeline ───
-    if (line.match(/(\*\*|###?\s*).*(Timeline|History|Evolution|Stages|Steps|Process)/i)) {
+    if (line.match(/(\*\*|#{1,6}\s+).*(Timeline|History|Evolution|Stages|Steps|Process)/i)) {
       i++
       const events: { label: string; text: string }[] = []
       while (i < lines.length) {
         const next = lines[i].trim()
         if (!next) { i++; continue }
-        if (next.match(/(\*\*|###?\s*).*(example|Exam|trap|Visualization|Key points)/i)) break
+        if (next.match(/(\*\*|#{1,6}\s+).*(example|Exam|trap|Visualization|Key points)/i)) break
         if (next.startsWith('```') || next === ':::chart') break
         const eventMatch = next.match(/^[-*]?\s*\*?\*?([^*\n]{2,30})\*?\*?[\s:—-]+(.+)/)
         if (eventMatch) events.push({ label: eventMatch[1].trim(), text: eventMatch[2].trim() })
@@ -672,13 +672,13 @@ function parseContent(content: string): Section[] {
     }
 
     // ─── Formula ───
-    if (line.match(/(\*\*|###?\s*).*(Formula|Equation|Calculate)/i) || line.match(/^Formula:/i)) {
+    if (line.match(/(\*\*|#{1,6}\s+).*(Formula|Equation|Calculate)/i) || line.match(/^Formula:/i)) {
       i++
       let text = ''
       while (i < lines.length) {
         const next = lines[i].trim()
         if (!next) { i++; continue }
-        if (next.startsWith('**') || next.match(/^#{1,3}\s/) || next.startsWith('```') || next === ':::chart') break
+        if (next.startsWith('**') || next.match(/^#{1,6}\s/) || next.startsWith('```') || next === ':::chart') break
         text += (text ? '\n' : '') + next; i++
       }
       if (text) sections.push({ type: 'formula', text })
@@ -686,12 +686,12 @@ function parseContent(content: string): Section[] {
     }
 
     // ─── Example ───
-    if (line.match(/(\*\*|###?\s*).*(example|daily life|chusthe)/i)) {
+    if (line.match(/(\*\*|#{1,6}\s+).*(example|daily life|chusthe)/i)) {
       i++
       let text = ''
       while (i < lines.length) {
         const next = lines[i].trim()
-        if (next.match(/(\*\*|###?\s*).*(Exam|trap|gurtunchu|Visualization|Key points|Formula|Timeline)/i)) break
+        if (next.match(/(\*\*|#{1,6}\s+).*(Exam|trap|gurtunchu|Visualization|Key points|Formula|Timeline)/i)) break
         if (next.startsWith('```') || next === ':::chart') break
         if (next) text += (text ? ' ' : '') + next
         i++
@@ -701,12 +701,12 @@ function parseContent(content: string): Section[] {
     }
 
     // ─── Exam trap ───
-    if (line.match(/(\*\*|###?\s*).*(Exam trap|Exam tip|gurtunchu)/i)) {
+    if (line.match(/(\*\*|#{1,6}\s+).*(Exam trap|Exam tip|gurtunchu)/i)) {
       i++
       let text = ''
       while (i < lines.length) {
         const next = lines[i].trim()
-        if (next.match(/(\*\*|###?\s*).*(Visualization|Key points|example|Formula|Timeline)/i)) break
+        if (next.match(/(\*\*|#{1,6}\s+).*(Visualization|Key points|example|Formula|Timeline)/i)) break
         if (next.startsWith('```') || next === ':::chart') break
         if (next) text += (text ? ' ' : '') + next
         i++
@@ -716,7 +716,7 @@ function parseContent(content: string): Section[] {
     }
 
     // ─── Visualization label — skip ───
-    if (line.match(/(\*\*|###?\s*).*Visualization/i)) { i++; continue }
+    if (line.match(/(\*\*|#{1,6}\s+).*Visualization/i)) { i++; continue }
 
     // ─── Default text ───
     sections.push({ type: 'text', lines: [line] })
