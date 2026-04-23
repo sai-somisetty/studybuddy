@@ -18,6 +18,7 @@ type Section =
   | { type: 'timeline'; events: { label: string; text: string }[] }
   | { type: 'formula'; text: string }
   | { type: 'chart'; chartType: string; title: string; unit: string; data: { label: string; value: number }[]; series?: { name: string; values: number[] }[]; xLabel?: string; yLabel?: string }
+  | { type: 'flowchart'; direction: string; nodes: { label: string; subtitle: string }[] }
   | { type: 'text'; lines: string[] }
 
 // ─── SOMI COLOR PALETTE ───────────────────────────────────
@@ -220,6 +221,9 @@ function renderSection(section: Section, index: number) {
 
     case 'chart':
       return <ChartRenderer chart={section} />
+
+    case 'flowchart':
+      return <CustomFlowchart nodes={section.nodes} direction={section.direction} />
 
     case 'text':
       return (
@@ -449,6 +453,103 @@ function StackedBar({ data }: { data: { label: string; value: number }[] }) {
   )
 }
 
+// ─── CUSTOM FLOWCHART ────────────────────────────────────
+
+const FLOW_COLORS = [
+  { bg: '#071739', text: '#E3C39D', sub: '#A4B5C4', dot: '#071739', bar: '#071739' },
+  { bg: '#2c5282', text: '#ffffff', sub: '#B5D4F4', dot: '#2c5282', bar: '#2c5282' },
+  { bg: '#e1f5ee', text: '#085041', sub: '#0F6E56', dot: '#5DCAA5', bar: '#5DCAA5', stroke: '#5DCAA5' },
+  { bg: '#faece7', text: '#712B13', sub: '#993C1D', dot: '#F0997B', bar: '#F0997B', stroke: '#F0997B' },
+  { bg: '#eeedfe', text: '#3C3489', sub: '#534AB7', dot: '#AFA9EC', bar: '#AFA9EC', stroke: '#AFA9EC' },
+  { bg: '#faeeda', text: '#633806', sub: '#854F0B', dot: '#FAC775', bar: '#FAC775', stroke: '#FAC775' },
+]
+
+function CustomFlowchart({ nodes, direction }: { nodes: { label: string; subtitle: string }[]; direction: string }) {
+  if (direction === 'LR') return <LRFlowchart nodes={nodes} />
+  return <TDFlowchart nodes={nodes} />
+}
+
+function TDFlowchart({ nodes }: { nodes: { label: string; subtitle: string }[] }) {
+  const cardH = 52
+  const gap = 22
+  const totalH = nodes.length * cardH + (nodes.length - 1) * gap + 30
+  const barH = totalH - 30
+
+  return (
+    <div style={{ margin: '12px 0' }}>
+      <svg viewBox={`0 0 380 ${totalH}`} style={{ width: '100%', height: 'auto' }} xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="pgrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={FLOW_COLORS[0].bar} stopOpacity="0.3" />
+            <stop offset="100%" stopColor={FLOW_COLORS[Math.min(nodes.length - 1, FLOW_COLORS.length - 1)].bar} stopOpacity="0.06" />
+          </linearGradient>
+        </defs>
+
+        <rect x="14" y="14" width="18" height={barH} rx="9" fill="url(#pgrad)" />
+
+        {nodes.map((node, i) => {
+          const y = 14 + i * (cardH + gap)
+          const c = FLOW_COLORS[i % FLOW_COLORS.length]
+          const dotR = 4 - (i * 0.4)
+          const midY = y + cardH / 2
+
+          return (
+            <g key={i}>
+              <circle cx="23" cy={midY} r={Math.max(dotR, 2.5)} fill={c.dot} />
+              <line x1="27" y1={midY} x2="46" y2={midY} stroke="#CDD5DB" strokeWidth="1" strokeLinecap="round" />
+              <rect x="48" y={y} width="220" height={cardH} rx="10"
+                fill={c.bg} stroke={c.stroke || 'none'} strokeWidth={c.stroke ? 0.5 : 0} />
+              <text x="158" y={node.subtitle ? y + 20 : midY}
+                textAnchor="middle" fill={c.text} fontSize="13" fontWeight="500"
+                dominantBaseline="central">{node.label}</text>
+              {node.subtitle && (
+                <text x="158" y={y + 36} textAnchor="middle" fill={c.sub} fontSize="10"
+                  dominantBaseline="central">{node.subtitle}</text>
+              )}
+            </g>
+          )
+        })}
+      </svg>
+    </div>
+  )
+}
+
+function LRFlowchart({ nodes }: { nodes: { label: string; subtitle: string }[] }) {
+  const cardW = 130
+  const gap = 20
+  const totalW = nodes.length * cardW + (nodes.length - 1) * gap + 40
+  const viewW = Math.max(380, totalW)
+
+  return (
+    <div style={{ margin: '12px 0', overflowX: 'auto' }}>
+      <svg viewBox={`0 0 ${viewW} 100`} style={{ width: '100%', height: 'auto' }} xmlns="http://www.w3.org/2000/svg">
+        {nodes.map((node, i) => {
+          const x = 20 + i * (cardW + gap)
+          const c = FLOW_COLORS[i % FLOW_COLORS.length]
+
+          return (
+            <g key={i}>
+              <rect x={x} y="16" width={cardW} height={node.subtitle ? 56 : 44} rx="10"
+                fill={c.bg} stroke={c.stroke || 'none'} strokeWidth={c.stroke ? 0.5 : 0} />
+              <text x={x + cardW / 2} y={node.subtitle ? 36 : 42}
+                textAnchor="middle" fill={c.text} fontSize="12" fontWeight="500"
+                dominantBaseline="central">{node.label}</text>
+              {node.subtitle && (
+                <text x={x + cardW / 2} y="54" textAnchor="middle" fill={c.sub} fontSize="9"
+                  dominantBaseline="central">{node.subtitle}</text>
+              )}
+              {i < nodes.length - 1 && (
+                <line x1={x + cardW} y1="42" x2={x + cardW + gap} y2="42"
+                  stroke="#CDD5DB" strokeWidth="1.5" strokeLinecap="round" />
+              )}
+            </g>
+          )
+        })}
+      </svg>
+    </div>
+  )
+}
+
 // ─── MERMAID BLOCK ───────────────────────────────────────
 
 function MermaidBlock({ code, id }: { code: string; id: string }) {
@@ -520,6 +621,31 @@ function parseContent(content: string): Section[] {
   while (i < lines.length) {
     const line = lines[i].trim()
     if (!line) { i++; continue }
+
+    // ─── Custom flowchart :::flowchart ... ::: ───
+    if (line === ':::flowchart') {
+      i++
+      let direction = 'TD'
+      const nodes: { label: string; subtitle: string }[] = []
+      while (i < lines.length && lines[i].trim() !== ':::') {
+        const cl = lines[i].trim()
+        if (cl.startsWith('direction:')) {
+          direction = cl.split(':')[1].trim()
+        } else if (cl && !cl.startsWith('nodes:')) {
+          const parts = cl.split('|').map(s => s.trim())
+          nodes.push({
+            label: parts[0] || '',
+            subtitle: parts[1] || '',
+          })
+        }
+        i++
+      }
+      i++ // skip closing :::
+      if (nodes.length > 0) {
+        sections.push({ type: 'flowchart', direction, nodes })
+        continue
+      }
+    }
 
     // ─── Mermaid block ───
     if (line.startsWith('```mermaid')) {
