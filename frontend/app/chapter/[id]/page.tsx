@@ -8,6 +8,8 @@ import FloatingNav from "@/components/FloatingNav";
 
 const C = { navy:"#071739",gold:"#E3C39D",goldLight:"#F0DCC4",steel:"#4B6382",silver:"#A4B5C4",sand:"#A68868",bg:"#FAFAF8" };
 
+const API = process.env.NEXT_PUBLIC_API_URL || "https://studybuddy-production-7776.up.railway.app";
+
 const chapterNames:Record<string,Record<number,string>>={
   cma_f_law:{1:"Introduction to Business Laws",2:"Indian Contracts Act 1872",3:"Sale of Goods Act 1930",4:"Negotiable Instruments Act 1881",5:"Business Communication"},
   cma_f_acc:{1:"Accounting Fundamentals",2:"Accounting for Special Transactions",3:"Preparation of Final Accounts",4:"Fundamentals of Cost Accounting"},
@@ -113,18 +115,35 @@ function ChapterContent({pageId}:{pageId:string}){
   const subjectTitle=params.get("subject")||"Business Laws";
   const subjectKey=(pageId||"cma_f_law").replace(/-/g,"_").toLowerCase();
   const chapterTitle=chapterNames[subjectKey]?.[chapterNum]||`Chapter ${chapterNum}`;
-  const concepts=conceptMap[subjectKey]?.[chapterNum]||["Introduction","Key Concepts","Definitions"];
   const namespace=`${subjectKey}_ch${chapterNum}_s1`;
   const [showJumper,setShowJumper]=useState(false);
+  const [concepts,setConcepts]=useState<string[]>([]);
+  const [loading,setLoading]=useState(true);
 
-  const [mastery]=useState<Record<string,[number,number,number]>>(()=>{
-    const m:Record<string,[number,number,number]>={};
-    concepts.forEach((c,i)=>{
-      if(i<2)m[c]=[1,1,1];else if(i===2)m[c]=[1,0.5,0];else if(i===3)m[c]=[0.3,0,0];else m[c]=[0,0,0];
-    });return m;
-  });
-  const masteredCount=concepts.filter(c=>mastery[c]?.every(v=>v>=1)).length;
-  const progress=Math.round((masteredCount/concepts.length)*100);
+  useEffect(()=>{
+    async function fetchConcepts(){
+      setLoading(true);
+      try{
+        const res=await fetch(`${API}/lesson/concepts?namespace_prefix=${subjectKey}&chapter=${chapterNum}`);
+        const data=await res.json();
+        if(data.concepts?.length>0){
+          setConcepts(data.concepts.map((c:any)=>c.concept));
+        } else {
+          setConcepts(conceptMap[subjectKey]?.[chapterNum]||[]);
+        }
+      }catch{
+        setConcepts(conceptMap[subjectKey]?.[chapterNum]||[]);
+      }finally{
+        setLoading(false);
+      }
+    }
+    fetchConcepts();
+  },[subjectKey,chapterNum]);
+
+  const mastery:Record<string,[number,number,number]>={};
+  concepts.forEach(c=>{mastery[c]=[0,0,0];});
+  const masteredCount=0;
+  const progress=0;
 
   return(
     <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'DM Sans',sans-serif"}}>
@@ -170,6 +189,21 @@ function ChapterContent({pageId}:{pageId:string}){
       <div style={{maxWidth:720,margin:"0 auto",padding:"16px 20px max(120px, calc(88px + env(safe-area-inset-bottom, 0px)))"}}>
         <div style={{fontSize:11,fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase" as const,color:C.navy,opacity:0.4,marginBottom:14}}>{concepts.length} Concepts</div>
 
+        {loading&&(
+          <div style={{textAlign:"center",padding:40}}>
+            <div style={{fontSize:13,color:C.navy,opacity:0.4}}>Loading concepts...</div>
+          </div>
+        )}
+
+        {!loading&&concepts.length===0&&(
+          <div style={{textAlign:"center",padding:40}}>
+            <div style={{fontSize:14,fontWeight:600,color:C.navy,marginBottom:8}}>Content coming soon!</div>
+            <div style={{fontSize:12,color:C.navy,opacity:0.4}}>Mama is preparing this chapter. Check back soon!</div>
+          </div>
+        )}
+
+        {!loading&&concepts.length>0&&(
+        <>
         {concepts.map((concept,i)=>{
           const m=mastery[concept]||[0,0,0];
           const isMastered=m.every(v=>v>=1);
@@ -206,6 +240,8 @@ function ChapterContent({pageId}:{pageId:string}){
             </motion.div>
           );
         })}
+        </>
+        )}
 
         {/* CHAPTER ACTIONS */}
         <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:0.5}}

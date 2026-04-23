@@ -1235,8 +1235,12 @@ def get_smart_lesson(namespace: str, concept: str = ""):
     if not chapter:
         return {"pages": [], "has_content": False, "total_pages": 0}
 
+    # Extract subject prefix: cma_f_law_ch1_s1 → cma_f_law
+    namespace_prefix = namespace.split("_ch")[0] if "_ch" in namespace else namespace
+
     r = supabase.table("lesson_content")\
         .select("*")\
+        .like("namespace", f"{namespace_prefix}%")\
         .eq("chapter", chapter)\
         .eq("is_verified", True)\
         .order("book_page")\
@@ -1260,6 +1264,26 @@ def get_smart_lesson(namespace: str, concept: str = ""):
         "has_content": len(pages) > 0,
         "total_pages": len(pages),
     }
+
+
+@app.get("/lesson/concepts")
+def get_chapter_concepts(namespace_prefix: str, chapter: str):
+    """Return list of distinct concepts for a subject+chapter from lesson_content."""
+    r = supabase.table("lesson_content")\
+        .select("concept, namespace, book_page")\
+        .like("namespace", f"{namespace_prefix}_ch{chapter}%")\
+        .order("book_page")\
+        .execute()
+
+    concepts = []
+    seen = set()
+    for row in (r.data or []):
+        c = row.get("concept", "")
+        if c and c not in seen:
+            seen.add(c)
+            concepts.append({"concept": c, "namespace": row.get("namespace", ""), "book_page": row.get("book_page")})
+
+    return {"concepts": concepts, "total": len(concepts), "has_content": len(concepts) > 0}
 
 
 # ── CHECK QUESTIONS FROM MAMA LINES ──
