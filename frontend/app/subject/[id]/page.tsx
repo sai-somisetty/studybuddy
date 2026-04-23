@@ -104,11 +104,8 @@ function SubjectContent({pageId}:{pageId:string}){
   const subjectKey=(subject.id||pageId).replace(/-/g,"_");
   const chapters=Array.from({length:subject.chapters||5},(_,i)=>({
     number:i+1,title:chapterNameMap[subjectKey]?.[i+1]||`Chapter ${i+1}`,
-    progress:i===0?100:i===1?40:0,concepts:[4,10,6,5,6,8,7,8][i]||5,
+    progress:0,concepts:0,
   }));
-  const totalConcepts=chapters.reduce((a,c)=>a+c.concepts,0);
-  const overallProgress=Math.round(chapters.reduce((a,c)=>a+c.progress,0)/chapters.length);
-  const currentChIdx=chapters.findIndex(c=>c.progress>0&&c.progress<100);
 
   return(
     <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'DM Sans',sans-serif"}}>
@@ -129,18 +126,9 @@ function SubjectContent({pageId}:{pageId:string}){
             style={{display:"flex",alignItems:"flex-start",gap:16,paddingBottom:24}}>
             <div style={{flex:1}}>
               <h1 style={{fontFamily:"'DM Serif Display',serif",fontSize:"clamp(22px,5vw,28px)",fontWeight:400,color:"#fff",lineHeight:1.2,marginBottom:8}}>{subject.title}</h1>
-              <div style={{fontSize:12,color:C.silver,opacity:0.6}}>{chapters.length} chapters · {totalConcepts} concepts</div>
-            </div>
-            <div style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
-              <svg width="56" height="56" style={{transform:"rotate(-90deg)"}}><circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3"/><circle cx="28" cy="28" r="24" fill="none" stroke={C.gold} strokeWidth="3" strokeDasharray="150.8" strokeDashoffset={150.8-(150.8*overallProgress/100)} strokeLinecap="round" style={{transition:"stroke-dashoffset 1s ease"}}/></svg>
-              <span style={{fontSize:11,color:C.gold,opacity:0.6}}>{overallProgress}%</span>
+              <div style={{fontSize:12,color:C.silver,opacity:0.6}}>{chapters.length} chapters</div>
             </div>
           </motion.div>
-        </div>
-        <div style={{maxWidth:720,margin:"0 auto",padding:"0 20px"}}>
-          <div style={{height:3,background:"rgba(255,255,255,0.06)",borderRadius:2,overflow:"hidden",marginBottom:12}}>
-            <div style={{width:`${overallProgress}%`,height:"100%",background:C.gold,borderRadius:2}}/>
-          </div>
         </div>
         {/* Page jump button */}
         <div style={{maxWidth:720,margin:"0 auto",padding:"0 20px 16px"}}>
@@ -152,36 +140,20 @@ function SubjectContent({pageId}:{pageId:string}){
 
       {/* CONTENT */}
       <div style={{maxWidth:720,margin:"0 auto",padding:"20px 20px max(110px, calc(88px + env(safe-area-inset-bottom, 0px)))"}}>
-        <motion.div initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:0.16}}
-          style={{display:"flex",borderRadius:12,border:`1px solid ${C.navy}0D`,overflow:"hidden",marginBottom:24}}>
-          {[{v:String(chapters.filter(c=>c.progress===100).length),l:"Complete"},{v:String(chapters.filter(c=>c.progress>0&&c.progress<100).length),l:"In Progress"},{v:String(chapters.filter(c=>c.progress===0).length),l:"Not Started"}].map((s,i)=>(
-            <div key={i} style={{flex:1,padding:"14px 0",textAlign:"center",borderRight:i<2?`1px solid ${C.navy}0A`:"none"}}>
-              <div style={{fontFamily:"'DM Serif Display',serif",fontSize:20,color:C.navy,lineHeight:1}}>{s.v}</div>
-              <div style={{fontSize:10,color:C.navy,opacity:0.35,marginTop:3,letterSpacing:"0.08em",textTransform:"uppercase" as const}}>{s.l}</div>
-            </div>
-          ))}
-        </motion.div>
-
         <div style={{fontSize:11,fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase" as const,color:C.navy,opacity:0.4,marginBottom:14}}>Chapters</div>
 
         {chapters.map((ch,i)=>{
-          const isCurrent=i===currentChIdx;
-          const isDone=ch.progress===100;
-          const isLocked=false;
           return(
             <motion.div key={ch.number} initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{delay:0.24+i*0.04}}
-              whileTap={!isLocked?{scale:0.98}:{}}
-              onClick={()=>!isLocked&&router.push(`/chapter/${subject.id}?chapter=${ch.number}&subject=${encodeURIComponent(subject.title)}&subjectId=${subject.id}`)}
-              style={{display:"flex",gap:16,alignItems:"flex-start",padding:18,background:"#fff",borderRadius:14,border:isCurrent?`1.5px solid ${C.gold}`:`1px solid ${C.navy}0A`,boxShadow:isCurrent?`0 0 16px ${C.gold}1A`:"none",marginBottom:12,cursor:isLocked?"default":"pointer",opacity:1}}>
-              <span style={{fontFamily:"'DM Serif Display',serif",fontSize:28,color:isCurrent?C.gold:C.navy,opacity:isCurrent?0.5:0.12,lineHeight:1,minWidth:32,paddingTop:2}}>{ch.number}</span>
+              whileTap={{scale:0.98}}
+              onClick={()=>router.push(`/chapter/${subject.id}?chapter=${ch.number}&subject=${encodeURIComponent(subject.title)}&subjectId=${subject.id}`)}
+              style={{display:"flex",gap:16,alignItems:"flex-start",padding:18,background:"#fff",borderRadius:14,border:`1px solid ${C.navy}0A`,marginBottom:12,cursor:"pointer"}}>
+              <span style={{fontFamily:"'DM Serif Display',serif",fontSize:28,color:C.navy,opacity:0.12,lineHeight:1,minWidth:32,paddingTop:2}}>{ch.number}</span>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontSize:14,fontWeight:600,lineHeight:1.35,color:C.navy,marginBottom:4}}>{ch.title}</div>
-                <div style={{fontSize:12,color:C.navy,opacity:0.4,marginBottom:10}}>{ch.concepts} concepts</div>
-                {ch.progress>0&&(<><div style={{height:3,background:`${C.navy}0D`,borderRadius:2,overflow:"hidden",marginBottom:4}}><div style={{width:`${ch.progress}%`,height:"100%",background:C.gold,borderRadius:2}}/></div><div style={{fontSize:11,color:C.navy,opacity:0.35,fontWeight:500}}>{isDone?"100% complete":`${Math.round(ch.progress*ch.concepts/100)} of ${ch.concepts} done`}</div></>)}
-                {isDone&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:10,fontWeight:600,padding:"3px 10px",borderRadius:20,background:`${C.navy}0A`,color:C.navy,opacity:0.5,marginTop:8}}><SomiIcons.Check size={10} />Complete</span>}
-                {isCurrent&&<span style={{display:"inline-block",fontSize:10,fontWeight:600,padding:"3px 10px",borderRadius:20,background:C.gold,color:C.navy,marginTop:8}}>Continue →</span>}
+                <span style={{fontSize:12,color:C.navy,opacity:0.4}}>Tap to start</span>
               </div>
-              <span style={{fontSize:14,color:isCurrent?C.gold:C.navy,opacity:isCurrent?0.5:0.15,alignSelf:"center"}}>›</span>
+              <span style={{fontSize:14,color:C.navy,opacity:0.15,alignSelf:"center"}}>›</span>
             </motion.div>
           );
         })}
