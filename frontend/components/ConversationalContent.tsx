@@ -61,7 +61,14 @@ function renderSection(section: Section, index: number) {
       return (
         <div>
           {section.lines.map((line, j) => (
-            <p key={j} style={{ fontSize: 15, lineHeight: 1.7, padding: '4px 0', margin: 0 }}>
+            <p key={j} style={{
+              fontSize: j === 0 ? 18 : 15,
+              fontWeight: j === 0 ? 600 : 400,
+              lineHeight: j === 0 ? 1.4 : 1.7,
+              padding: j === 0 ? '0 0 8px' : '4px 0',
+              margin: 0,
+              color: j === 0 ? 'var(--color-text-primary)' : 'inherit',
+            }}>
               <BoldText text={line} />
             </p>
           ))}
