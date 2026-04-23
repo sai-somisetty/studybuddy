@@ -502,6 +502,11 @@ function BoldText({ text }: { text: string }) {
 
 function parseContent(content: string): Section[] {
   const sections: Section[] = []
+
+  // Strip markdown heading symbols and bold markers from a line
+  const stripHeading = (line: string): string =>
+    line.replace(/^#{1,6}\s+/, '').replace(/\*\*/g, '').trim()
+
   const lines = content.split('\n')
   let i = 0
 
@@ -573,7 +578,7 @@ function parseContent(content: string): Section[] {
 
     // ─── Topic intro ───
     if (line.match(/(\*\*|#{1,6}\s+).*(ante enti|Core concept|What is it)/i)) {
-      const introLines: string[] = [line]
+      const introLines: string[] = [stripHeading(line)]
       i++
       while (i < lines.length) {
         const next = lines[i].trim()
@@ -717,6 +722,13 @@ function parseContent(content: string): Section[] {
 
     // ─── Visualization label — skip ───
     if (line.match(/(\*\*|#{1,6}\s+).*Visualization/i)) { i++; continue }
+
+    // ─── Default: unmatched # heading → render as intro (strip the # symbols) ───
+    if (line.match(/^#{1,6}\s+/)) {
+      sections.push({ type: 'intro', lines: [stripHeading(line)] })
+      i++
+      continue
+    }
 
     // ─── Default text ───
     sections.push({ type: 'text', lines: [line] })
