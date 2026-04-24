@@ -115,7 +115,7 @@ function ChapterContent({pageId}:{pageId:string}){
   const [totalConcepts,setTotalConcepts]=useState(0);
   const [pageRange,setPageRange]=useState<{start:number;end:number}|null>(null);
   const [loading,setLoading]=useState(true);
-  const [pageSearch,setPageSearch]=useState("");
+  const [selectedRange,setSelectedRange]=useState<string>("all");
   const [expandedPage,setExpandedPage]=useState<number|null>(null);
 
   useEffect(()=>{
@@ -191,23 +191,36 @@ function ChapterContent({pageId}:{pageId:string}){
       {/* CONCEPTS — PAGE GROUPED */}
       <div style={{maxWidth:720,margin:"0 auto",padding:"16px 20px 0"}}>
 
-        {/* Sticky page search */}
+        {/* Page range filter */}
         <div style={{position:"sticky",top:0,zIndex:10,background:C.bg,paddingBottom:12,paddingTop:4}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,background:"#fff",borderRadius:12,border:`1.5px solid ${C.navy}10`,padding:"0 14px",height:44}}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.navy} strokeWidth="2" opacity={0.3}><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-            <input
-              value={pageSearch}
-              onChange={e=>setPageSearch(e.target.value)}
-              type="number"
-              inputMode="numeric"
-              placeholder={pageRange?`Jump to page (${pageRange.start}-${pageRange.end})`:"Enter page number..."}
-              style={{flex:1,border:"none",outline:"none",background:"transparent",fontSize:14,color:C.navy,fontFamily:"'DM Sans',sans-serif"}}
-            />
-            {pageSearch&&(
-              <button type="button" onClick={()=>setPageSearch("")} style={{background:"none",border:"none",cursor:"pointer",padding:4,opacity:0.3}}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.navy} strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-              </button>
-            )}
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            <button type="button" onClick={()=>setSelectedRange("all")}
+              style={{padding:"7px 14px",borderRadius:20,border:`1.5px solid ${selectedRange==="all"?C.navy:`${C.navy}12`}`,background:selectedRange==="all"?C.navy:"#fff",color:selectedRange==="all"?"#fff":C.navy,cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:"'DM Sans',sans-serif"}}>
+              All Pages
+            </button>
+            {(()=>{
+              if(!pageRange)return null;
+              const rangeSize=10;
+              const start=Math.floor(pageRange.start/rangeSize)*rangeSize;
+              const end=pageRange.end;
+              const ranges:string[]=[];
+              for(let i=start;i<=end;i+=rangeSize){
+                const rStart=Math.max(i,pageRange.start);
+                const rEnd=Math.min(i+rangeSize-1,end);
+                const count=pageGroups.filter(pg=>pg.page>=rStart&&pg.page<=rEnd).length;
+                if(count>0)ranges.push(`${rStart}-${rEnd}`);
+              }
+              return ranges.map(r=>{
+                const [rs,re]=r.split("-").map(Number);
+                const conceptCount=pageGroups.filter(pg=>pg.page>=rs&&pg.page<=re).reduce((a,pg)=>a+pg.concepts.length,0);
+                return(
+                  <button type="button" key={r} onClick={()=>setSelectedRange(r)}
+                    style={{padding:"7px 14px",borderRadius:20,border:`1.5px solid ${selectedRange===r?C.navy:`${C.navy}12`}`,background:selectedRange===r?C.navy:"#fff",color:selectedRange===r?"#fff":C.navy,cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:"'DM Sans',sans-serif"}}>
+                    {r} <span style={{opacity:0.5,fontWeight:400}}>· {conceptCount}</span>
+                  </button>
+                );
+              });
+            })()}
           </div>
         </div>
 
@@ -230,8 +243,9 @@ function ChapterContent({pageId}:{pageId:string}){
 
         {!loading&&pageGroups
           .filter(pg=>{
-            if (!pageSearch) return true;
-            return String(pg.page).includes(pageSearch);
+            if(selectedRange==="all")return true;
+            const [rs,re]=selectedRange.split("-").map(Number);
+            return pg.page>=rs&&pg.page<=re;
           })
           .map((pg,i)=>{
             const isExpanded=expandedPage===pg.page;
