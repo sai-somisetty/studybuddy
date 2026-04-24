@@ -1228,7 +1228,6 @@ def get_chapter_concepts(paper: int, chapter: int):
         .eq("paper_number", paper)\
         .eq("chapter_number", chapter)\
         .order("book_page")\
-        .order("order_index")\
         .execute()
 
     page_groups = {}
@@ -1253,8 +1252,8 @@ def get_chapter_concepts(paper: int, chapter: int):
         "pages": pages,
         "total_pages": len(pages),
         "total_concepts": total_concepts,
-        "page_range": {"start": pages[0]["page"], "end": pages[-1]["page"]} if pages else None,
-        "has_content": any(p["has_content"] for p in pages),
+        "page_range": {"start": pages[0]["page"], "end": pages[-1]["page"]} if len(pages) > 0 else None,
+        "has_content": any(p["has_content"] for p in pages) if pages else False,
     }
 
 
@@ -1305,7 +1304,7 @@ def get_smart_lesson(namespace: str, concept: str = ""):
 
 
 @app.get("/lesson/concepts")
-def get_chapter_concepts(namespace_prefix: str, chapter: str):
+def get_lesson_concepts(namespace_prefix: str, chapter: str):
     """Return list of distinct concepts for a subject+chapter from lesson_content."""
     r = supabase.table("lesson_content")\
         .select("concept, namespace, book_page")\
