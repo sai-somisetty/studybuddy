@@ -1221,25 +1221,41 @@ async def jump_to_page(page: int, namespace_prefix: str = "cma_f"):
 
 
 @app.get("/chapters/concepts")
-def get_chapter_concepts_from_concepts_table(paper: int, chapter: int):
-    """Return distinct concepts for a paper+chapter from concepts table."""
+def get_chapter_concepts(paper: int, chapter: int):
+    """Return concepts grouped by page for a paper+chapter."""
     r = supabase.table("concepts")\
-        .select("id, concept_title, book_page, tenglish")\
+        .select("id, concept_title, book_page, tenglish, heading")\
         .eq("paper_number", paper)\
         .eq("chapter_number", chapter)\
         .order("book_page")\
+        .order("order_index")\
         .execute()
 
-    concepts = []
-    seen = set()
+    page_groups = {}
     for row in (r.data or []):
+        page = row.get("book_page", 0)
+        if page not in page_groups:
+            page_groups[page] = {"page": page, "concepts": [], "has_content": False}
         title = row.get("concept_title", "")
-        if title and title not in seen:
-            seen.add(title)
-            has_content = bool(row.get("tenglish"))
-            concepts.append({"concept": title, "book_page": row.get("book_page"), "has_content": has_content})
+        has_content = bool(row.get("tenglish"))
+        if has_content:
+            page_groups[page]["has_content"] = True
+        page_groups[page]["concepts"].append({
+            "concept": title,
+            "has_content": has_content,
+            "heading": row.get("heading", ""),
+        })
 
-    return {"concepts": concepts, "total": len(concepts), "has_content": len(concepts) > 0}
+    pages = sorted(page_groups.values(), key=lambda p: p["page"])
+    total_concepts = sum(len(p["concepts"]) for p in pages)
+
+    return {
+        "pages": pages,
+        "total_pages": len(pages),
+        "total_concepts": total_concepts,
+        "page_range": {"start": pages[0]["page"], "end": pages[-1]["page"]} if pages else None,
+        "has_content": any(p["has_content"] for p in pages),
+    }
 
 
 # ── SMART LESSON ──

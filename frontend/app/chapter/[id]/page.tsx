@@ -44,20 +44,6 @@ const conceptMap:Record<string,Record<number,string[]>>={
   },
 };
 
-function MasteryRing({filled,icon}:{filled:number;icon:React.ReactNode}){
-  const circ=50.27,offset=circ-(circ*filled);
-  const isComplete=filled>=1,isEmpty=filled<=0;
-  return(
-    <div style={{position:"relative",width:22,height:22}}>
-      <svg width="22" height="22" style={{transform:"rotate(-90deg)"}}>
-        <circle cx="11" cy="11" r="8" fill="none" stroke={`${C.navy}10`} strokeWidth="2.5"/>
-        {!isEmpty&&<circle cx="11" cy="11" r="8" fill="none" stroke={isComplete?C.navy:C.gold} strokeWidth="2.5" strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" opacity={isComplete?0.7:1}/>}
-      </svg>
-      <span style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,opacity:isEmpty?0.2:isComplete?0.6:0.8}}>{icon}</span>
-    </div>
-  );
-}
-
 function PageJumper({show,onClose}:{show:boolean;onClose:()=>void}){
   const [val,setVal]=useState("");
   const [feedback,setFeedback]=useState("");
@@ -125,9 +111,12 @@ function ChapterContent({pageId}:{pageId:string}){
   const paperNum=paperMap[subjectKey]||1;
   const namespace=`${subjectKey}_ch${chapterNum}_s1`;
   const [showJumper,setShowJumper]=useState(false);
-  const [concepts,setConcepts]=useState<string[]>([]);
-  const [conceptsWithContent,setConceptsWithContent]=useState<Set<string>>(new Set());
+  const [pageGroups,setPageGroups]=useState<{page:number;concepts:{concept:string;has_content:boolean;heading:string}[];has_content:boolean}[]>([]);
+  const [totalConcepts,setTotalConcepts]=useState(0);
+  const [pageRange,setPageRange]=useState<{start:number;end:number}|null>(null);
   const [loading,setLoading]=useState(true);
+  const [pageSearch,setPageSearch]=useState("");
+  const [expandedPage,setExpandedPage]=useState<number|null>(null);
 
   useEffect(()=>{
     async function fetchConcepts(){
@@ -135,14 +124,20 @@ function ChapterContent({pageId}:{pageId:string}){
       try{
         const res=await fetch(`${API}/chapters/concepts?paper=${paperNum}&chapter=${chapterNum}`);
         const data=await res.json();
-        if(data.concepts?.length>0){
-          setConcepts(data.concepts.map((c:any)=>c.concept));
-          setConceptsWithContent(new Set(data.concepts.filter((c:any)=>c.has_content).map((c:any)=>c.concept)));
+        if(data.pages?.length>0){
+          setPageGroups(data.pages);
+          setTotalConcepts(data.total_concepts);
+          setPageRange(data.page_range);
         } else {
-          setConcepts(conceptMap[subjectKey]?.[chapterNum]||[]);
+          setPageGroups([]);
+          setTotalConcepts(0);
+          setPageRange(null);
         }
-      }catch{
-        setConcepts(conceptMap[subjectKey]?.[chapterNum]||[]);
+      }catch(e){
+        console.error("Failed to fetch concepts:", e);
+        setPageGroups([]);
+        setTotalConcepts(0);
+        setPageRange(null);
       }finally{
         setLoading(false);
       }
@@ -150,8 +145,6 @@ function ChapterContent({pageId}:{pageId:string}){
     fetchConcepts();
   },[subjectKey,chapterNum,paperNum]);
 
-  const mastery:Record<string,[number,number,number]>={};
-  concepts.forEach(c=>{mastery[c]=[0,0,0];});
   const masteredCount=0;
   const progress=0;
 
@@ -175,7 +168,7 @@ function ChapterContent({pageId}:{pageId:string}){
             style={{display:"flex",alignItems:"flex-start",gap:16,paddingBottom:20}}>
             <div style={{flex:1}}>
               <h1 style={{fontFamily:"'DM Serif Display',serif",fontSize:"clamp(20px,4.5vw,26px)",fontWeight:400,color:"#fff",lineHeight:1.2,marginBottom:6}}>Chapter {chapterNum} — {chapterTitle}</h1>
-              <div style={{fontSize:12,color:C.silver,opacity:0.5}}>{concepts.length} concepts · {masteredCount} mastered</div>
+              <div style={{fontSize:12,color:C.silver,opacity:0.5}}>{totalConcepts} concepts · {pageRange?`Pages ${pageRange.start}-${pageRange.end}`:""}</div>
             </div>
             <div style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
               <svg width="48" height="48" style={{transform:"rotate(-90deg)"}}><circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3"/><circle cx="24" cy="24" r="20" fill="none" stroke={C.gold} strokeWidth="3" strokeDasharray="125.66" strokeDashoffset={125.66-(125.66*progress/100)} strokeLinecap="round"/></svg>
@@ -195,9 +188,32 @@ function ChapterContent({pageId}:{pageId:string}){
         </div>
       </div>
 
-      {/* CONCEPTS */}
-      <div style={{maxWidth:720,margin:"0 auto",padding:"16px 20px max(120px, calc(88px + env(safe-area-inset-bottom, 0px)))"}}>
-        <div style={{fontSize:11,fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase" as const,color:C.navy,opacity:0.4,marginBottom:14}}>{loading?"Loading...":concepts.length+" Concepts"}</div>
+      {/* CONCEPTS — PAGE GROUPED */}
+      <div style={{maxWidth:720,margin:"0 auto",padding:"16px 20px 0"}}>
+
+        {/* Sticky page search */}
+        <div style={{position:"sticky",top:0,zIndex:10,background:C.bg,paddingBottom:12,paddingTop:4}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,background:"#fff",borderRadius:12,border:`1.5px solid ${C.navy}10`,padding:"0 14px",height:44}}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.navy} strokeWidth="2" opacity={0.3}><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            <input
+              value={pageSearch}
+              onChange={e=>setPageSearch(e.target.value)}
+              type="number"
+              inputMode="numeric"
+              placeholder={pageRange?`Jump to page (${pageRange.start}-${pageRange.end})`:"Enter page number..."}
+              style={{flex:1,border:"none",outline:"none",background:"transparent",fontSize:14,color:C.navy,fontFamily:"'DM Sans',sans-serif"}}
+            />
+            {pageSearch&&(
+              <button type="button" onClick={()=>setPageSearch("")} style={{background:"none",border:"none",cursor:"pointer",padding:4,opacity:0.3}}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.navy} strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div style={{fontSize:11,fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase" as const,color:C.navy,opacity:0.4,marginBottom:14}}>
+          {loading?"Loading...":`${pageGroups.length} Pages · ${totalConcepts} Concepts`}
+        </div>
 
         {loading&&(
           <div style={{textAlign:"center",padding:40}}>
@@ -205,55 +221,87 @@ function ChapterContent({pageId}:{pageId:string}){
           </div>
         )}
 
-        {!loading&&concepts.length===0&&(
+        {!loading&&pageGroups.length===0&&(
           <div style={{textAlign:"center",padding:40,background:"#fff",borderRadius:14,border:`1px solid ${C.navy}0A`}}>
             <div style={{fontFamily:"'DM Serif Display',serif",fontSize:18,color:C.navy,marginBottom:8}}>Coming Soon!</div>
             <div style={{fontSize:13,color:C.navy,opacity:0.4}}>Mama is preparing this chapter. Check back soon!</div>
           </div>
         )}
 
-        {!loading&&concepts.map((concept,i)=>{
-          const m=mastery[concept]||[0,0,0];
-          const isMastered=m.every(v=>v>=1);
-          const isInProgress=m.some(v=>v>0)&&!isMastered;
-          const isNotStarted=m.every(v=>v===0);
-          const isCurrent=i===concepts.findIndex(c=>{const cm=mastery[c]||[0,0,0];return cm.some(v=>v>0)&&!cm.every(v=>v>=1)})||(isNotStarted&&i===concepts.findIndex(c=>(mastery[c]||[0,0,0]).every(v=>v===0)));
-          const fadeOpacity=isNotStarted?Math.max(0.3,1-(i-3)*0.1):1;
+        {!loading&&pageGroups
+          .filter(pg=>{
+            if (!pageSearch) return true;
+            return String(pg.page).includes(pageSearch);
+          })
+          .map((pg,i)=>{
+            const isExpanded=expandedPage===pg.page;
+            return(
+              <motion.div key={pg.page} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:Math.min(i*0.02,0.5)}}
+                style={{background:"#fff",borderRadius:14,border:isExpanded?`1.5px solid ${C.navy}15`:`1px solid ${C.navy}0A`,marginBottom:10,overflow:"hidden"}}>
 
-          return(
-            <motion.div key={concept} initial={{opacity:0,y:10}} animate={{opacity:fadeOpacity,y:0}} transition={{delay:0.12+i*0.04}}
-              style={{background:"#fff",borderRadius:14,border:isCurrent&&!isMastered?`1.5px solid ${C.navy}25`:`1px solid ${C.navy}0A`,padding:"16px 18px",marginBottom:10}}>
-              <div style={{display:"flex",alignItems:"flex-start",gap:14,marginBottom:isNotStarted&&!isCurrent?0:12}}>
-                <span style={{fontFamily:"'Playfair Display',serif",fontSize:32,fontWeight:900,color:C.navy,opacity:0.12,lineHeight:1,minWidth:28}}>{i+1}</span>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:14,fontWeight:600,lineHeight:1.35,color:C.navy,marginBottom:6}}>{concept}</div>
-                  {!isNotStarted&&(<div style={{display:"flex",gap:6,alignItems:"center",marginBottom:4}}><MasteryRing filled={m[0]} icon={<SomiIcons.Bolt size={10} color={C.navy} />} /><MasteryRing filled={m[1]} icon={<SomiIcons.Pen size={10} color={C.navy} />} /><MasteryRing filled={m[2]} icon={<SomiIcons.BookOpen size={10} color={C.navy} />} /></div>)}
-                  {isMastered&&<span style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:20,background:`${C.navy}0A`,color:C.navy,opacity:0.6,marginTop:4}}><SomiIcons.Check size={10} />Mastered</span>}
-                  {isInProgress&&<span style={{display:"inline-block",fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:20,background:`${C.navy}06`,color:C.steel,marginTop:4}}>In progress</span>}
-                  {isNotStarted&&!isCurrent&&<span style={{fontSize:10,color:C.navy,opacity:0.25,marginTop:2,display:"block"}}>Not started</span>}
+                {/* Page header — tap to expand */}
+                <div onClick={()=>setExpandedPage(isExpanded?null:pg.page)}
+                  style={{display:"flex",alignItems:"center",gap:14,padding:"16px 18px",cursor:"pointer"}}>
+                  <span style={{fontFamily:"'DM Serif Display',serif",fontSize:28,color:C.navy,opacity:0.12,lineHeight:1,minWidth:40,textAlign:"right"}}>{pg.page}</span>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:14,fontWeight:600,color:C.navy}}>Page {pg.page}</div>
+                    <div style={{fontSize:11,color:C.navy,opacity:0.4,marginTop:2}}>
+                      {pg.concepts.length} concept{pg.concepts.length!==1?"s":""}
+                      {pg.has_content?"":" · Coming soon"}
+                    </div>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    {pg.has_content&&(
+                      <motion.button type="button" whileTap={{scale:0.95}}
+                        onClick={(e)=>{e.stopPropagation();router.push(`/lesson?namespace=${encodeURIComponent(namespace)}&concept=${encodeURIComponent(pg.concepts[0]?.concept||"")}&subject=${encodeURIComponent(subjectTitle)}&chapter=${encodeURIComponent(`Chapter ${chapterNum} — ${chapterTitle}`)}&page=${pg.page}`);}}
+                        style={{padding:"6px 14px",borderRadius:8,background:C.navy,color:"#fff",border:"none",cursor:"pointer",fontSize:11,fontWeight:600}}>
+                        Study
+                      </motion.button>
+                    )}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.navy} strokeWidth="2" opacity={0.2}
+                      style={{transform:isExpanded?"rotate(180deg)":"rotate(0deg)",transition:"transform 0.2s ease"}}>
+                      <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                  </div>
                 </div>
-              </div>
-              {(!isNotStarted||isCurrent)&&(
-                <div style={{display:"flex",gap:8}}>
-                  <motion.button whileTap={{scale:0.96}} onClick={()=>{if(conceptsWithContent.has(concept)){router.push(`/lesson?namespace=${encodeURIComponent(namespace)}&concept=${encodeURIComponent(concept)}&subject=${encodeURIComponent(subjectTitle)}&chapter=${encodeURIComponent(`Chapter ${chapterNum} — ${chapterTitle}`)}&page=1`)}}}
-                    style={{padding:"7px 16px",borderRadius:8,border:"none",cursor:conceptsWithContent.has(concept)?"pointer":"default",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:600,background:conceptsWithContent.has(concept)?(isMastered?`${C.navy}0A`:C.navy):`${C.navy}08`,color:conceptsWithContent.has(concept)?(isMastered?C.navy:"#fff"):C.navy,opacity:conceptsWithContent.has(concept)?(isMastered?0.5:1):0.3,boxShadow:!isMastered&&isCurrent&&conceptsWithContent.has(concept)?`0 2px 12px ${C.navy}20`:"none"}}>
-                    {!conceptsWithContent.has(concept)?(<>Coming Soon</>):isMastered?(<><span style={{display:"inline-flex",marginRight:4,verticalAlign:"middle"}}><SomiIcons.BookOpen size={14} /></span>Revise</>):isInProgress?(<><span style={{display:"inline-flex",marginRight:4,verticalAlign:"middle"}}><SomiIcons.BookOpen size={14} /></span>Continue</>):(<><span style={{display:"inline-flex",marginRight:4,verticalAlign:"middle"}}><SomiIcons.BookOpen size={14} /></span>Study Now</>)}
-                  </motion.button>
-                  <motion.button whileTap={{scale:0.96}} onClick={()=>router.push(`/quiz?namespace=${encodeURIComponent(namespace)}&concept=${encodeURIComponent(concept)}&mode=concept_check&subject=${encodeURIComponent(subjectTitle)}&chapter=${chapterNum}&course=cma&paper=1`)}
-                    style={{padding:"7px 16px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:600,background:`${C.navy}06`,color:C.navy,opacity:0.6}}>
-                    <span style={{display:"inline-flex",alignItems:"center",gap:4}}><SomiIcons.Pen size={14} />Quiz</span>
-                  </motion.button>
-                </div>
-              )}
-            </motion.div>
-          );
-        )}
 
+                {/* Expanded concept list */}
+                {isExpanded&&(
+                  <div style={{borderTop:`1px solid ${C.navy}08`,padding:"12px 18px 16px"}}>
+                    {pg.concepts.map((c,j)=>(
+                      <div key={j} style={{display:"flex",alignItems:"flex-start",gap:10,padding:"8px 0",borderBottom:j<pg.concepts.length-1?`1px solid ${C.navy}06`:"none"}}>
+                        <span style={{fontSize:10,color:C.navy,opacity:0.25,minWidth:16,paddingTop:3,textAlign:"right"}}>{j+1}</span>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:13,color:C.navy,lineHeight:1.4,opacity:c.has_content?1:0.4}}>{c.concept}</div>
+                          {c.heading&&c.heading!=="None"&&(
+                            <div style={{fontSize:10,color:C.steel,opacity:0.5,marginTop:2}}>{c.heading}</div>
+                          )}
+                        </div>
+                        {c.has_content&&(
+                          <motion.button type="button" whileTap={{scale:0.95}}
+                            onClick={()=>router.push(`/lesson?namespace=${encodeURIComponent(namespace)}&concept=${encodeURIComponent(c.concept)}&subject=${encodeURIComponent(subjectTitle)}&chapter=${encodeURIComponent(`Chapter ${chapterNum} — ${chapterTitle}`)}&page=${pg.page}`)}
+                            style={{padding:"4px 10px",borderRadius:6,background:`${C.navy}08`,color:C.navy,border:"none",cursor:"pointer",fontSize:10,fontWeight:600,flexShrink:0}}>
+                            Open
+                          </motion.button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
+
+      </div>
+
+      <div style={{height:20}}/>
+
+      <div style={{maxWidth:720,margin:"0 auto",padding:"0 20px max(120px, calc(88px + env(safe-area-inset-bottom, 0px)))"}}>
         {/* CHAPTER ACTIONS */}
         <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:0.5}}
           style={{marginTop:20,background:C.navy,borderRadius:14,overflow:"hidden"}}>
           <div style={{padding:"16px 18px 10px",fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase" as const,color:C.gold,opacity:0.5}}>Chapter Actions</div>
-          {[{title:`Chapter ${chapterNum} Quiz`,sub:`All concepts · ${concepts.length} questions`,icon:<SomiIcons.Pen size={18} /> as React.ReactNode},{title:"Timed Mock Test",sub:"30 min · exam conditions",icon:<SomiIcons.Timer size={18} /> as React.ReactNode}].map((item,i)=>(
+          {[{title:`Chapter ${chapterNum} Quiz`,sub:`All concepts · ${totalConcepts} questions`,icon:<SomiIcons.Pen size={18} /> as React.ReactNode},{title:"Timed Mock Test",sub:"30 min · exam conditions",icon:<SomiIcons.Timer size={18} /> as React.ReactNode}].map((item,i)=>(
             <motion.button key={i} whileTap={{scale:0.98}} onClick={()=>router.push(`/quiz?namespace=${encodeURIComponent(namespace)}&mode=textbook&subject=${encodeURIComponent(subjectTitle)}&chapter=${chapterNum}&course=cma&paper=1`)}
               style={{display:"flex",alignItems:"center",gap:14,padding:"14px 18px",borderTop:"1px solid rgba(255,255,255,0.06)",cursor:"pointer",background:"none",border:"none",borderTopStyle:"solid" as const,borderTopWidth:1,borderTopColor:"rgba(255,255,255,0.06)",width:"100%",textAlign:"left",fontFamily:"'DM Sans',sans-serif"}}>
               <div style={{width:36,height:36,borderRadius:10,background:"rgba(255,255,255,0.06)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{item.icon}</div>
