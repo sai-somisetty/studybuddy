@@ -1268,7 +1268,8 @@ def get_chapter_concepts(paper: int, chapter: int):
 
 @app.get("/lesson/smart")
 def get_smart_lesson(namespace: str, concept: str = ""):
-    # Extract chapter from namespace (cma_f_law_ch1_s1 → "1")
+    # Extract paper and chapter from namespace
+    # namespace format: cma_f_law_ch1_s1
     parts = namespace.split("_")
     chapter = None
     for part in parts:
@@ -1279,29 +1280,58 @@ def get_smart_lesson(namespace: str, concept: str = ""):
     if not chapter:
         return {"pages": [], "has_content": False, "total_pages": 0}
 
-    # Extract subject prefix: cma_f_law_ch1_s1 → cma_f_law
+    # Determine paper number from namespace prefix
+    paper_map = {
+        "cma_f_law": 1,
+        "cma_f_acc": 2,
+        "cma_f_maths": 3,
+        "cma_f_eco": 4,
+    }
     namespace_prefix = namespace.split("_ch")[0] if "_ch" in namespace else namespace
+    paper = paper_map.get(namespace_prefix, 1)
 
-    r = supabase.table("lesson_content")\
+    r = content_db.table("concepts")\
         .select("*")\
-        .like("namespace", f"{namespace_prefix}%")\
-        .eq("chapter", chapter)\
-        .eq("is_verified", True)\
+        .eq("paper_number", paper)\
+        .eq("chapter_number", int(chapter))\
         .order("book_page")\
         .execute()
 
-    pages = []
+    # Group by book_page — each page becomes one entry with mama_lines
+    page_groups = {}
     for row in (r.data or []):
-        lines = row.get("mama_lines")
-        if isinstance(lines, str):
-            try:
-                lines = json.loads(lines)
-            except json.JSONDecodeError:
-                lines = []
-        elif lines is None:
-            lines = []
-        row["mama_lines"] = lines
-        pages.append(row)
+        page_num = row.get("book_page", 0)
+        if page_num not in page_groups:
+            page_groups[page_num] = {
+                "book_page": page_num,
+                "namespace": namespace,
+                "chapter": chapter,
+                "mama_lines": [],
+            }
+
+        # Build a mama_line from the concepts row
+        line = {
+            "concept_title": row.get("concept_title", ""),
+            "heading": row.get("heading", ""),
+            "text": row.get("text", ""),
+            "tenglish": row.get("tenglish", ""),
+            "english": row.get("english", ""),
+            "tenglish_variation_2": row.get("tenglish_variation_2", ""),
+            "english_variation_2": row.get("english_variation_2", ""),
+            "tenglish_variation_3": row.get("tenglish_variation_3", ""),
+            "english_variation_3": row.get("english_variation_3", ""),
+            "is_key_concept": row.get("is_key_concept", False),
+            "check_question": row.get("check_question", ""),
+            "check_options": row.get("check_options", []),
+            "check_answer": row.get("check_answer"),
+            "check_explanation": row.get("check_explanation", ""),
+            "mama_response_correct": row.get("mama_response_correct", ""),
+            "mama_response_wrong": row.get("mama_response_wrong", ""),
+            "book_page": page_num,
+        }
+        page_groups[page_num]["mama_lines"].append(line)
+
+    pages = [page_groups[p] for p in sorted(page_groups.keys())]
 
     return {
         "pages": pages,
