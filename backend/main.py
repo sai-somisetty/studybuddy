@@ -1220,6 +1220,28 @@ async def jump_to_page(page: int, namespace_prefix: str = "cma_f"):
         return {"found": False, "error": str(e)}
 
 
+@app.get("/chapters/concepts")
+def get_chapter_concepts_from_concepts_table(paper: int, chapter: int):
+    """Return distinct concepts for a paper+chapter from concepts table."""
+    r = supabase.table("concepts")\
+        .select("id, concept_title, book_page, tenglish")\
+        .eq("paper_number", paper)\
+        .eq("chapter_number", chapter)\
+        .order("book_page")\
+        .execute()
+
+    concepts = []
+    seen = set()
+    for row in (r.data or []):
+        title = row.get("concept_title", "")
+        if title and title not in seen:
+            seen.add(title)
+            has_content = bool(row.get("tenglish"))
+            concepts.append({"concept": title, "book_page": row.get("book_page"), "has_content": has_content})
+
+    return {"concepts": concepts, "total": len(concepts), "has_content": len(concepts) > 0}
+
+
 # ── SMART LESSON ──
 
 @app.get("/lesson/smart")

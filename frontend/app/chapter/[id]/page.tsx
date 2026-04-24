@@ -21,6 +21,13 @@ const chapterNames:Record<string,Record<number,string>>={
   ca_f_eco:{1:"Introduction",2:"Demand & Supply",3:"Production & Cost",4:"Market Structures",5:"National Income"},
 };
 
+const paperMap: Record<string, number> = {
+  cma_f_law: 1,
+  cma_f_acc: 2,
+  cma_f_maths: 3,
+  cma_f_eco: 4,
+};
+
 const conceptMap:Record<string,Record<number,string[]>>={
   cma_f_law:{
     1:["1.1 Sources of Law","1.2 Legislative Process in India","1.3 Legal Method and Court System","1.4 Primary and Subordinate Legislation"],
@@ -115,19 +122,22 @@ function ChapterContent({pageId}:{pageId:string}){
   const subjectTitle=params.get("subject")||"Business Laws";
   const subjectKey=(pageId||"cma_f_law").replace(/-/g,"_").toLowerCase();
   const chapterTitle=chapterNames[subjectKey]?.[chapterNum]||`Chapter ${chapterNum}`;
+  const paperNum=paperMap[subjectKey]||1;
   const namespace=`${subjectKey}_ch${chapterNum}_s1`;
   const [showJumper,setShowJumper]=useState(false);
   const [concepts,setConcepts]=useState<string[]>([]);
+  const [conceptsWithContent,setConceptsWithContent]=useState<Set<string>>(new Set());
   const [loading,setLoading]=useState(true);
 
   useEffect(()=>{
     async function fetchConcepts(){
       setLoading(true);
       try{
-        const res=await fetch(`${API}/lesson/concepts?namespace_prefix=${subjectKey}&chapter=${chapterNum}`);
+        const res=await fetch(`${API}/chapters/concepts?paper=${paperNum}&chapter=${chapterNum}`);
         const data=await res.json();
         if(data.concepts?.length>0){
           setConcepts(data.concepts.map((c:any)=>c.concept));
+          setConceptsWithContent(new Set(data.concepts.filter((c:any)=>c.has_content).map((c:any)=>c.concept)));
         } else {
           setConcepts(conceptMap[subjectKey]?.[chapterNum]||[]);
         }
@@ -138,7 +148,7 @@ function ChapterContent({pageId}:{pageId:string}){
       }
     }
     fetchConcepts();
-  },[subjectKey,chapterNum]);
+  },[subjectKey,chapterNum,paperNum]);
 
   const mastery:Record<string,[number,number,number]>={};
   concepts.forEach(c=>{mastery[c]=[0,0,0];});
@@ -187,7 +197,7 @@ function ChapterContent({pageId}:{pageId:string}){
 
       {/* CONCEPTS */}
       <div style={{maxWidth:720,margin:"0 auto",padding:"16px 20px max(120px, calc(88px + env(safe-area-inset-bottom, 0px)))"}}>
-        <div style={{fontSize:11,fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase" as const,color:C.navy,opacity:0.4,marginBottom:14}}>{concepts.length} Concepts</div>
+        <div style={{fontSize:11,fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase" as const,color:C.navy,opacity:0.4,marginBottom:14}}>{loading?"Loading...":concepts.length+" Concepts"}</div>
 
         {loading&&(
           <div style={{textAlign:"center",padding:40}}>
@@ -196,15 +206,13 @@ function ChapterContent({pageId}:{pageId:string}){
         )}
 
         {!loading&&concepts.length===0&&(
-          <div style={{textAlign:"center",padding:40}}>
-            <div style={{fontSize:14,fontWeight:600,color:C.navy,marginBottom:8}}>Content coming soon!</div>
-            <div style={{fontSize:12,color:C.navy,opacity:0.4}}>Mama is preparing this chapter. Check back soon!</div>
+          <div style={{textAlign:"center",padding:40,background:"#fff",borderRadius:14,border:`1px solid ${C.navy}0A`}}>
+            <div style={{fontFamily:"'DM Serif Display',serif",fontSize:18,color:C.navy,marginBottom:8}}>Coming Soon!</div>
+            <div style={{fontSize:13,color:C.navy,opacity:0.4}}>Mama is preparing this chapter. Check back soon!</div>
           </div>
         )}
 
-        {!loading&&concepts.length>0&&(
-        <>
-        {concepts.map((concept,i)=>{
+        {!loading&&concepts.map((concept,i)=>{
           const m=mastery[concept]||[0,0,0];
           const isMastered=m.every(v=>v>=1);
           const isInProgress=m.some(v=>v>0)&&!isMastered;
@@ -227,9 +235,9 @@ function ChapterContent({pageId}:{pageId:string}){
               </div>
               {(!isNotStarted||isCurrent)&&(
                 <div style={{display:"flex",gap:8}}>
-                  <motion.button whileTap={{scale:0.96}} onClick={()=>router.push(`/lesson?namespace=${encodeURIComponent(namespace)}&concept=${encodeURIComponent(concept)}&subject=${encodeURIComponent(subjectTitle)}&chapter=${encodeURIComponent(`Chapter ${chapterNum} — ${chapterTitle}`)}&page=1`)}
-                    style={{padding:"7px 16px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:600,background:isMastered?`${C.navy}0A`:C.navy,color:isMastered?C.navy:"#fff",opacity:isMastered?0.5:1,boxShadow:!isMastered&&isCurrent?`0 2px 12px ${C.navy}20`:"none"}}>
-                    {isMastered?(<><span style={{display:"inline-flex",marginRight:4,verticalAlign:"middle"}}><SomiIcons.BookOpen size={14} /></span>Revise</>):isInProgress?(<><span style={{display:"inline-flex",marginRight:4,verticalAlign:"middle"}}><SomiIcons.BookOpen size={14} /></span>Continue</>):(<><span style={{display:"inline-flex",marginRight:4,verticalAlign:"middle"}}><SomiIcons.BookOpen size={14} /></span>Study Now</>)}
+                  <motion.button whileTap={{scale:0.96}} onClick={()=>{if(conceptsWithContent.has(concept)){router.push(`/lesson?namespace=${encodeURIComponent(namespace)}&concept=${encodeURIComponent(concept)}&subject=${encodeURIComponent(subjectTitle)}&chapter=${encodeURIComponent(`Chapter ${chapterNum} — ${chapterTitle}`)}&page=1`)}}}
+                    style={{padding:"7px 16px",borderRadius:8,border:"none",cursor:conceptsWithContent.has(concept)?"pointer":"default",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:600,background:conceptsWithContent.has(concept)?(isMastered?`${C.navy}0A`:C.navy):`${C.navy}08`,color:conceptsWithContent.has(concept)?(isMastered?C.navy:"#fff"):C.navy,opacity:conceptsWithContent.has(concept)?(isMastered?0.5:1):0.3,boxShadow:!isMastered&&isCurrent&&conceptsWithContent.has(concept)?`0 2px 12px ${C.navy}20`:"none"}}>
+                    {!conceptsWithContent.has(concept)?(<>Coming Soon</>):isMastered?(<><span style={{display:"inline-flex",marginRight:4,verticalAlign:"middle"}}><SomiIcons.BookOpen size={14} /></span>Revise</>):isInProgress?(<><span style={{display:"inline-flex",marginRight:4,verticalAlign:"middle"}}><SomiIcons.BookOpen size={14} /></span>Continue</>):(<><span style={{display:"inline-flex",marginRight:4,verticalAlign:"middle"}}><SomiIcons.BookOpen size={14} /></span>Study Now</>)}
                   </motion.button>
                   <motion.button whileTap={{scale:0.96}} onClick={()=>router.push(`/quiz?namespace=${encodeURIComponent(namespace)}&concept=${encodeURIComponent(concept)}&mode=concept_check&subject=${encodeURIComponent(subjectTitle)}&chapter=${chapterNum}&course=cma&paper=1`)}
                     style={{padding:"7px 16px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:600,background:`${C.navy}06`,color:C.navy,opacity:0.6}}>
@@ -239,8 +247,6 @@ function ChapterContent({pageId}:{pageId:string}){
               )}
             </motion.div>
           );
-        })}
-        </>
         )}
 
         {/* CHAPTER ACTIONS */}
