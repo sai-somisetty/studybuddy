@@ -43,6 +43,13 @@ supabase = create_client(
     os.getenv("SUPABASE_URL"),
     os.getenv("SUPABASE_KEY")
 )
+
+# Content DB — concepts, chapters (admin Supabase)
+content_db = create_client(
+    os.getenv("CONTENT_SUPABASE_URL", "https://raatrrgldhxtabaottrv.supabase.co"),
+    os.getenv("CONTENT_SUPABASE_KEY", "sb_publishable_5O55piF38qaxILk-nowz6Q_xVSkg5Tp")
+)
+
 claude = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 chroma = chromadb.PersistentClient(path="./chromadb_data")
 
@@ -1223,7 +1230,7 @@ async def jump_to_page(page: int, namespace_prefix: str = "cma_f"):
 @app.get("/chapters/concepts")
 def get_chapter_concepts(paper: int, chapter: int):
     """Return concepts grouped by page for a paper+chapter."""
-    r = supabase.table("concepts")\
+    r = content_db.table("concepts")\
         .select("id, concept_title, book_page, tenglish, heading")\
         .eq("paper_number", paper)\
         .eq("chapter_number", chapter)\
