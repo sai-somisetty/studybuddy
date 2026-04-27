@@ -1,4 +1,5 @@
 "use client";
+import 'katex/dist/katex.min.css';
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect, useCallback, useMemo, Suspense } from "react";
@@ -223,6 +224,25 @@ function LessonContent() {
     }
   }, [currentPageIdx, currentParaIdx, namespace, pages.length]);
 
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      const container = document.getElementById('lesson-content');
+      if (container) {
+        const renderMathInElement = (await import('katex/dist/contrib/auto-render' as any)).default;
+        renderMathInElement(container, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '\\[', right: '\\]', display: true},
+          ],
+          throwOnError: false,
+        });
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [currentPageIdx, currentParaIdx]);
+
   // ── Reset on para change ──
   const resetParaState = useCallback(() => {
     setConceptDone(false);
@@ -363,7 +383,7 @@ function LessonContent() {
   // MAIN UI
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="app-shell" style={{ position: "relative" }}>
+    <div id="lesson-content" className="app-shell" style={{ position: "relative" }}>
 
       {/* ── CHAPTER MAP DRAWER ─────────────────────────────────────────── */}
       <AnimatePresence>
